@@ -1,3 +1,23 @@
+/**
+ * MovieReadModelRepository.java
+ * 
+ * @description 영화 읽기 모델에 대한 데이터 접근 계층 인터페이스.
+ *              JpaRepository를 확장하여 다양한 정렬 기준의 영화 목록 조회 기능을 제공한다.
+ * 
+ * @author      movie-shop Development Team
+ * @version     1.0.0
+ * @since       2025-12-02
+ * 
+ * @modification
+ * <pre>
+ * 수정일        수정자       수정내용
+ * ----------  --------    ---------------------------
+ * 2025-12-02   정수민       최초 생성
+ * </pre>
+ * 
+ * @see com.movie.shop.movie.domain.MovieReadModel
+ * @see org.springframework.data.jpa.repository.JpaRepository
+ */
 package com.movie.shop.movie.repository;
 
 import com.movie.shop.movie.domain.MovieReadModel;

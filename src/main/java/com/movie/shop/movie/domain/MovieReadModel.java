@@ -1,3 +1,20 @@
+/**
+ * MovieReadModel.java
+ * 
+ * @description 영화 정보 조회를 위한 읽기 전용 도메인 모델 클래스.
+ *              CQRS 패턴의 Query 모델로서 영화 상세 정보를 담는 불변 엔티티이다.
+ * 
+ * @author      movie-shop Development Team
+ * @version     1.0.0
+ * @since       2025-12-02
+ * 
+ * @modification
+ * <pre>
+ * 수정일        수정자       수정내용
+ * ----------  --------    ---------------------------
+ * 2025-12-02   정수민       최초 생성
+ * </pre>
+ */
 package com.movie.shop.movie.domain;
 
 import jakarta.persistence.*;

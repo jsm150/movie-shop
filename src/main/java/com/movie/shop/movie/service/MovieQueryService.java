@@ -1,3 +1,23 @@
+/**
+ * MovieQueryService.java
+ * 
+ * @description 영화 조회 관련 비즈니스 로직을 처리하는 서비스 클래스.
+ *              현재 상영 중인 영화 목록을 다양한 정렬 기준으로 조회하는 기능을 제공한다.
+ * 
+ * @author      movie-shop Development Team
+ * @version     1.0.0
+ * @since       2025-12-02
+ * 
+ * @modification
+ * <pre>
+ * 수정일        수정자       수정내용
+ * ----------  --------    ---------------------------
+ * 2025-12-02   정수민       최초 생성
+ * </pre>
+ * 
+ * @see com.movie.shop.movie.repository.MovieReadModelRepository
+ * @see com.movie.shop.movie.service.MovieSummaryData
+ */
 package com.movie.shop.movie.service;
 
 import com.movie.shop.movie.domain.MovieReadModel;
