@@ -348,7 +348,7 @@
 <header id="header">
     <a href="#" class="logo">CINEMA PRO</a>
     <nav class="nav-links">
-        <a href="#">영화</a>
+        <a href="/movies/now-showing">영화</a>
         <a href="#">예매</a>
         <a href="#">극장</a>
         <a href="#">이벤트</a>
@@ -379,7 +379,7 @@
 <div class="section-container">
     <div class="section-header">
         <h2 class="section-title">무비 차트</h2>
-        <a href="#" class="view-all">전체보기 <i class="fas fa-chevron-right"></i></a>
+        <a href="/movies/now-showing" class="view-all">전체보기 <i class="fas fa-chevron-right"></i></a>
     </div>
 
     <div class="movie-grid">
