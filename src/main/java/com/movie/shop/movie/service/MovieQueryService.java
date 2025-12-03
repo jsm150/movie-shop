@@ -35,13 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MovieQueryService {
 
     private final MovieReadModelRepository movieReadModelRepository;
-    private static final int DEFAULT_PAGE_SIZE = 20;
     private static final String NOW_SHOWING = "NOW_SHOWING";
-
-    @Transactional(readOnly = true)
-    public Page<MovieSummaryData> findNowShowingMovies() {
-        return findNowShowingMovies("booking", 0, DEFAULT_PAGE_SIZE);
-    }
 
     @Transactional(readOnly = true)
     public Page<MovieSummaryData> findNowShowingMovies(String sortBy, int page, int size) {
