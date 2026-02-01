@@ -1,4 +1,4 @@
-package com.movie.shop.api;
+package com.movie.shop.api.application.configuration;
 
 import an.awesome.pipelinr.Command;
 import an.awesome.pipelinr.Notification;
