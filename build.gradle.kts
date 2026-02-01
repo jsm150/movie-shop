@@ -30,6 +30,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.flywaydb:flyway-mysql")
     implementation("net.sizovs:pipelinr:0.11")
+    implementation("org.springdoc:springdoc-openapi-bom:2.8.15")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-scalar:2.8.15")
 	compileOnly("org.projectlombok:lombok")
 	runtimeOnly("com.mysql:mysql-connector-j")
 	annotationProcessor("org.projectlombok:lombok")
