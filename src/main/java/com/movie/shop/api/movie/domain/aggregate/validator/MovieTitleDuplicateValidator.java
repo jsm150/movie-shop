@@ -1,7 +1,6 @@
 package com.movie.shop.api.movie.domain.aggregate.validator;
 
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
-import com.movie.shop.api.movie.domain.aggregate.vo.MovieTitle;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

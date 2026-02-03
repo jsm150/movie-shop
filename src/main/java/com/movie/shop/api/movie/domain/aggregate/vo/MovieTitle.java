@@ -29,7 +29,7 @@ public class MovieTitle {
         return validateNotBlank(newTitle)
                 .flatMap(MovieTitle::validateLength)
                 .flatMap(t -> Option.of(t)
-                        .filter(val -> !nowTitle.toString().equals(val))
+                        .filter(val -> !nowTitle.getTitle().equals(val))
                         .map(val -> validateNotDuplicate(val, validator))
                         .getOrElse(Validation.valid(t))
                 )

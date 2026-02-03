@@ -3,6 +3,7 @@ package com.movie.shop.api.movie.api;
 import an.awesome.pipelinr.Pipeline;
 import com.movie.shop.api.movie.api.commands.DeleteMovieCommand;
 import com.movie.shop.api.movie.api.commands.RegisterMovieCommand;
+import com.movie.shop.api.movie.api.commands.UpdateMovieCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -33,6 +34,19 @@ public class MovieController {
     public ResponseEntity<Long> register(@RequestBody RegisterMovieCommand command) {
         Long movieId = pipeline.send(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(movieId);
+    }
+
+    @Operation(summary = "영화 수정", description = "영화 정보를 수정합니다.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "영화 수정 성공",
+            content = @Content(schema = @Schema(implementation = Long.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청",
+            content = @Content),
+    })
+    @PutMapping
+    public ResponseEntity<Long> update(@RequestBody UpdateMovieCommand command) {
+        Long movieId = pipeline.send(command);
+        return ResponseEntity.ok().body(movieId);
     }
 
     @Operation(summary = "영화 삭제", description = "영화를 삭제합니다.")

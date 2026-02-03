@@ -37,9 +37,6 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
     @Autowired
     private MovieRepository movieRepository;
 
-    @Autowired
-    private EntityManager entityManager;
-
     @Test
     @Transactional
     void registerMovie_returnsCreatedAndId() throws Exception {
@@ -72,7 +69,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
         Long movieId = Long.parseLong(result.getResponse().getContentAsString());
         Movie savedMovie = movieRepository.findById(movieId).orElseThrow();
 
-        assertThat(savedMovie.getTitle()).isEqualTo("인터스텔라");
+        assertThat(savedMovie.getTitle().getTitle()).isEqualTo("인터스텔라");
         assertThat(savedMovie.getDirector()).isEqualTo("크리스토퍼 놀란");
         assertThat(savedMovie.getGenres()).containsExactlyInAnyOrder("SF", "드라마");
         assertThat(savedMovie.getRuntimeMinutes()).isEqualTo(169);

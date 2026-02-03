@@ -38,30 +38,6 @@ public class EntityValidator {
         return this;
     }
     
-    /**
-     * 조건이 false일 경우 에러를 추가합니다.
-     */
-    public EntityValidator validate(boolean condition, String errorMessage) {
-        if (!condition) {
-            errors.add(errorMessage);
-        }
-        return this;
-    }
-    
-    /**
-     * 지연 평가로 조건을 검증합니다. (DB 조회 등 비용이 큰 검증에 사용)
-     */
-    public EntityValidator validateLazy(Supplier<Boolean> conditionSupplier, String errorMessage) {
-        try {
-            if (!conditionSupplier.get()) {
-                errors.add(errorMessage);
-            }
-        } catch (Exception e) {
-            errors.add(errorMessage);
-        }
-        return this;
-    }
-
     public <T> EntityValidator apply(io.vavr.control.Validation<String, T> result, Consumer<T> setter) {
         if (!result.isValid()) {
             errors.add(result.getError());

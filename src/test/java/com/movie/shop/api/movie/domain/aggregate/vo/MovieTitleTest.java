@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -138,6 +139,7 @@ class MovieTitleTest {
         void createFrom_withSameTitle_successWithoutDuplicateCheck() {
             // given
             String sameTitle = "기존 영화 제목";
+            lenient().when(mockValidator.validateNotDuplicate(existingTitle.getTitle())).thenReturn(false);
 
             // when
             Validation<String, MovieTitle> result = MovieTitle.createFrom(existingTitle, sameTitle, mockValidator);

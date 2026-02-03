@@ -78,8 +78,6 @@ public class Movie {
                                  AudienceRating audienceRating, String synopsis, OffsetDateTime releaseDate, List<Actor> casts) {
         
         var movie = new Movie();
-
-        movie.title = title;
         movie.director = director;
         movie.genres = genres;
         movie.runtimeMinutes = runtimeMinutes;
@@ -95,5 +93,23 @@ public class Movie {
             .throwIfInvalid(MovieDomainException::new);
 
         return movie;
+    }
+
+    public void Update(MovieTitleDuplicateValidator titleDuplicateValidator, String title, String director, List<String> genres,
+                       int runtimeMinutes, AudienceRating audienceRating, String synopsis,
+                       OffsetDateTime releaseDate, List<Actor> casts) {
+        
+        this.director = director;
+        this.genres = genres;
+        this.runtimeMinutes = runtimeMinutes;
+        this.audienceRating = audienceRating;
+        this.synopsis = synopsis;
+        this.releaseDate = releaseDate;
+        this.casts = casts;
+
+        EntityValidator.create()
+            .apply(MovieTitle.createFrom(this.title, title, titleDuplicateValidator), this::setTitle)
+            .validateBean(this)
+            .throwIfInvalid(MovieDomainException::new);
     }
 }

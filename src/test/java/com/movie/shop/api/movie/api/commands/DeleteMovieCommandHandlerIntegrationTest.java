@@ -6,6 +6,7 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,9 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private Pipeline pipeline;
+
+    @Autowired
+    private MovieTitleDuplicateValidator validator;
 
     @Autowired
     private MovieRepository movieRepository;
@@ -45,7 +49,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
 
         Movie movie = Movie.Register(
-                movieRepository,
+                validator,
                 "인터스텔라",
                 "크리스토퍼 놀란",
                 List.of("SF", "드라마"),
@@ -107,7 +111,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         );
 
         Movie movie = Movie.Register(
-                movieRepository,
+                validator,
                 "다크 나이트",
                 "크리스토퍼 놀란",
                 List.of("액션", "범죄"),
@@ -154,7 +158,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         );
 
         Movie movie1 = Movie.Register(
-                movieRepository,
+                validator,
                 "영화1",
                 "감독1",
                 List.of("장르1"),
@@ -173,7 +177,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         );
 
         Movie movie2 = Movie.Register(
-                movieRepository,
+                validator,
                 "영화2",
                 "감독2",
                 List.of("장르2"),

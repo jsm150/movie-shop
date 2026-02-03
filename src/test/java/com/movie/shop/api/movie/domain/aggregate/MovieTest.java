@@ -1,5 +1,6 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
+import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ import static org.mockito.Mockito.when;
 class MovieTest {
 
     @Mock
-    private MovieRepository mockRepository;
+    private MovieTitleDuplicateValidator validator;
 
     private String validTitle;
     private String validDirector;
@@ -46,14 +47,14 @@ class MovieTest {
                 new Actor("매튜 매코너히", OffsetDateTime.parse("1969-11-04T00:00:00Z"), "USA", "쿠퍼")
         );
 
-        when(mockRepository.existsByTitle(validTitle)).thenReturn(false);
+        when(validator.validateNotDuplicate(validTitle)).thenReturn(true);
     }
 
     @Test
     void createMovie_withValidData_succeeds() {
         // when
         Movie movie = Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -65,7 +66,7 @@ class MovieTest {
         );
 
         // then
-        assertThat(movie.getTitle()).isEqualTo(validTitle);
+        assertThat(movie.getTitle().getTitle()).isEqualTo(validTitle);
         assertThat(movie.getDirector()).isEqualTo(validDirector);
         assertThat(movie.getGenres()).containsExactlyElementsOf(validGenres);
         assertThat(movie.getRuntimeMinutes()).isEqualTo(validRuntimeMinutes);
@@ -79,7 +80,7 @@ class MovieTest {
     @Test
     void createMovie_withBlankTitle_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 "",
                 validDirector,
                 validGenres,
@@ -97,7 +98,7 @@ class MovieTest {
     @MockitoSettings(strictness = Strictness.LENIENT)
     void createMovie_withNullTitle_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 null,
                 validDirector,
                 validGenres,
@@ -116,7 +117,7 @@ class MovieTest {
         String longTitle = "a".repeat(201);
 
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 longTitle,
                 validDirector,
                 validGenres,
@@ -133,7 +134,7 @@ class MovieTest {
     @Test
     void createMovie_withBlankDirector_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 "",
                 validGenres,
@@ -150,7 +151,7 @@ class MovieTest {
     @Test
     void createMovie_withEmptyGenres_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 Collections.emptyList(),
@@ -167,7 +168,7 @@ class MovieTest {
     @Test
     void createMovie_withNullGenres_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 null,
@@ -184,7 +185,7 @@ class MovieTest {
     @Test
     void createMovie_withBlankGenreItem_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 List.of("SF", ""),
@@ -201,7 +202,7 @@ class MovieTest {
     @Test
     void createMovie_withZeroRuntimeMinutes_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -218,7 +219,7 @@ class MovieTest {
     @Test
     void createMovie_withNegativeRuntimeMinutes_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -235,7 +236,7 @@ class MovieTest {
     @Test
     void createMovie_withNullAudienceRating_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -252,7 +253,7 @@ class MovieTest {
     @Test
     void createMovie_withBlankSynopsis_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -271,7 +272,7 @@ class MovieTest {
         String longSynopsis = "a".repeat(1001);
 
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -288,7 +289,7 @@ class MovieTest {
     @Test
     void createMovie_withNullReleaseDate_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -305,7 +306,7 @@ class MovieTest {
     @Test
     void createMovie_withEmptyCasts_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -322,7 +323,7 @@ class MovieTest {
     @Test
     void createMovie_withNullCasts_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -339,11 +340,11 @@ class MovieTest {
     @Test
     void createMovie_withDuplicateTitle_throwsException() {
         // given
-        when(mockRepository.existsByTitle(validTitle)).thenReturn(true);
+        when(validator.validateNotDuplicate(validTitle)).thenReturn(false);
 
         // when & then
         assertThatThrownBy(() -> Movie.Register(
-                mockRepository,
+                validator,
                 validTitle,
                 validDirector,
                 validGenres,
