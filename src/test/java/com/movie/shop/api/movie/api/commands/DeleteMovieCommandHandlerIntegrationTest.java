@@ -1,7 +1,7 @@
 package com.movie.shop.api.movie.api.commands;
 
 import an.awesome.pipelinr.Pipeline;
-import com.movie.shop.api.configuration.IntegrationTestContainers;
+import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-class DeleteMovieCommandHandlerIntegrationTest implements IntegrationTestContainers {
+class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private Pipeline pipeline;

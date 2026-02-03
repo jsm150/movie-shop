@@ -1,6 +1,6 @@
 package com.movie.shop.api.movie.api;
 
-import com.movie.shop.api.configuration.IntegrationTestContainers;
+import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.movie.api.commands.RegisterMovieCommand;
 import com.movie.shop.api.movie.api.commands.RegisterMovieCommand.ActorDto;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class MovieControllerIntegrationTest implements IntegrationTestContainers {
+class MovieControllerIntegrationTest extends AbstractContainerBase {
     @Autowired
     private MockMvc mockMvc;
 
