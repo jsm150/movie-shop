@@ -1,0 +1,57 @@
+package com.movie.shop.api.movie.domain.aggregate.vo;
+
+
+import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
+import io.vavr.control.Option;
+import io.vavr.control.Validation;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class MovieTitle {
+
+    private String title;
+
+    public MovieTitle(String title) {
+        this.title = title;
+    }
+
+    public static Validation<String, MovieTitle> createNew(String title, MovieTitleDuplicateValidator validator) {
+        return validateNotBlank(title)
+                .flatMap(MovieTitle::validateLength)
+                .flatMap(t -> validateNotDuplicate(t, validator))
+                .map(MovieTitle::new);
+    }
+
+    public static Validation<String, MovieTitle> createFrom(MovieTitle nowTitle, String newTitle, MovieTitleDuplicateValidator validator) {
+        return validateNotBlank(newTitle)
+                .flatMap(MovieTitle::validateLength)
+                .flatMap(t -> Option.of(t)
+                        .filter(val -> !nowTitle.toString().equals(val))
+                        .map(val -> validateNotDuplicate(val, validator))
+                        .getOrElse(Validation.valid(t))
+                )
+                .map(MovieTitle::new);
+    }
+
+    private static Validation<String, String> validateNotBlank(String title) {
+        return title != null && !title.isEmpty()
+                ? Validation.valid(title)
+                : Validation.invalid("영화 제목은 필수입니다.");
+    }
+
+    private static Validation<String, String> validateLength(String title) {
+        return title.length() <= 200
+                ? Validation.valid(title)
+                : Validation.invalid("영화 제목은 200자를 초과할 수 없습니다.");
+    }
+
+    private static Validation<String, String> validateNotDuplicate(String title, MovieTitleDuplicateValidator validator) {
+        return validator.validateNotDuplicate(title)
+                ? Validation.valid(title)
+                : Validation.invalid("'" + title + "' 제목을 가진 영화가 이미 존재합니다.");
+    }
+
+}

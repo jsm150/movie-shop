@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, Long> {
-    
-    boolean existsByTitle(String title);
+
+    boolean existsByTitle_Title(String title);
 
     default Movie getById(long movieId) {
         return this.findById(movieId)
