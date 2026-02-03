@@ -52,8 +52,8 @@ public class Movie {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MovieStatus status;
-    
-    public Movie(MovieRepository repository, String title, String director, List<String> genres, int runtimeMinutes,
+
+    public static Movie Register(MovieRepository repository, String title, String director, List<String> genres, int runtimeMinutes,
                  AudienceRating audienceRating, String synopsis, OffsetDateTime releaseDate, List<Actor> casts) {
         
         DomainValidator.builder()
@@ -92,14 +92,18 @@ public class Movie {
             
             .throwIfInvalid(MovieDomainException::new);
 
-        this.title = title;
-        this.director = director;
-        this.genres = new ArrayList<>(genres);
-        this.runtimeMinutes = runtimeMinutes;
-        this.audienceRating = audienceRating;
-        this.synopsis = synopsis;
-        this.releaseDate = releaseDate;
-        this.casts = new ArrayList<>(casts);
-        this.status = MovieStatus.PREPARING;
+        var movie = new Movie();
+
+        movie.title = title;
+        movie.director = director;
+        movie.genres = new ArrayList<>(genres);
+        movie.runtimeMinutes = runtimeMinutes;
+        movie.audienceRating = audienceRating;
+        movie.synopsis = synopsis;
+        movie.releaseDate = releaseDate;
+        movie.casts = new ArrayList<>(casts);
+        movie.status = MovieStatus.PREPARING;
+
+        return movie;
     }
 }

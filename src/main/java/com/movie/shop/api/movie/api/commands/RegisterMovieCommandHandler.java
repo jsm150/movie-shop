@@ -26,7 +26,7 @@ public class RegisterMovieCommandHandler implements Command.Handler<RegisterMovi
                 ))
                 .toList();
         
-        var movie = new Movie(
+        var movie = Movie.Register(
                 movieRepository,
                 command.title(),
                 command.director(),

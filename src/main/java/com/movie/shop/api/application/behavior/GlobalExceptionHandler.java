@@ -22,8 +22,7 @@ public class GlobalExceptionHandler {
         
         problemDetail.setTitle("Domain Validation Error");
         problemDetail.setProperty("timestamp", Instant.now());
-        problemDetail.setProperty("path", request.getRequestURI());
-        
+
         if (ex.hasMultipleErrors()) {
             problemDetail.setProperty("errors", ex.getErrors());
         }
