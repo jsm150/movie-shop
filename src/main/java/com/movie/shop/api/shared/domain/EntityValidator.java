@@ -1,5 +1,6 @@
 package com.movie.shop.api.shared.domain;
 
+import io.vavr.collection.Seq;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -37,10 +38,24 @@ public class EntityValidator {
         }
         return this;
     }
+
+    /**
+     * 조건이 false일 경우 에러 메시지를 추가합니다.
+     *
+     * @param condition 검증 조건 (true면 통과, false면 실패)
+     * @param errorMessage 실패 시 에러 메시지
+     * @return this
+     */
+    public EntityValidator validate(boolean condition, String errorMessage) {
+        if (!condition) {
+            errors.add(errorMessage);
+        }
+        return this;
+    }
     
-    public <T> EntityValidator apply(io.vavr.control.Validation<String, T> result, Consumer<T> setter) {
+    public <T> EntityValidator apply(io.vavr.control.Validation<Seq<String>, T> result, Consumer<T> setter) {
         if (!result.isValid()) {
-            errors.add(result.getError());
+            result.getError().forEach(errors::add);
         }
         else {
             setter.accept(result.get());

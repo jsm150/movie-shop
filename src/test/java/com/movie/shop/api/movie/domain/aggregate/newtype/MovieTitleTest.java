@@ -1,6 +1,7 @@
 package com.movie.shop.api.movie.domain.aggregate.newtype;
 
 import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
+import io.vavr.collection.Seq;
 import io.vavr.control.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +34,7 @@ class MovieTitleTest {
             when(mockValidator.validateNotDuplicate(validTitle)).thenReturn(true);
 
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createNew(validTitle, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew(validTitle, mockValidator);
 
             // then
             assertThat(result.isValid()).isTrue();
@@ -44,22 +45,22 @@ class MovieTitleTest {
         @DisplayName("null 제목으로 생성 실패")
         void createNew_withNullTitle_fail() {
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createNew(null, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew(null, mockValidator);
 
             // then
             assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).isEqualTo("영화 제목은 필수입니다.");
+            assertThat(result.getError()).contains("영화 제목은 필수입니다.");
         }
 
         @Test
         @DisplayName("빈 문자열 제목으로 생성 실패")
         void createNew_withEmptyTitle_fail() {
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createNew("", mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew("", mockValidator);
 
             // then
             assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).isEqualTo("영화 제목은 필수입니다.");
+            assertThat(result.getError()).contains("영화 제목은 필수입니다.");
         }
 
         @Test
@@ -69,11 +70,11 @@ class MovieTitleTest {
             String longTitle = "a".repeat(201);
 
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createNew(longTitle, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew(longTitle, mockValidator);
 
             // then
             assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).isEqualTo("영화 제목은 200자를 초과할 수 없습니다.");
+            assertThat(result.getError()).contains("영화 제목은 200자를 초과할 수 없습니다.");
         }
 
         @Test
@@ -84,11 +85,11 @@ class MovieTitleTest {
             when(mockValidator.validateNotDuplicate(duplicateTitle)).thenReturn(false);
 
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createNew(duplicateTitle, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew(duplicateTitle, mockValidator);
 
             // then
             assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).isEqualTo("'" + duplicateTitle + "' 제목을 가진 영화가 이미 존재합니다.");
+            assertThat(result.getError()).contains("'" + duplicateTitle + "' 제목을 가진 영화가 이미 존재합니다.");
         }
 
         @Test
@@ -99,7 +100,7 @@ class MovieTitleTest {
             when(mockValidator.validateNotDuplicate(titleWith200Chars)).thenReturn(true);
 
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createNew(titleWith200Chars, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew(titleWith200Chars, mockValidator);
 
             // then
             assertThat(result.isValid()).isTrue();
@@ -127,7 +128,7 @@ class MovieTitleTest {
             when(mockValidator.validateNotDuplicate(newTitle)).thenReturn(true);
 
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createFrom(existingTitle, newTitle, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, newTitle, mockValidator);
 
             // then
             assertThat(result.isValid()).isTrue();
@@ -142,7 +143,7 @@ class MovieTitleTest {
             lenient().when(mockValidator.validateNotDuplicate(existingTitle.getTitle())).thenReturn(false);
 
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createFrom(existingTitle, sameTitle, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, sameTitle, mockValidator);
 
             // then
             assertThat(result.isValid()).isTrue();
@@ -153,22 +154,22 @@ class MovieTitleTest {
         @DisplayName("null 제목으로 변경 실패")
         void createFrom_withNullTitle_fail() {
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createFrom(existingTitle, null, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, null, mockValidator);
 
             // then
             assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).isEqualTo("영화 제목은 필수입니다.");
+            assertThat(result.getError()).contains("영화 제목은 필수입니다.");
         }
 
         @Test
         @DisplayName("빈 문자열 제목으로 변경 실패")
         void createFrom_withEmptyTitle_fail() {
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createFrom(existingTitle, "", mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, "", mockValidator);
 
             // then
             assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).isEqualTo("영화 제목은 필수입니다.");
+            assertThat(result.getError()).contains("영화 제목은 필수입니다.");
         }
 
         @Test
@@ -178,11 +179,11 @@ class MovieTitleTest {
             String longTitle = "a".repeat(201);
 
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createFrom(existingTitle, longTitle, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, longTitle, mockValidator);
 
             // then
             assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).isEqualTo("영화 제목은 200자를 초과할 수 없습니다.");
+            assertThat(result.getError()).contains("영화 제목은 200자를 초과할 수 없습니다.");
         }
 
         @Test
@@ -193,11 +194,11 @@ class MovieTitleTest {
             when(mockValidator.validateNotDuplicate(duplicateTitle)).thenReturn(false);
 
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createFrom(existingTitle, duplicateTitle, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, duplicateTitle, mockValidator);
 
             // then
             assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).isEqualTo("'" + duplicateTitle + "' 제목을 가진 영화가 이미 존재합니다.");
+            assertThat(result.getError()).contains("'" + duplicateTitle + "' 제목을 가진 영화가 이미 존재합니다.");
         }
 
         @Test
@@ -208,7 +209,7 @@ class MovieTitleTest {
             when(mockValidator.validateNotDuplicate(titleWith200Chars)).thenReturn(true);
 
             // when
-            Validation<String, MovieTitle> result = MovieTitle.createFrom(existingTitle, titleWith200Chars, mockValidator);
+            Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, titleWith200Chars, mockValidator);
 
             // then
             assertThat(result.isValid()).isTrue();

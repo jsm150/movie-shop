@@ -2,6 +2,8 @@ package com.movie.shop.api.movie.domain.aggregate.newtype;
 
 
 import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
+import io.vavr.collection.List;
+import io.vavr.collection.Seq;
 import io.vavr.control.Option;
 import io.vavr.control.Validation;
 import lombok.AccessLevel;
@@ -18,14 +20,15 @@ public class MovieTitle {
         this.title = title;
     }
 
-    public static Validation<String, MovieTitle> createNew(String title, MovieTitleDuplicateValidator validator) {
+    public static Validation<Seq<String>, MovieTitle> createNew(String title, MovieTitleDuplicateValidator validator) {
         return validateNotBlank(title)
                 .flatMap(MovieTitle::validateLength)
                 .flatMap(t -> validateNotDuplicate(t, validator))
-                .map(MovieTitle::new);
+                .map(MovieTitle::new)
+                .mapError(List::of);
     }
 
-    public static Validation<String, MovieTitle> createFrom(MovieTitle nowTitle, String newTitle, MovieTitleDuplicateValidator validator) {
+    public static Validation<Seq<String>, MovieTitle> createFrom(MovieTitle nowTitle, String newTitle, MovieTitleDuplicateValidator validator) {
         return validateNotBlank(newTitle)
                 .flatMap(MovieTitle::validateLength)
                 .flatMap(t -> Option.of(t)
@@ -33,7 +36,8 @@ public class MovieTitle {
                         .map(val -> validateNotDuplicate(val, validator))
                         .getOrElse(Validation.valid(t))
                 )
-                .map(MovieTitle::new);
+                .map(MovieTitle::new)
+                .mapError(List::of);
     }
 
     private static Validation<String, String> validateNotBlank(String title) {

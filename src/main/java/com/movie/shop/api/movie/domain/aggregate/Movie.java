@@ -28,11 +28,11 @@ public class Movie {
     private Long id;
 
     @Setter(AccessLevel.PRIVATE)
-    @Embedded
     @AttributeOverride(
             name = "title",
             column = @Column(name = "title", nullable = false, length = 200, unique = true)
     )
+    @Embedded
     private MovieTitle title;
     
     @NotBlank(message = "감독 이름은 필수입니다.")
@@ -65,7 +65,6 @@ public class Movie {
     private OffsetDateTime releaseDate;
 
     @NotEmpty(message = "최소 한 명 이상의 출연진이 필요합니다.")
-    @Valid
     @ElementCollection
     @CollectionTable(name = "movie_actors", joinColumns = @JoinColumn(name = "movie_id"))
     private List<Actor> casts = new ArrayList<>();
