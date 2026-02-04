@@ -64,6 +64,17 @@ public class Theater {
         return theater;
     }
 
+    public void Update(TheaterNameDuplicateValidator nameDuplicateValidator, String name, int floor, TheaterType type, List<String> seats, int rowCount, int columnCount) {
+        this.floor = floor;
+        this.theaterType = type;
+
+        EntityValidator.create()
+            .apply(TheaterName.createFrom(this.name, name, nameDuplicateValidator), this::setName)
+            .apply(TheaterSeats.create(seats, rowCount, columnCount), this::setSeats)
+            .validateBean(this)
+            .throwIfInvalid(TheaterDomainException::new);
+    }
+
     public void deactivate() {
         active = false;
     }

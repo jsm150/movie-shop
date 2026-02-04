@@ -2,6 +2,7 @@ package com.movie.shop.api.theater.api;
 
 import an.awesome.pipelinr.Pipeline;
 import com.movie.shop.api.theater.api.commands.RegisterTheaterCommand;
+import com.movie.shop.api.theater.api.commands.UpdateTheaterCommand;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,5 +37,18 @@ public class TheaterController {
     public ResponseEntity<Long> createTheater(@RequestBody RegisterTheaterCommand command) {
             Long theaterId = pipeline.send(command);
             return ResponseEntity.status(HttpStatus.CREATED).body(theaterId);
+    }
+
+    @Operation(summary = "극장 수정", description = "극장 정보를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "극장 수정 성공",
+                    content = @Content(schema = @Schema(implementation = Long.class))),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청",
+                    content = @Content),
+    })
+    @PutMapping
+    public ResponseEntity<Long> updateTheater(@RequestBody UpdateTheaterCommand command) {
+            Long theaterId = pipeline.send(command);
+            return ResponseEntity.ok().body(theaterId);
     }
 }
