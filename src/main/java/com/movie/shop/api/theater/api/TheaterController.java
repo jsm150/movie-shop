@@ -2,6 +2,7 @@ package com.movie.shop.api.theater.api;
 
 import an.awesome.pipelinr.Pipeline;
 import com.movie.shop.api.theater.api.commands.ChangeActiveTheaterCommand;
+import com.movie.shop.api.theater.api.commands.DeleteTheaterCommand;
 import com.movie.shop.api.theater.api.commands.RegisterTheaterCommand;
 import com.movie.shop.api.theater.api.commands.UpdateTheaterCommand;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,6 +64,18 @@ public class TheaterController {
     })
     @PatchMapping("/active")
     public ResponseEntity<Void> changeActive(@RequestBody ChangeActiveTheaterCommand command) {
+            pipeline.send(command);
+            return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "극장 삭제", description = "극장을 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "극장 삭제 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청",
+                    content = @Content),
+    })
+    @DeleteMapping
+    public ResponseEntity<Void> delete(@RequestBody DeleteTheaterCommand command) {
             pipeline.send(command);
             return ResponseEntity.ok().build();
     }
