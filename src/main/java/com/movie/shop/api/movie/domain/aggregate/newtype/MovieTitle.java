@@ -1,4 +1,4 @@
-package com.movie.shop.api.movie.domain.aggregate.vo;
+package com.movie.shop.api.movie.domain.aggregate.newtype;
 
 
 import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;

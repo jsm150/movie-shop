@@ -1,6 +1,7 @@
 package com.movie.shop.api.movie.api;
 
 import an.awesome.pipelinr.Pipeline;
+import com.movie.shop.api.movie.api.commands.ChangeStateMovieCommand;
 import com.movie.shop.api.movie.api.commands.DeleteMovieCommand;
 import com.movie.shop.api.movie.api.commands.RegisterMovieCommand;
 import com.movie.shop.api.movie.api.commands.UpdateMovieCommand;
@@ -57,6 +58,20 @@ public class MovieController {
     })
     @DeleteMapping
     public ResponseEntity<Void> delete(@RequestBody DeleteMovieCommand command) {
+        pipeline.send(command);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "영화 상태 변경", description = "영화의 상태를 변경합니다. (개봉 예정, 상영 중, 상영 종료)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "영화 상태 변경 성공"),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청",
+            content = @Content),
+    })
+    @PatchMapping("/state/{movieId}")
+    public ResponseEntity<Void> changeState(
+            @PathVariable Long movieId,
+            @RequestBody ChangeStateMovieCommand command) {
         pipeline.send(command);
         return ResponseEntity.ok().build();
     }
