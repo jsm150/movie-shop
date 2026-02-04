@@ -68,10 +68,8 @@ public class MovieController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청",
             content = @Content),
     })
-    @PatchMapping("/state/{movieId}")
-    public ResponseEntity<Void> changeState(
-            @PathVariable Long movieId,
-            @RequestBody ChangeStateMovieCommand command) {
+    @PatchMapping("/state")
+    public ResponseEntity<Void> changeState(@RequestBody ChangeStateMovieCommand command) {
         pipeline.send(command);
         return ResponseEntity.ok().build();
     }

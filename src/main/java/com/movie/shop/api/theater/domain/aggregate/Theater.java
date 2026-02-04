@@ -79,4 +79,8 @@ public class Theater {
         active = false;
     }
 
+    public void activate() {
+        active = true;
+    }
+
 }
