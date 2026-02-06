@@ -22,7 +22,7 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
 
     @Test
     @Transactional
-    @DisplayName("SCHEDULED 상태 상영의 시간 수정 시 DB에 반영된다")
+    @DisplayName("SCHEDULED 상태 상영의 시간 수정하면 DB에 반영된다")
     void updateScreening_withScheduledStatus_updatesDatabase() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
@@ -65,7 +65,7 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
 
     @Test
     @Transactional
-    @DisplayName("존재하지 않는 상영 ID로 수정 시 실패한다")
+    @DisplayName("존재하지 않는 상영 ID로 수정하면 실패한다")
     void updateScreening_withMissingId_throwsException() {
         // given
         UpdateScreeningCommand command = new UpdateScreeningCommand(

@@ -97,7 +97,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
 
         @Test
         @Transactional
-        @DisplayName("PREPARING이 아닌 상태에서 COMING_SOON으로 변경 시 예외 발생")
+        @DisplayName("PREPARING이 아닌 상태에서 COMING_SOON으로 변경하면 예외가 발생한다")
         void changeState_notPreparingToComingSoon_throwsException() {
             // Given: PREPARING 상태의 영화를 먼저 COMING_SOON으로 변경
             Movie movie = createAndSaveMovie("인터스텔라");
@@ -151,7 +151,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
 
         @Test
         @Transactional
-        @DisplayName("COMING_SOON이 아닌 상태에서 NOW_SHOWING으로 변경 시 예외 발생")
+        @DisplayName("COMING_SOON이 아닌 상태에서 NOW_SHOWING으로 변경하면 예외가 발생한다")
         void changeState_notComingSoonToNowShowing_throwsException() {
             // Given: PREPARING 상태의 영화
             Movie movie = createAndSaveMovie("인터스텔라");
@@ -202,7 +202,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
 
         @Test
         @Transactional
-        @DisplayName("NOW_SHOWING이 아닌 상태에서 ENDED로 변경 시 예외 발생")
+        @DisplayName("NOW_SHOWING이 아닌 상태에서 ENDED로 변경하면 예외가 발생한다")
         void changeState_notNowShowingToEnded_throwsException() {
             // Given: COMING_SOON 상태의 영화
             Movie movie = createAndSaveMovie("인터스텔라");
@@ -225,7 +225,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
 
     @Test
     @Transactional
-    @DisplayName("존재하지 않는 영화 ID로 상태 변경 시 예외 발생")
+    @DisplayName("존재하지 않는 영화 ID로 상태 변경하면 예외가 발생한다")
     void changeState_withNonExistentId_throwsException() {
         // Given: 존재하지 않는 영화 ID
         long nonExistentMovieId = 999999L;

@@ -105,7 +105,7 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
 
     @Test
     @Transactional
-    @DisplayName("CANCEL 명령 실행 시 취소 사유/시간과 함께 CANCELED 상태가 된다")
+    @DisplayName("CANCEL 명령 실행하면 취소 사유/시간과 함께 CANCELED 상태가 된다")
     void changeState_cancel_success() {
         // given
         Screening screening = createScheduledScreening();
@@ -171,7 +171,7 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
 
     @Test
     @Transactional
-    @DisplayName("존재하지 않는 상영 ID로 상태 변경 시 실패한다")
+    @DisplayName("존재하지 않는 상영 ID로 상태 변경하면 실패한다")
     void changeState_withMissingScreeningId_throwsException() {
         // given
         ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(

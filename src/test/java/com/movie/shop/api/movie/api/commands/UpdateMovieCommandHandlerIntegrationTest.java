@@ -75,7 +75,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("영화 정보 전체 수정 시 DB에 변경사항이 반영된다")
+        @DisplayName("영화 정보 전체 수정하면 DB에 변경사항이 반영된다")
         void updateMovie_allFields_updatesDatabase() {
             // Given: DB에 영화 저장
             Movie movie = createAndSaveMovie("인터스텔라");
@@ -128,7 +128,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("출연진 정보만 수정 시 DB에 변경사항이 반영된다")
+        @DisplayName("출연진 정보만 수정하면 DB에 변경사항이 반영된다")
         void updateMovie_onlyCasts_updatesDatabase() {
             // Given: DB에 영화 저장
             Movie movie = createAndSaveMovie("다크나이트");
@@ -181,7 +181,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("새로운 제목으로 변경 시 성공한다")
+        @DisplayName("새로운 제목으로 변경하면 성공한다")
         void updateMovie_withNewTitle_success() {
             // Given: DB에 영화 저장
             Movie movie = createAndSaveMovie("오펜하이머");
@@ -219,7 +219,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("동일한 제목으로 변경 시 중복 검증을 스킵하고 성공한다")
+        @DisplayName("동일한 제목으로 변경하면 중복 검증을 스킵하고 성공한다")
         void updateMovie_withSameTitle_successWithoutDuplicateCheck() {
             // Given: DB에 영화 저장
             Movie movie = createAndSaveMovie("테넷");
@@ -260,7 +260,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("이미 존재하는 다른 영화의 제목으로 변경 시 실패한다")
+        @DisplayName("이미 존재하는 다른 영화의 제목으로 변경하면 실패한다")
         void updateMovie_withDuplicateTitle_throwsException() {
             // Given: DB에 두 개의 영화 저장
             Movie movie1 = createAndSaveMovie("덩케르크");
@@ -300,7 +300,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("존재하지 않는 영화 ID로 수정 시 예외가 발생한다")
+        @DisplayName("존재하지 않는 영화 ID로 수정하면 예외가 발생한다")
         void updateMovie_withNonExistentId_throwsException() {
             // Given: 존재하지 않는 영화 ID
             long nonExistentMovieId = 999999L;

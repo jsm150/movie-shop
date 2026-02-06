@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class TheaterSeatsTest {
 
     @Test
-    @DisplayName("좌석 생성 성공")
+    @DisplayName("좌석 생성 성공한다")
     void createSuccess() {
         List<String> seats = List.of("A1", "A2", "A3", "B1", "B2", "B3");
 
@@ -26,7 +26,7 @@ class TheaterSeatsTest {
     }
 
     @Test
-    @DisplayName("좌석 리스트가 비어 있으면 실패")
+    @DisplayName("좌석 리스트가 비어 있으면 실패한다")
     void createFailWhenSeatsEmpty() {
         Validation<Seq<String>, TheaterSeats> result = TheaterSeats.create(List.of(), 2, 3);
 
@@ -35,7 +35,7 @@ class TheaterSeatsTest {
     }
 
     @Test
-    @DisplayName("좌석 수가 행*열과 다르면 실패")
+    @DisplayName("좌석 수가 행*열과 다르면 실패한다")
     void createFailWhenSeatCountMismatch() {
         List<String> seats = List.of("A1", "A2", "A3");
 
@@ -46,7 +46,7 @@ class TheaterSeatsTest {
     }
 
     @Test
-    @DisplayName("중복된 좌석이 있으면 실패")
+    @DisplayName("중복된 좌석이 있으면 실패한다")
     void createFailWhenSeatDuplicated() {
         List<String> seats = List.of("A1", "A1", "A2", "A3");
 
@@ -57,7 +57,7 @@ class TheaterSeatsTest {
     }
 
     @Test
-    @DisplayName("행 수가 0 이하면 실패")
+    @DisplayName("행 수가 0 이하면 실패한다")
     void createFailWhenRowCountTooSmall() {
         List<String> seats = List.of("A1", "A2");
 
@@ -68,7 +68,7 @@ class TheaterSeatsTest {
     }
 
     @Test
-    @DisplayName("행 수가 100 초과면 실패")
+    @DisplayName("행 수가 100 초과면 실패한다")
     void createFailWhenRowCountTooLarge() {
         List<String> seats = List.of("A1", "A2");
 
@@ -79,7 +79,7 @@ class TheaterSeatsTest {
     }
 
     @Test
-    @DisplayName("열 수가 0 이하면 실패")
+    @DisplayName("열 수가 0 이하면 실패한다")
     void createFailWhenColumnCountTooSmall() {
         List<String> seats = List.of("A1", "A2");
 
@@ -90,7 +90,7 @@ class TheaterSeatsTest {
     }
 
     @Test
-    @DisplayName("열 수가 50 초과면 실패")
+    @DisplayName("열 수가 50 초과면 실패한다")
     void createFailWhenColumnCountTooLarge() {
         List<String> seats = List.of("A1", "A2");
 

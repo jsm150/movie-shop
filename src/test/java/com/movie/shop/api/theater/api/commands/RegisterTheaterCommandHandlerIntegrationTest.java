@@ -37,7 +37,7 @@ class RegisterTheaterCommandHandlerIntegrationTest extends AbstractContainerBase
 
     @Test
     @Transactional
-    @DisplayName("상영관 등록 시 DB에 값이 저장된다")
+    @DisplayName("상영관 등록하면 DB에 값이 저장된다")
     void registerTheater_persistsToDatabase() {
         // given
         RegisterTheaterCommand command = new RegisterTheaterCommand(
@@ -67,7 +67,7 @@ class RegisterTheaterCommandHandlerIntegrationTest extends AbstractContainerBase
 
     @Test
     @Transactional
-    @DisplayName("동일한 상영관 이름으로 등록 시 중복을 허용하지 않는다")
+    @DisplayName("동일한 상영관 이름으로 등록하면 중복을 허용하지 않는다")
     void registerTheater_withDuplicateName_fails() {
         // given
         RegisterTheaterCommand first = new RegisterTheaterCommand(

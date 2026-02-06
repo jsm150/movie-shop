@@ -9,6 +9,7 @@ import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import jakarta.persistence.EntityManager;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,6 +43,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
     private MovieJpaPort movieJpaPort;
 
     @Test
+    @DisplayName("유효한 영화 등록 요청을 보내면 201 Created와 영화 ID를 반환한다")
     @Transactional
     void registerMovie_returnsCreatedAndId() throws Exception {
         var command = new RegisterMovieCommand(
@@ -86,6 +88,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
+    @DisplayName("제목이 빈 영화 등록 요청을 보내면 400 Bad Request를 반환한다")
     @Transactional
     void registerMovie_withBlankTitle_returnsBadRequest() throws Exception {
         var command = new RegisterMovieCommand(
@@ -116,6 +119,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
+    @DisplayName("중복된 제목으로 영화 등록 요청을 보내면 400 Bad Request를 반환한다")
     @Transactional
     void registerMovie_withDuplicateTitle_returnsBadRequest() throws Exception {
         // 첫 번째 영화 등록

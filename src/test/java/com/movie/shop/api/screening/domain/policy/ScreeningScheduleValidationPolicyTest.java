@@ -5,6 +5,7 @@ import com.movie.shop.api.screening.domain.policy.port.CheckScreeningTimeConflic
 import com.movie.shop.api.screening.domain.policy.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.port.LoadTheaterScreeningAvailabilityPort;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -51,6 +52,7 @@ class ScreeningScheduleValidationPolicyTest {
     }
 
     @Test
+    @DisplayName("영화, 상영관, 시간 조건이 모두 유효하면 신규 상영 일정 검증에 성공한다")
     void validateCanCreateScreeningSchedule_withValidData_succeeds() {
         // 준비: 영화/상영관/시간 충돌 조건을 모두 통과하도록 스텁 설정
         when(loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)).thenReturn(Optional.of(true));
@@ -65,6 +67,7 @@ class ScreeningScheduleValidationPolicyTest {
     }
 
     @Test
+    @DisplayName("영화, 상영관, 시간 조건이 모두 유효하면 상영 일정 변경 검증에 성공한다")
     void validateCanRescheduleScreening_withValidData_succeeds() {
         // 준비: 재조정 가능한 조건과 충돌 없음 스텁 설정
         when(loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)).thenReturn(Optional.of(true));
@@ -79,6 +82,7 @@ class ScreeningScheduleValidationPolicyTest {
     }
 
     @Test
+    @DisplayName("영화 정보를 찾을 수 없으면 신규 상영 일정 검증 시 예외가 발생한다")
     void validateCanCreateScreeningSchedule_withMissingMovie_throwsException() {
         // 준비: 영화 조회 결과가 없는 상황
         when(loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)).thenReturn(Optional.empty());
@@ -91,6 +95,7 @@ class ScreeningScheduleValidationPolicyTest {
     }
 
     @Test
+    @DisplayName("상영 불가 상태의 영화면 신규 상영 일정 검증 시 예외가 발생한다")
     void validateCanCreateScreeningSchedule_withUnschedulableMovie_throwsException() {
         // 준비: 영화는 존재하지만 스케줄링 불가 상태
         when(loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)).thenReturn(Optional.of(false));
@@ -103,6 +108,7 @@ class ScreeningScheduleValidationPolicyTest {
     }
 
     @Test
+    @DisplayName("상영관 정보를 찾을 수 없으면 신규 상영 일정 검증 시 예외가 발생한다")
     void validateCanCreateScreeningSchedule_withMissingTheater_throwsException() {
         // 준비: 영화는 가능하지만 상영관 조회 결과가 없는 상황
         when(loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)).thenReturn(Optional.of(true));
@@ -116,6 +122,7 @@ class ScreeningScheduleValidationPolicyTest {
     }
 
     @Test
+    @DisplayName("상영 불가 상태의 상영관이면 신규 상영 일정 검증 시 예외가 발생한다")
     void validateCanCreateScreeningSchedule_withUnavailableTheater_throwsException() {
         // 준비: 상영관이 존재하지만 상영 불가 상태
         when(loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)).thenReturn(Optional.of(true));
@@ -129,6 +136,7 @@ class ScreeningScheduleValidationPolicyTest {
     }
 
     @Test
+    @DisplayName("시간 충돌이 있으면 신규 상영 일정 검증 시 예외가 발생한다")
     void validateCanCreateScreeningSchedule_withConflict_throwsException() {
         // 준비: 모든 조건은 통과하지만 시간 충돌이 존재
         when(loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)).thenReturn(Optional.of(true));
@@ -141,6 +149,7 @@ class ScreeningScheduleValidationPolicyTest {
     }
 
     @Test
+    @DisplayName("기존 상영 제외 후에도 시간 충돌이 있으면 상영 일정 변경 검증 시 예외가 발생한다")
     void validateCanRescheduleScreening_withConflictExcluding_throwsException() {
         // 준비: 재조정 검증에서 기존 상영 제외 후에도 충돌이 존재
         when(loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)).thenReturn(Optional.of(true));

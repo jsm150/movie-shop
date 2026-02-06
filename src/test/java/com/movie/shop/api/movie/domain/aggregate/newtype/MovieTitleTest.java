@@ -27,7 +27,7 @@ class MovieTitleTest {
     class CreateNewTest {
 
         @Test
-        @DisplayName("유효한 제목으로 생성 성공")
+        @DisplayName("유효한 제목으로 생성 성공한다")
         void createNew_withValidTitle_success() {
             // given
             String validTitle = "인터스텔라";
@@ -42,7 +42,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("null 제목으로 생성 실패")
+        @DisplayName("null 제목으로 생성 실패한다")
         void createNew_withNullTitle_fail() {
             // when
             Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew(null, mockValidator);
@@ -53,7 +53,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("빈 문자열 제목으로 생성 실패")
+        @DisplayName("빈 문자열 제목으로 생성 실패한다")
         void createNew_withEmptyTitle_fail() {
             // when
             Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew("", mockValidator);
@@ -64,7 +64,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("200자를 초과하는 제목으로 생성 실패")
+        @DisplayName("200자를 초과하는 제목으로 생성 실패한다")
         void createNew_withTooLongTitle_fail() {
             // given
             String longTitle = "a".repeat(201);
@@ -78,7 +78,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("중복된 제목으로 생성 실패")
+        @DisplayName("중복된 제목으로 생성 실패한다")
         void createNew_withDuplicateTitle_fail() {
             // given
             String duplicateTitle = "인터스텔라";
@@ -93,7 +93,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("정확히 200자의 제목으로 생성 성공")
+        @DisplayName("정확히 200자의 제목으로 생성 성공한다")
         void createNew_withExactly200Characters_success() {
             // given
             String titleWith200Chars = "a".repeat(200);
@@ -121,7 +121,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("다른 유효한 제목으로 변경 성공")
+        @DisplayName("다른 유효한 제목으로 변경 성공한다")
         void createFrom_withDifferentValidTitle_success() {
             // given
             String newTitle = "새로운 영화 제목";
@@ -136,7 +136,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("동일한 제목으로 변경 시 중복 검증 스킵하고 성공")
+        @DisplayName("동일한 제목으로 변경하면 중복 검증 스킵하고 성공한다")
         void createFrom_withSameTitle_successWithoutDuplicateCheck() {
             // given
             String sameTitle = "기존 영화 제목";
@@ -151,7 +151,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("null 제목으로 변경 실패")
+        @DisplayName("null 제목으로 변경 실패한다")
         void createFrom_withNullTitle_fail() {
             // when
             Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, null, mockValidator);
@@ -162,7 +162,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("빈 문자열 제목으로 변경 실패")
+        @DisplayName("빈 문자열 제목으로 변경 실패한다")
         void createFrom_withEmptyTitle_fail() {
             // when
             Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, "", mockValidator);
@@ -173,7 +173,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("200자를 초과하는 제목으로 변경 실패")
+        @DisplayName("200자를 초과하는 제목으로 변경 실패한다")
         void createFrom_withTooLongTitle_fail() {
             // given
             String longTitle = "a".repeat(201);
@@ -187,7 +187,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("중복된 제목으로 변경 실패")
+        @DisplayName("중복된 제목으로 변경 실패한다")
         void createFrom_withDuplicateTitle_fail() {
             // given
             String duplicateTitle = "중복된 제목";
@@ -202,7 +202,7 @@ class MovieTitleTest {
         }
 
         @Test
-        @DisplayName("정확히 200자의 제목으로 변경 성공")
+        @DisplayName("정확히 200자의 제목으로 변경 성공한다")
         void createFrom_withExactly200Characters_success() {
             // given
             String titleWith200Chars = "b".repeat(200);

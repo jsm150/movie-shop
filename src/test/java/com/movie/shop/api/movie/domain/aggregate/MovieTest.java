@@ -3,6 +3,7 @@ package com.movie.shop.api.movie.domain.aggregate;
 import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -52,6 +53,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("유효한 영화 정보를 생성하면 PREPARING 상태로 생성된다")
     void createMovie_withValidData_succeeds() {
         // when
         Movie movie = Movie.Register(
@@ -79,6 +81,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("영화 제목이 빈 값이면 생성 시 예외가 발생한다")
     void createMovie_withBlankTitle_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -96,6 +99,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("영화 제목이 null이면 생성 시 예외가 발생한다")
     @MockitoSettings(strictness = Strictness.LENIENT)
     void createMovie_withNullTitle_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
@@ -114,6 +118,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("영화 제목이 200자를 초과하면 생성 시 예외가 발생한다")
     void createMovie_withTooLongTitle_throwsException() {
         String longTitle = "a".repeat(201);
 
@@ -133,6 +138,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("감독 이름이 빈 값이면 생성 시 예외가 발생한다")
     void createMovie_withBlankDirector_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -150,6 +156,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("장르 목록이 비어 있으면 생성 시 예외가 발생한다")
     void createMovie_withEmptyGenres_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -167,6 +174,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("장르 목록이 null이면 생성 시 예외가 발생한다")
     void createMovie_withNullGenres_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -184,6 +192,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("장르 목록에 빈 값이 있으면 생성 시 예외가 발생한다")
     void createMovie_withBlankGenreItem_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -201,6 +210,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("상영 시간이 0이면 생성 시 예외가 발생한다")
     void createMovie_withZeroRuntimeMinutes_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -218,6 +228,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("상영 시간이 음수면 생성 시 예외가 발생한다")
     void createMovie_withNegativeRuntimeMinutes_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -235,6 +246,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("관람 등급이 null이면 생성 시 예외가 발생한다")
     void createMovie_withNullAudienceRating_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -252,6 +264,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("시놉시스가 빈 값이면 생성 시 예외가 발생한다")
     void createMovie_withBlankSynopsis_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -269,6 +282,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("시놉시스가 1000자를 초과하면 생성 시 예외가 발생한다")
     void createMovie_withTooLongSynopsis_throwsException() {
         String longSynopsis = "a".repeat(1001);
 
@@ -288,6 +302,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("개봉일이 null이면 생성 시 예외가 발생한다")
     void createMovie_withNullReleaseDate_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -305,6 +320,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("출연진 목록이 비어 있으면 생성 시 예외가 발생한다")
     void createMovie_withEmptyCasts_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -322,6 +338,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("출연진 목록이 null이면 생성 시 예외가 발생한다")
     void createMovie_withNullCasts_throwsException() {
         assertThatThrownBy(() -> Movie.Register(
                 validator,
@@ -339,6 +356,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("중복된 제목으로 영화를 생성하면 예외가 발생한다")
     void createMovie_withDuplicateTitle_throwsException() {
         // given
         when(validator.validateNotDuplicate(validTitle)).thenReturn(false);
@@ -360,6 +378,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("NOW_SHOWING 상태에서 삭제 가능 여부를 검증하면 예외가 발생한다")
     void validateCanRemove_withNowShowing_throwsException() {
         Movie movie = Movie.Register(
                 validator,
@@ -381,6 +400,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("PREPARING 상태에서 삭제 가능 여부를 검증하면 예외가 발생하지 않는다")
     void validateCanRemove_withPreparing_doesNotThrow() {
         Movie movie = Movie.Register(
                 validator,
@@ -398,6 +418,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("PREPARING 상태이면 상영 가능 여부가 false를 반환한다")
     void canBeScheduled_withPreparing_returnsFalse() {
         Movie movie = Movie.Register(
                 validator,
@@ -415,6 +436,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("COMING_SOON 상태이면 상영 가능 여부가 true를 반환한다")
     void canBeScheduled_withComingSoon_returnsTrue() {
         Movie movie = Movie.Register(
                 validator,
@@ -433,6 +455,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("NOW_SHOWING 상태이면 상영 가능 여부가 true를 반환한다")
     void canBeScheduled_withNowShowing_returnsTrue() {
         Movie movie = Movie.Register(
                 validator,
@@ -452,6 +475,7 @@ class MovieTest {
     }
 
     @Test
+    @DisplayName("ENDED 상태이면 상영 가능 여부가 false를 반환한다")
     void canBeScheduled_withEnded_returnsFalse() {
         Movie movie = Movie.Register(
                 validator,

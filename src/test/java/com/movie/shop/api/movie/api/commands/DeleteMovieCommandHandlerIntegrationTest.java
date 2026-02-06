@@ -15,6 +15,7 @@ import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.aggregate.TheaterType;
 import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -68,6 +69,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
+    @DisplayName("존재하는 영화를 삭제하면 DB에서 영화가 제거된다")
     @Transactional
     void deleteMovie_removesMovieFromDatabase() {
         // Given: DB에 영화 저장
@@ -113,6 +115,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
+    @DisplayName("존재하지 않는 영화 ID로 삭제를 요청하면 예외가 발생한다")
     @Transactional
     void deleteMovie_withNonExistentId_throwsException() {
         // Given: 존재하지 않는 영화 ID
@@ -125,6 +128,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
+    @DisplayName("NOW_SHOWING 상태의 영화를 삭제하면 예외가 발생한다")
     @Transactional
     void deleteMovie_withNowShowingStatus_throwsException() {
         // Given
@@ -153,6 +157,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
+    @DisplayName("상영이 연결된 영화를 삭제하면 예외가 발생한다")
     @Transactional
     void deleteMovie_withLinkedScreening_throwsException() {
         // Given
@@ -192,6 +197,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
+    @DisplayName("영화를 삭제하면 연관된 배우 엔티티도 함께 삭제된다")
     @Transactional
     void deleteMovie_withCascadeDelete_removesActorsAsWell() {
         // Given: 여러 배우가 있는 영화 저장
@@ -246,6 +252,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
+    @DisplayName("여러 영화가 있을 때 특정 영화를 삭제하면 대상 영화만 제거된다")
     @Transactional
     void deleteMovie_multipleMovies_onlyDeletesTargetMovie() {
         // Given: 여러 영화 저장

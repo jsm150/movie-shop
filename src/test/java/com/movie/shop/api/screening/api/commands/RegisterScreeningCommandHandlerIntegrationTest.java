@@ -22,7 +22,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
     @Test
     @Transactional
-    @DisplayName("유효한 데이터로 상영 등록 시 DB에 저장된다")
+    @DisplayName("유효한 데이터로 상영 등록하면 DB에 저장된다")
     void registerScreening_withValidData_persistsToDatabase() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
@@ -58,7 +58,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
     @Test
     @Transactional
-    @DisplayName("존재하지 않는 영화 ID로 등록 시 실패한다")
+    @DisplayName("존재하지 않는 영화 ID로 등록하면 실패한다")
     void registerScreening_withMissingMovie_throwsException() {
         // given
         Theater theater = createTheater(true);
@@ -80,7 +80,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
     @Test
     @Transactional
-    @DisplayName("존재하지 않는 극장 ID로 등록 시 실패한다")
+    @DisplayName("존재하지 않는 극장 ID로 등록하면 실패한다")
     void registerScreening_withMissingTheater_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
@@ -102,7 +102,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
     @Test
     @Transactional
-    @DisplayName("스케줄 불가 상태(PREPARING) 영화로 등록 시 실패한다")
+    @DisplayName("스케줄 불가 상태(PREPARING) 영화로 등록하면 실패한다")
     void registerScreening_withPreparingMovie_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.PREPARING);
@@ -125,7 +125,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
     @Test
     @Transactional
-    @DisplayName("스케줄 불가 상태(ENDED) 영화로 등록 시 실패한다")
+    @DisplayName("스케줄 불가 상태(ENDED) 영화로 등록하면 실패한다")
     void registerScreening_withEndedMovie_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.ENDED);
@@ -148,7 +148,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
     @Test
     @Transactional
-    @DisplayName("비활성화된 극장으로 등록 시 실패한다")
+    @DisplayName("비활성화된 극장으로 등록하면 실패한다")
     void registerScreening_withInactiveTheater_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);

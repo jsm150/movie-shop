@@ -64,7 +64,7 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("극장 정보 전체 수정 시 DB에 변경사항이 반영된다")
+        @DisplayName("극장 정보 전체 수정하면 DB에 변경사항이 반영된다")
         void updateTheater_allFields_updatesDatabase() {
             // given
             Theater theater = createAndSaveTheater("1관");
@@ -98,7 +98,7 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("동일한 상영관 이름으로 수정 시 중복 검증을 스킵하고 성공한다")
+        @DisplayName("동일한 상영관 이름으로 수정하면 중복 검증을 스킵하고 성공한다")
         void updateTheater_withSameName_successWithoutDuplicateCheck() {
             // given
             Theater theater = createAndSaveTheater("1관");
@@ -133,7 +133,7 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("이미 존재하는 상영관 이름으로 변경 시 실패한다")
+        @DisplayName("이미 존재하는 상영관 이름으로 변경하면 실패한다")
         void updateTheater_withDuplicateName_throwsException() {
             // given
             createAndSaveTheater("1관");
@@ -163,7 +163,7 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         @Test
         @Transactional
-        @DisplayName("존재하지 않는 상영관 ID로 수정 시 예외가 발생한다")
+        @DisplayName("존재하지 않는 상영관 ID로 수정하면 예외가 발생한다")
         void updateTheater_withNonExistentId_throwsException() {
             // given
             long nonExistentTheaterId = 999999L;
