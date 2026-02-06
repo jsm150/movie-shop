@@ -110,12 +110,8 @@ public class Movie {
             .throwIfInvalid(MovieDomainException::new);
     }
 
-    public boolean canRemove() {
-        return status != MovieStatus.NOW_SHOWING;
-    }
-
     public void validateCanRemove() {
-        if (!canRemove()) {
+        if (status == MovieStatus.NOW_SHOWING) {
             throw new MovieDomainException("NOW_SHOWING 상태의 영화는 삭제할 수 없습니다.");
         }
     }

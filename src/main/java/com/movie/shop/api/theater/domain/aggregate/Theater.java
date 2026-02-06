@@ -4,6 +4,7 @@ import com.movie.shop.api.shared.domain.EntityValidator;
 import com.movie.shop.api.theater.domain.aggregate.newtype.TheaterName;
 import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
+import com.movie.shop.api.theater.domain.policy.TheaterScreeningProtectionPolicy;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -75,22 +76,29 @@ public class Theater {
             .throwIfInvalid(TheaterDomainException::new);
     }
 
-    public void deactivate() {
+    private void deactivate() {
         active = false;
     }
 
-    public void activate() {
+    private void activate() {
         active = true;
     }
 
-    public void changeActive(TheaterActiveChange activeChange) {
+    public void changeActive(TheaterActiveChange activeChange, TheaterScreeningProtectionPolicy policy) {
         if (activeChange == null) {
             throw new TheaterDomainException("변경할 상영관 활성 상태는 필수입니다.");
         }
 
+        if (policy == null) {
+            throw new TheaterDomainException("상영관 활성 상태 변경 정책은 필수입니다.");
+        }
+
         switch (activeChange) {
             case ACTIVATE -> activate();
-            case DEACTIVATE -> deactivate();
+            case DEACTIVATE -> {
+                policy.validateCanChangeActive(this, activeChange);
+                deactivate();
+            }
         }
     }
 

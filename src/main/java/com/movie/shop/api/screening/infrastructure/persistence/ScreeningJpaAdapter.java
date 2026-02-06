@@ -7,8 +7,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 public interface ScreeningJpaAdapter extends JpaRepository<Screening, Long>, ScreeningJpaPort {
+
+    @Override
+    List<Screening> findAllByTheaterId(long theaterId);
 
     @Override
     @Query("""

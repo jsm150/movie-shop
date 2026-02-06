@@ -2,6 +2,7 @@ package com.movie.shop.api.theater.domain.aggregate;
 
 import com.movie.shop.api.theater.domain.aggregate.port.TheaterJpaPort;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
+import com.movie.shop.api.theater.domain.policy.TheaterScreeningProtectionPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,12 @@ public class TheaterRepository {
         return theaterJpaPort.save(theater);
     }
 
-    public void delete(Theater theater) {
+    public void delete(Theater theater, TheaterScreeningProtectionPolicy policy) {
+        if (policy == null) {
+            throw new TheaterDomainException("상영관 삭제 정책은 필수입니다.");
+        }
+
+        policy.validateCanDelete(theater);
         theaterJpaPort.delete(theater);
     }
 

@@ -13,7 +13,9 @@ import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.aggregate.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
+import com.movie.shop.api.theater.api.commands.ChangeActiveTheaterCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
+import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.aggregate.TheaterType;
 import com.movie.shop.api.theater.domain.aggregate.port.TheaterJpaPort;
@@ -117,12 +119,15 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
                 2
         );
 
-        if (!active) {
-            theater.deactivate();
-        }
-
         theater = theaterRepository.save(theater);
         flushAndClear();
+
+        if (!active) {
+            pipeline.send(new ChangeActiveTheaterCommand(theater.getId(), TheaterActiveChange.DEACTIVATE));
+            flushAndClear();
+            theater = theaterRepository.getById(theater.getId());
+        }
+
         return theater;
     }
 

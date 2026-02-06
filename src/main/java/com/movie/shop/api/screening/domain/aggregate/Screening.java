@@ -181,4 +181,10 @@ public class Screening {
             throw new ScreeningDomainException("SCHEDULED 상태의 상영만 삭제할 수 있습니다.");
         }
     }
+
+    public boolean blocksTheaterDeactivationOrDeletion() {
+        return status == ScreeningStatus.SCHEDULED
+                || status == ScreeningStatus.ON_SALE
+                || status == ScreeningStatus.SALES_CLOSED;
+    }
 }

@@ -3,6 +3,7 @@ package com.movie.shop.api.screening.domain.aggregate;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -41,6 +42,7 @@ class ScreeningTest {
     }
 
     @Test
+    @DisplayName("유효한 정책으로 상영을 등록하면 SCHEDULED 상태로 생성된다")
     void register_withValidPolicy_succeeds() {
         // 실행: 유효한 정책과 일정으로 상영 등록
         Screening screening = Screening.register(
@@ -65,6 +67,7 @@ class ScreeningTest {
     }
 
     @Test
+    @DisplayName("정책이 null이면 상영 등록 시 예외가 발생한다")
     void register_withNullPolicy_throwsException() {
         // 검증: 정책이 null이면 상영 등록 실패
         assertThatThrownBy(() -> Screening.register(
@@ -80,6 +83,7 @@ class ScreeningTest {
     }
 
     @Test
+    @DisplayName("정책이 null이면 상영 일정 변경 시 예외가 발생한다")
     void reschedule_withNullPolicy_throwsException() {
         // 준비: 등록된 상영 생성
         Screening screening = Screening.register(
@@ -104,6 +108,7 @@ class ScreeningTest {
     }
 
     @Test
+    @DisplayName("SCHEDULED가 아닌 상태에서 일정 변경을 요청하면 예외가 발생한다")
     void reschedule_whenNotScheduledStatus_throwsException() throws Exception {
         // 준비: 상영을 등록하고 상태를 SCHEDULED 이외로 변경
         Screening screening = Screening.register(
@@ -137,6 +142,7 @@ class ScreeningTest {
     }
 
     @Test
+    @DisplayName("SCHEDULED 상태에서 유효한 정책으로 일정 변경을 요청하면 시간이 변경된다")
     void reschedule_withValidPolicyAndScheduledStatus_succeeds() throws Exception {
         // 준비: SCHEDULED 상태의 상영 생성
         Screening screening = Screening.register(
@@ -172,6 +178,7 @@ class ScreeningTest {
         assertThat(screening.getSalesTimeRange().getSalesEndAt()).isEqualTo(newSalesEnd);
     }
     @Test
+    @DisplayName("SCHEDULED 상태에서 삭제 가능 여부를 검증하면 예외가 발생하지 않는다")
     void validateCanRemove_whenScheduled_doesNotThrow() {
         Screening screening = Screening.register(
                 policy,
@@ -187,6 +194,7 @@ class ScreeningTest {
     }
 
     @Test
+    @DisplayName("SCHEDULED가 아닌 상태에서 삭제 가능 여부를 검증하면 예외가 발생한다")
     void validateCanRemove_whenNotScheduled_throwsException() {
         Screening screening = Screening.register(
                 policy,
@@ -203,6 +211,94 @@ class ScreeningTest {
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("SCHEDULED 상태의 상영만 삭제할 수 있습니다.");
     }
+
+    @Test
+    @DisplayName("SCHEDULED 상태이면 극장 비활성화 또는 삭제 차단 여부가 true를 반환한다")
+    void blocksTheaterDeactivationOrDeletion_whenScheduled_returnsTrue() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+
+        assertThat(screening.blocksTheaterDeactivationOrDeletion()).isTrue();
+    }
+
+    @Test
+    @DisplayName("ON_SALE 상태이면 극장 비활성화 또는 삭제 차단 여부가 true를 반환한다")
+    void blocksTheaterDeactivationOrDeletion_whenOnSale_returnsTrue() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+        screening.openSales();
+
+        assertThat(screening.blocksTheaterDeactivationOrDeletion()).isTrue();
+    }
+
+    @Test
+    @DisplayName("SALES_CLOSED 상태이면 극장 비활성화 또는 삭제 차단 여부가 true를 반환한다")
+    void blocksTheaterDeactivationOrDeletion_whenSalesClosed_returnsTrue() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+        screening.openSales();
+        screening.closeSales();
+
+        assertThat(screening.blocksTheaterDeactivationOrDeletion()).isTrue();
+    }
+
+    @Test
+    @DisplayName("CANCELED 상태이면 극장 비활성화 또는 삭제 차단 여부가 false를 반환한다")
+    void blocksTheaterDeactivationOrDeletion_whenCanceled_returnsFalse() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+        screening.cancel("취소 사유", OffsetDateTime.parse("2026-02-01T11:00:00Z"));
+
+        assertThat(screening.blocksTheaterDeactivationOrDeletion()).isFalse();
+    }
+
+    @Test
+    @DisplayName("FINISHED 상태이면 극장 비활성화 또는 삭제 차단 여부가 false를 반환한다")
+    void blocksTheaterDeactivationOrDeletion_whenFinished_returnsFalse() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+        screening.openSales();
+        screening.closeSales();
+        screening.finish(OffsetDateTime.parse("2026-02-10T12:01:00Z"));
+
+        assertThat(screening.blocksTheaterDeactivationOrDeletion()).isFalse();
+    }
+
     private void setId(Screening screening, long id) throws Exception {
         // 리플렉션으로 식별자를 주입해 상태 전이 시나리오를 검증
         Field idField = Screening.class.getDeclaredField("id");
