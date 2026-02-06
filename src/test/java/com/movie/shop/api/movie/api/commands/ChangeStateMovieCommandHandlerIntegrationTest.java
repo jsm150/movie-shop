@@ -6,6 +6,7 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
@@ -82,7 +83,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             // When: COMING_SOON으로 상태 변경
             ChangeStateMovieCommand command = new ChangeStateMovieCommand(
                     movieId,
-                    ChangeStateMovieCommand.ChangeState.COMING_SOON
+                    MovieStateChange.COMING_SOON
             );
             pipeline.send(command);
 
@@ -109,7 +110,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             // When & Then: COMING_SOON 상태에서 다시 COMING_SOON으로 변경 시도 시 예외 발생
             ChangeStateMovieCommand command = new ChangeStateMovieCommand(
                     movieId,
-                    ChangeStateMovieCommand.ChangeState.COMING_SOON
+                    MovieStateChange.COMING_SOON
             );
             assertThatThrownBy(() -> pipeline.send(command))
                     .isInstanceOf(MovieDomainException.class);
@@ -136,7 +137,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             // When: NOW_SHOWING으로 상태 변경
             ChangeStateMovieCommand command = new ChangeStateMovieCommand(
                     movieId,
-                    ChangeStateMovieCommand.ChangeState.NOW_SHOWING
+                    MovieStateChange.NOW_SHOWING
             );
             pipeline.send(command);
 
@@ -159,7 +160,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             // When & Then: PREPARING 상태에서 NOW_SHOWING으로 변경 시도 시 예외 발생
             ChangeStateMovieCommand command = new ChangeStateMovieCommand(
                     movieId,
-                    ChangeStateMovieCommand.ChangeState.NOW_SHOWING
+                    MovieStateChange.NOW_SHOWING
             );
             assertThatThrownBy(() -> pipeline.send(command))
                     .isInstanceOf(MovieDomainException.class);
@@ -187,7 +188,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             // When: ENDED로 상태 변경
             ChangeStateMovieCommand command = new ChangeStateMovieCommand(
                     movieId,
-                    ChangeStateMovieCommand.ChangeState.ENDED
+                    MovieStateChange.ENDED
             );
             pipeline.send(command);
 
@@ -215,7 +216,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             // When & Then: COMING_SOON 상태에서 ENDED로 변경 시도 시 예외 발생
             ChangeStateMovieCommand command = new ChangeStateMovieCommand(
                     movieId,
-                    ChangeStateMovieCommand.ChangeState.ENDED
+                    MovieStateChange.ENDED
             );
             assertThatThrownBy(() -> pipeline.send(command))
                     .isInstanceOf(MovieDomainException.class);
@@ -232,7 +233,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
         // When & Then: 존재하지 않는 영화의 상태 변경 시도 시 예외 발생
         ChangeStateMovieCommand command = new ChangeStateMovieCommand(
                 nonExistentMovieId,
-                ChangeStateMovieCommand.ChangeState.COMING_SOON
+                MovieStateChange.COMING_SOON
         );
         assertThatThrownBy(() -> pipeline.send(command))
                 .isInstanceOf(MovieDomainException.class);

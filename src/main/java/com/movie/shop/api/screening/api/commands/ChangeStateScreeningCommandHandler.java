@@ -21,13 +21,7 @@ public class ChangeStateScreeningCommandHandler implements Command.Handler<Chang
     public Voidy handle(ChangeStateScreeningCommand command) {
         Screening screening = screeningRepository.getById(command.screeningId());
         OffsetDateTime now = OffsetDateTime.now();
-
-        switch (command.status()) {
-            case OPEN_SALES -> screening.openSales();
-            case CLOSE_SALES -> screening.closeSales();
-            case CANCEL -> screening.cancel(command.cancelReason(), now);
-            case FINISH -> screening.finish(now);
-        }
+        screening.changeState(command.status(), command.cancelReason(), now);
 
         return null;
     }

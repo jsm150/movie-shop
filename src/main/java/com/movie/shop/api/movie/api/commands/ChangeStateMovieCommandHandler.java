@@ -18,12 +18,7 @@ public class ChangeStateMovieCommandHandler implements Command.Handler<ChangeSta
     @Transactional
     public Voidy handle(ChangeStateMovieCommand command) {
         Movie movie = movieRepository.getById(command.movieId());
-
-        switch (command.status()) {
-            case COMING_SOON -> movie.moveToComingSoon();
-            case NOW_SHOWING -> movie.startShowing();
-            case ENDED -> movie.endShowing();
-        }
+        movie.changeState(command.status());
 
         return null;
     }

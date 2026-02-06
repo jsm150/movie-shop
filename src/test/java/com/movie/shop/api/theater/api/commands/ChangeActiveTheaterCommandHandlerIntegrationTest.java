@@ -3,6 +3,7 @@ package com.movie.shop.api.theater.api.commands;
 import an.awesome.pipelinr.Pipeline;
 import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
+import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.aggregate.TheaterType;
 import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
@@ -67,7 +68,7 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
 
         ChangeActiveTheaterCommand command = new ChangeActiveTheaterCommand(
                 theaterId,
-                ChangeActiveTheaterCommand.ChangeState.DEACTIVATE
+                TheaterActiveChange.DEACTIVATE
         );
 
         // when
@@ -90,7 +91,7 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
 
         ChangeActiveTheaterCommand command = new ChangeActiveTheaterCommand(
                 theaterId,
-                ChangeActiveTheaterCommand.ChangeState.ACTIVATE
+                TheaterActiveChange.ACTIVATE
         );
 
         // when
@@ -112,7 +113,7 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
 
         ChangeActiveTheaterCommand command = new ChangeActiveTheaterCommand(
                 nonExistentTheaterId,
-                ChangeActiveTheaterCommand.ChangeState.DEACTIVATE
+                TheaterActiveChange.DEACTIVATE
         );
 
         // when & then

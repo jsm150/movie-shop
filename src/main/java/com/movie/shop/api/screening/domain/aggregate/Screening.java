@@ -163,6 +163,19 @@ public class Screening {
         status = ScreeningStatus.FINISHED;
     }
 
+    public void changeState(ScreeningStateChange stateChange, String reason, OffsetDateTime now) {
+        if (stateChange == null) {
+            throw new ScreeningDomainException("변경할 상영 상태는 필수입니다.");
+        }
+
+        switch (stateChange) {
+            case OPEN_SALES -> openSales();
+            case CLOSE_SALES -> closeSales();
+            case CANCEL -> cancel(reason, now);
+            case FINISH -> finish(now);
+        }
+    }
+
     public void validateCanRemove() {
         if (status != ScreeningStatus.SCHEDULED) {
             throw new ScreeningDomainException("SCHEDULED 상태의 상영만 삭제할 수 있습니다.");

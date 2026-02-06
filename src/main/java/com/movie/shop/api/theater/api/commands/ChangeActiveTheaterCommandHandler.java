@@ -18,11 +18,7 @@ public class ChangeActiveTheaterCommandHandler implements Command.Handler<Change
     @Transactional
     public Voidy handle(ChangeActiveTheaterCommand command) {
         Theater theater = theaterRepository.getById(command.theaterId());
-
-        switch (command.status()) {
-            case ACTIVATE -> theater.activate();
-            case DEACTIVATE -> theater.deactivate();
-        }
+        theater.changeActive(command.status());
 
         return null;
     }

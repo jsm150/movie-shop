@@ -118,6 +118,18 @@ public class Movie {
         return status == MovieStatus.COMING_SOON || status == MovieStatus.NOW_SHOWING;
     }
 
+    public void changeState(MovieStateChange stateChange) {
+        if (stateChange == null) {
+            throw new MovieDomainException("변경할 영화 상태는 필수입니다.");
+        }
+
+        switch (stateChange) {
+            case COMING_SOON -> moveToComingSoon();
+            case NOW_SHOWING -> startShowing();
+            case ENDED -> endShowing();
+        }
+    }
+
     public void moveToComingSoon()
     {
         if (status == MovieStatus.PREPARING)

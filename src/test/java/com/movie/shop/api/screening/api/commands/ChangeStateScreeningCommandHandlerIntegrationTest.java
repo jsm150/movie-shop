@@ -3,6 +3,7 @@ package com.movie.shop.api.screening.api.commands;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
+import com.movie.shop.api.screening.domain.aggregate.ScreeningStateChange;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStatus;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
@@ -28,7 +29,7 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
         Screening screening = createScheduledScreening();
         ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.OPEN_SALES,
+                ScreeningStateChange.OPEN_SALES,
                 null
         );
 
@@ -49,14 +50,14 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
         Screening screening = createScheduledScreening();
         pipeline.send(new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.OPEN_SALES,
+                ScreeningStateChange.OPEN_SALES,
                 null
         ));
         flushAndClear();
 
         ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.CLOSE_SALES,
+                ScreeningStateChange.CLOSE_SALES,
                 null
         );
 
@@ -77,19 +78,19 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
         Screening screening = createScheduledScreening();
         pipeline.send(new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.OPEN_SALES,
+                ScreeningStateChange.OPEN_SALES,
                 null
         ));
         pipeline.send(new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.CLOSE_SALES,
+                ScreeningStateChange.CLOSE_SALES,
                 null
         ));
         flushAndClear();
 
         ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.FINISH,
+                ScreeningStateChange.FINISH,
                 null
         );
 
@@ -110,14 +111,14 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
         Screening screening = createScheduledScreening();
         pipeline.send(new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.OPEN_SALES,
+                ScreeningStateChange.OPEN_SALES,
                 null
         ));
         flushAndClear();
 
         ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.CANCEL,
+                ScreeningStateChange.CANCEL,
                 "상영 장비 점검"
         );
 
@@ -140,7 +141,7 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
         Screening screening = createScheduledScreening();
         ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.CLOSE_SALES,
+                ScreeningStateChange.CLOSE_SALES,
                 null
         );
 
@@ -158,7 +159,7 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
         Screening screening = createScheduledScreening();
         ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(
                 screening.getId(),
-                ChangeStateScreeningCommand.ChangeState.CANCEL,
+                ScreeningStateChange.CANCEL,
                 " "
         );
 
@@ -175,7 +176,7 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
         // given
         ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(
                 999999L,
-                ChangeStateScreeningCommand.ChangeState.OPEN_SALES,
+                ScreeningStateChange.OPEN_SALES,
                 null
         );
 

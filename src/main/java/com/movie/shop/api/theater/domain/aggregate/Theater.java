@@ -83,6 +83,17 @@ public class Theater {
         active = true;
     }
 
+    public void changeActive(TheaterActiveChange activeChange) {
+        if (activeChange == null) {
+            throw new TheaterDomainException("변경할 상영관 활성 상태는 필수입니다.");
+        }
+
+        switch (activeChange) {
+            case ACTIVATE -> activate();
+            case DEACTIVATE -> deactivate();
+        }
+    }
+
     public boolean canHostScreening() {
         return active;
     }
