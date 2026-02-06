@@ -357,4 +357,78 @@ class MovieTest {
                 .isInstanceOf(MovieDomainException.class)
                 .hasMessageContaining("이미 존재합니다");
     }
+
+    @Test
+    void canBeScheduled_withPreparing_returnsFalse() {
+        Movie movie = Movie.Register(
+                validator,
+                validTitle,
+                validDirector,
+                validGenres,
+                validRuntimeMinutes,
+                validAudienceRating,
+                validSynopsis,
+                validReleaseDate,
+                validCasts
+        );
+
+        assertThat(movie.canBeScheduled()).isFalse();
+    }
+
+    @Test
+    void canBeScheduled_withComingSoon_returnsTrue() {
+        Movie movie = Movie.Register(
+                validator,
+                validTitle,
+                validDirector,
+                validGenres,
+                validRuntimeMinutes,
+                validAudienceRating,
+                validSynopsis,
+                validReleaseDate,
+                validCasts
+        );
+        movie.moveToComingSoon();
+
+        assertThat(movie.canBeScheduled()).isTrue();
+    }
+
+    @Test
+    void canBeScheduled_withNowShowing_returnsTrue() {
+        Movie movie = Movie.Register(
+                validator,
+                validTitle,
+                validDirector,
+                validGenres,
+                validRuntimeMinutes,
+                validAudienceRating,
+                validSynopsis,
+                validReleaseDate,
+                validCasts
+        );
+        movie.moveToComingSoon();
+        movie.startShowing();
+
+        assertThat(movie.canBeScheduled()).isTrue();
+    }
+
+    @Test
+    void canBeScheduled_withEnded_returnsFalse() {
+        Movie movie = Movie.Register(
+                validator,
+                validTitle,
+                validDirector,
+                validGenres,
+                validRuntimeMinutes,
+                validAudienceRating,
+                validSynopsis,
+                validReleaseDate,
+                validCasts
+        );
+        movie.moveToComingSoon();
+        movie.startShowing();
+        movie.endShowing();
+
+        assertThat(movie.canBeScheduled()).isFalse();
+    }
 }

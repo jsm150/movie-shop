@@ -5,7 +5,6 @@ import com.movie.shop.api.movie.domain.aggregate.newtype.MovieTitle;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.shared.domain.EntityValidator;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -21,7 +20,6 @@ import java.util.List;
 @Table(name = "movie")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Movie {
-    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -114,6 +112,10 @@ public class Movie {
 
     public boolean canRemove() {
         return status != MovieStatus.NOW_SHOWING;
+    }
+
+    public boolean canBeScheduled() {
+        return status == MovieStatus.COMING_SOON || status == MovieStatus.NOW_SHOWING;
     }
 
     public void moveToComingSoon()

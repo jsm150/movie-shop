@@ -83,4 +83,8 @@ public class Theater {
         active = true;
     }
 
+    public boolean canHostScreening() {
+        return active;
+    }
+
 }

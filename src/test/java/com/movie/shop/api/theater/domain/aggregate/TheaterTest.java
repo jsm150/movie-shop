@@ -95,4 +95,37 @@ class TheaterTest {
                 .hasMessageContaining("층수는 -10에서 100 사이여야 합니다.");
     }
 
+    @Test
+    @DisplayName("canHostScreening: active=true 이면 true")
+    void canHostScreening_whenActive_returnsTrue() {
+        Theater theater = Theater.Register(
+                validator,
+                validName,
+                validFloor,
+                validType,
+                validSeats,
+                validRowCount,
+                validColumnCount
+        );
+
+        assertThat(theater.canHostScreening()).isTrue();
+    }
+
+    @Test
+    @DisplayName("canHostScreening: active=false 이면 false")
+    void canHostScreening_whenInactive_returnsFalse() {
+        Theater theater = Theater.Register(
+                validator,
+                validName,
+                validFloor,
+                validType,
+                validSeats,
+                validRowCount,
+                validColumnCount
+        );
+        theater.deactivate();
+
+        assertThat(theater.canHostScreening()).isFalse();
+    }
+
 }
