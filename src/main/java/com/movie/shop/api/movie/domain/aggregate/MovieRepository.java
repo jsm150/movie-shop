@@ -1,16 +1,34 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
+import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-@Repository
-public interface MovieRepository extends JpaRepository<Movie, Long> {
+@Component
+@RequiredArgsConstructor
+public class MovieRepository {
 
-    boolean existsByTitle_Title(String title);
+    private final MovieJpaPort movieJpaPort;
 
-    default Movie getById(long movieId) {
-        return this.findById(movieId)
+    public Movie save(Movie movie) {
+        return movieJpaPort.save(movie);
+    }
+
+    public void delete(Movie movie) {
+        movieJpaPort.delete(movie);
+    }
+
+    public long count() {
+        return movieJpaPort.count();
+    }
+
+    public boolean existsByTitle(String title) {
+        return movieJpaPort.existsByTitle(title);
+    }
+
+    public Movie getById(long movieId) {
+        return movieJpaPort.findById(movieId)
                 .orElseThrow(() -> new MovieDomainException("영화 데이터가 존재하지 않습니다."));
     }
 }

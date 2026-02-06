@@ -5,6 +5,7 @@ import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.aggregate.TheaterType;
+import com.movie.shop.api.theater.domain.aggregate.port.TheaterJpaPort;
 import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import jakarta.persistence.EntityManager;
@@ -32,6 +33,9 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private TheaterRepository theaterRepository;
+
+    @Autowired
+    private TheaterJpaPort theaterJpaPort;
 
     @Autowired
     private EntityManager entityManager;
@@ -82,7 +86,7 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
             entityManager.clear();
 
             // then
-            Theater updated = theaterRepository.findById(theaterId).orElseThrow();
+            Theater updated = theaterJpaPort.findById(theaterId).orElseThrow();
             assertThat(resultId).isEqualTo(theaterId);
             assertThat(updated.getName().getName()).isEqualTo("2관");
             assertThat(updated.getFloor()).isEqualTo(2);
@@ -116,7 +120,7 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
             entityManager.clear();
 
             // then
-            Theater updated = theaterRepository.findById(theaterId).orElseThrow();
+            Theater updated = theaterJpaPort.findById(theaterId).orElseThrow();
             assertThat(updated.getName().getName()).isEqualTo("1관");
             assertThat(updated.getFloor()).isEqualTo(3);
             assertThat(updated.getTheaterType()).isEqualTo(TheaterType.Premium);

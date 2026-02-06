@@ -5,6 +5,7 @@ import com.movie.shop.api.movie.api.commands.RegisterMovieCommand;
 import com.movie.shop.api.movie.api.commands.RegisterMovieCommand.ActorDto;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
+import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import jakarta.persistence.EntityManager;
 import org.hamcrest.Matchers;
@@ -37,6 +38,9 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
     @Autowired
     private MovieRepository movieRepository;
 
+    @Autowired
+    private MovieJpaPort movieJpaPort;
+
     @Test
     @Transactional
     void registerMovie_returnsCreatedAndId() throws Exception {
@@ -67,7 +71,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
 
         // DB 저장 검증
         Long movieId = Long.parseLong(result.getResponse().getContentAsString());
-        Movie savedMovie = movieRepository.findById(movieId).orElseThrow();
+        Movie savedMovie = movieJpaPort.findById(movieId).orElseThrow();
 
         assertThat(savedMovie.getTitle().getTitle()).isEqualTo("인터스텔라");
         assertThat(savedMovie.getDirector()).isEqualTo("크리스토퍼 놀란");

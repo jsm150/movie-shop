@@ -90,7 +90,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             entityManager.clear();
 
             // Then: 상태가 COMING_SOON으로 변경됨
-            Movie updatedMovie = movieRepository.getReferenceById(movieId);
+            Movie updatedMovie = movieRepository.getById(movieId);
             assertThat(updatedMovie.getStatus()).isEqualTo(MovieStatus.COMING_SOON);
         }
 
@@ -144,7 +144,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             entityManager.clear();
 
             // Then: 상태가 NOW_SHOWING으로 변경됨
-            Movie updatedMovie = movieRepository.getReferenceById(movieId);
+            Movie updatedMovie = movieRepository.getById(movieId);
             assertThat(updatedMovie.getStatus()).isEqualTo(MovieStatus.NOW_SHOWING);
         }
 
@@ -195,7 +195,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             entityManager.clear();
 
             // Then: 상태가 ENDED로 변경됨
-            Movie updatedMovie = movieRepository.getReferenceById(movieId);
+            Movie updatedMovie = movieRepository.getById(movieId);
             assertThat(updatedMovie.getStatus()).isEqualTo(MovieStatus.ENDED);
         }
 

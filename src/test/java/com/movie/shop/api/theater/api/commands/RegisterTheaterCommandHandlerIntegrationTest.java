@@ -5,6 +5,7 @@ import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.aggregate.TheaterType;
+import com.movie.shop.api.theater.domain.aggregate.port.TheaterJpaPort;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +30,9 @@ class RegisterTheaterCommandHandlerIntegrationTest extends AbstractContainerBase
     private TheaterRepository theaterRepository;
 
     @Autowired
+    private TheaterJpaPort theaterJpaPort;
+
+    @Autowired
     private EntityManager entityManager;
 
     @Test
@@ -51,7 +55,7 @@ class RegisterTheaterCommandHandlerIntegrationTest extends AbstractContainerBase
         entityManager.clear();
 
         // then
-        Theater theater = theaterRepository.findById(theaterId).orElseThrow();
+        Theater theater = theaterJpaPort.findById(theaterId).orElseThrow();
         assertThat(theater.getName().getName()).isEqualTo("1관");
         assertThat(theater.getFloor()).isEqualTo(1);
         assertThat(theater.getTheaterType()).isEqualTo(TheaterType.Standard);

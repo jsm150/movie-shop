@@ -5,6 +5,7 @@ import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.aggregate.TheaterType;
+import com.movie.shop.api.theater.domain.aggregate.port.TheaterJpaPort;
 import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import jakarta.persistence.EntityManager;
@@ -31,6 +32,9 @@ class DeleteTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
     private TheaterRepository theaterRepository;
 
     @Autowired
+    private TheaterJpaPort theaterJpaPort;
+
+    @Autowired
     private EntityManager entityManager;
 
     @Test
@@ -53,7 +57,7 @@ class DeleteTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         long theaterId = theater.getId();
 
-        assertThat(theaterRepository.findById(theaterId)).isPresent();
+        assertThat(theaterJpaPort.findById(theaterId)).isPresent();
 
         // When
         DeleteTheaterCommand command = new DeleteTheaterCommand(theaterId);
@@ -63,7 +67,7 @@ class DeleteTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
         entityManager.clear();
 
         // Then
-        assertThat(theaterRepository.findById(theaterId)).isEmpty();
+        assertThat(theaterJpaPort.findById(theaterId)).isEmpty();
     }
 
     @Test

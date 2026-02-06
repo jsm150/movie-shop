@@ -10,6 +10,6 @@ public class MovieTitleDuplicateValidator {
     private final MovieRepository movieRepository;
 
     public boolean validateNotDuplicate(String movieTitle) {
-        return !movieRepository.existsByTitle_Title(movieTitle);
+        return !movieRepository.existsByTitle(movieTitle);
     }
 }

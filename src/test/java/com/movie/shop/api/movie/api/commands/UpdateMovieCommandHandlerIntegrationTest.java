@@ -6,6 +6,7 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
@@ -34,6 +35,9 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private MovieRepository movieRepository;
+
+    @Autowired
+    private MovieJpaPort movieJpaPort;
 
     @Autowired
     private EntityManager entityManager;
@@ -109,7 +113,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
             entityManager.clear();
 
             // Then: DB에서 영화 정보가 변경되었는지 확인
-            Movie updatedMovie = movieRepository.findById(movieId).orElseThrow();
+            Movie updatedMovie = movieJpaPort.findById(movieId).orElseThrow();
 
             assertThat(resultId).isEqualTo(movieId);
             assertThat(updatedMovie.getTitle().getTitle()).isEqualTo("인터스텔라 디렉터스컷");
@@ -162,7 +166,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
             entityManager.clear();
 
             // Then: 출연진이 변경되었는지 확인
-            Movie updatedMovie = movieRepository.findById(movieId).orElseThrow();
+            Movie updatedMovie = movieJpaPort.findById(movieId).orElseThrow();
 
             assertThat(updatedMovie.getCasts()).hasSize(2);
             assertThat(updatedMovie.getCasts())
@@ -209,7 +213,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
             entityManager.clear();
 
             // Then: 제목이 변경되었는지 확인
-            Movie updatedMovie = movieRepository.findById(movieId).orElseThrow();
+            Movie updatedMovie = movieJpaPort.findById(movieId).orElseThrow();
             assertThat(updatedMovie.getTitle().getTitle()).isEqualTo("오펜하이머 IMAX");
         }
 
@@ -248,7 +252,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
             entityManager.clear();
 
             // Then: 제목은 그대로, 다른 필드가 변경되었는지 확인
-            Movie updatedMovie = movieRepository.findById(movieId).orElseThrow();
+            Movie updatedMovie = movieJpaPort.findById(movieId).orElseThrow();
             assertThat(updatedMovie.getTitle().getTitle()).isEqualTo(originalTitle);
             assertThat(updatedMovie.getDirector()).isEqualTo("놀란 감독");
             assertThat(updatedMovie.getRuntimeMinutes()).isEqualTo(150);

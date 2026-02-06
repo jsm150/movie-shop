@@ -10,6 +10,6 @@ public class TheaterNameDuplicateValidator {
     private final TheaterRepository theaterRepository;
 
     public boolean validateNotDuplicate(String theaterName) {
-        return !theaterRepository.existsByName_Name(theaterName);
+        return !theaterRepository.existsByName(theaterName);
     }
 }

@@ -6,6 +6,7 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
@@ -31,6 +32,9 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private MovieRepository movieRepository;
+
+    @Autowired
+    private MovieJpaPort movieJpaPort;
 
     @Autowired
     private EntityManager entityManager;
@@ -67,7 +71,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         Long movieId = movie.getId();
 
         // DB에 저장되었는지 확인
-        assertThat(movieRepository.findById(movieId)).isPresent();
+        assertThat(movieJpaPort.findById(movieId)).isPresent();
 
         // When: 영화 삭제 커맨드 실행
         DeleteMovieCommand command = new DeleteMovieCommand(movieId);
@@ -77,7 +81,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         entityManager.clear();
 
         // Then: DB에서 영화가 삭제되었는지 확인
-        assertThat(movieRepository.findById(movieId)).isEmpty();
+        assertThat(movieJpaPort.findById(movieId)).isEmpty();
     }
 
     @Test
@@ -129,7 +133,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         Long movieId = movie.getId();
 
         // DB에 영화와 배우들이 저장되었는지 확인
-        Movie savedMovie = movieRepository.findById(movieId).orElseThrow();
+        Movie savedMovie = movieJpaPort.findById(movieId).orElseThrow();
         assertThat(savedMovie.getCasts()).hasSize(2);
 
         // When: 영화 삭제
@@ -140,7 +144,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         entityManager.clear();
 
         // Then: DB에서 영화와 연관된 배우들도 삭제되었는지 확인
-        assertThat(movieRepository.findById(movieId)).isEmpty();
+        assertThat(movieJpaPort.findById(movieId)).isEmpty();
         
         // 배우들이 영화와 함께 cascade 삭제되었는지 확인
         // (Actor가 Movie의 자식 엔티티이므로 함께 삭제됨)
@@ -207,8 +211,8 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         entityManager.clear();
 
         // Then: movie1만 삭제되고 movie2는 남아있는지 확인
-        assertThat(movieRepository.findById(movieId1)).isEmpty();
-        assertThat(movieRepository.findById(movieId2)).isPresent();
+        assertThat(movieJpaPort.findById(movieId1)).isEmpty();
+        assertThat(movieJpaPort.findById(movieId2)).isPresent();
         assertThat(movieRepository.count()).isEqualTo(1);
     }
 }

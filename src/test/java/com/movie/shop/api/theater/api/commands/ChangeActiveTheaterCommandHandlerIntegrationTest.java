@@ -76,7 +76,7 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
         entityManager.clear();
 
         // then
-        Theater updated = theaterRepository.getReferenceById(theaterId);
+        Theater updated = theaterRepository.getById(theaterId);
         assertThat(updated.isActive()).isFalse();
     }
 
@@ -99,7 +99,7 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
         entityManager.clear();
 
         // then
-        Theater updated = theaterRepository.getReferenceById(theaterId);
+        Theater updated = theaterRepository.getById(theaterId);
         assertThat(updated.isActive()).isTrue();
     }
 
