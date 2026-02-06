@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
@@ -356,6 +357,44 @@ class MovieTest {
         ))
                 .isInstanceOf(MovieDomainException.class)
                 .hasMessageContaining("이미 존재합니다");
+    }
+
+    @Test
+    void validateCanRemove_withNowShowing_throwsException() {
+        Movie movie = Movie.Register(
+                validator,
+                validTitle,
+                validDirector,
+                validGenres,
+                validRuntimeMinutes,
+                validAudienceRating,
+                validSynopsis,
+                validReleaseDate,
+                validCasts
+        );
+        movie.moveToComingSoon();
+        movie.startShowing();
+
+        assertThatThrownBy(movie::validateCanRemove)
+                .isInstanceOf(MovieDomainException.class)
+                .hasMessageContaining("NOW_SHOWING 상태의 영화는 삭제할 수 없습니다.");
+    }
+
+    @Test
+    void validateCanRemove_withPreparing_doesNotThrow() {
+        Movie movie = Movie.Register(
+                validator,
+                validTitle,
+                validDirector,
+                validGenres,
+                validRuntimeMinutes,
+                validAudienceRating,
+                validSynopsis,
+                validReleaseDate,
+                validCasts
+        );
+
+        assertThatCode(movie::validateCanRemove).doesNotThrowAnyException();
     }
 
     @Test

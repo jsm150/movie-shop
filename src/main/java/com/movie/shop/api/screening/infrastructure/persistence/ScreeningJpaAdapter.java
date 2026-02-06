@@ -14,6 +14,14 @@ public interface ScreeningJpaAdapter extends JpaRepository<Screening, Long>, Scr
     @Query("""
             SELECT (COUNT(s) > 0)
             FROM Screening s
+            WHERE s.movieId = :movieId
+            """)
+    boolean existsByMovieId(@Param("movieId") long movieId);
+
+    @Override
+    @Query("""
+            SELECT (COUNT(s) > 0)
+            FROM Screening s
             WHERE s.theaterId = :theaterId
               AND s.screeningTimeRange.startTime < :endTime
               AND :startTime < s.screeningTimeRange.endTime

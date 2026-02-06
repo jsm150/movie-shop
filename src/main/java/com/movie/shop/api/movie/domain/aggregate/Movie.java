@@ -114,6 +114,12 @@ public class Movie {
         return status != MovieStatus.NOW_SHOWING;
     }
 
+    public void validateCanRemove() {
+        if (!canRemove()) {
+            throw new MovieDomainException("NOW_SHOWING 상태의 영화는 삭제할 수 없습니다.");
+        }
+    }
+
     public boolean canBeScheduled() {
         return status == MovieStatus.COMING_SOON || status == MovieStatus.NOW_SHOWING;
     }

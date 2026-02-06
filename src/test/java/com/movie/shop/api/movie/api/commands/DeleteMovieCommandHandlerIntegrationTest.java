@@ -9,6 +9,11 @@ import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
+import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
+import com.movie.shop.api.theater.domain.aggregate.Theater;
+import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
+import com.movie.shop.api.theater.domain.aggregate.TheaterType;
+import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +36,36 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     private MovieTitleDuplicateValidator validator;
 
     @Autowired
+    private TheaterNameDuplicateValidator theaterNameDuplicateValidator;
+
+    @Autowired
     private MovieRepository movieRepository;
+
+    @Autowired
+    private TheaterRepository theaterRepository;
 
     @Autowired
     private MovieJpaPort movieJpaPort;
 
     @Autowired
     private EntityManager entityManager;
+
+    private Theater createAndSaveTheater(String name) {
+        Theater theater = Theater.Register(
+                theaterNameDuplicateValidator,
+                name,
+                1,
+                TheaterType.Standard,
+                List.of("A1", "A2", "B1", "B2"),
+                2,
+                2
+        );
+
+        theater = theaterRepository.save(theater);
+        entityManager.flush();
+        entityManager.clear();
+        return theater;
+    }
 
     @Test
     @Transactional
@@ -94,6 +122,73 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         DeleteMovieCommand command = new DeleteMovieCommand(nonExistentMovieId);
         assertThatThrownBy(() -> pipeline.send(command))
                 .isInstanceOf(MovieDomainException.class);
+    }
+
+    @Test
+    @Transactional
+    void deleteMovie_withNowShowingStatus_throwsException() {
+        // Given
+        Movie movie = Movie.Register(
+                validator,
+                "삭제불가상영중영화",
+                "감독",
+                List.of("드라마"),
+                120,
+                AudienceRating.PG12,
+                "시놉시스",
+                OffsetDateTime.parse("2020-01-01T00:00:00Z"),
+                List.of(new Actor("배우", OffsetDateTime.parse("1990-01-01T00:00:00Z"), "Korea", "역할"))
+        );
+        movie.moveToComingSoon();
+        movie.startShowing();
+        movie = movieRepository.save(movie);
+        entityManager.flush();
+        entityManager.clear();
+
+        // When & Then
+        DeleteMovieCommand command = new DeleteMovieCommand(movie.getId());
+        assertThatThrownBy(() -> pipeline.send(command))
+                .isInstanceOf(MovieDomainException.class)
+                .hasMessageContaining("NOW_SHOWING 상태의 영화는 삭제할 수 없습니다.");
+    }
+
+    @Test
+    @Transactional
+    void deleteMovie_withLinkedScreening_throwsException() {
+        // Given
+        Movie movie = Movie.Register(
+                validator,
+                "삭제불가연결영화",
+                "감독",
+                List.of("드라마"),
+                120,
+                AudienceRating.PG12,
+                "시놉시스",
+                OffsetDateTime.parse("2020-01-01T00:00:00Z"),
+                List.of(new Actor("배우", OffsetDateTime.parse("1990-01-01T00:00:00Z"), "Korea", "역할"))
+        );
+        movie.moveToComingSoon();
+        movie = movieRepository.save(movie);
+        Theater theater = createAndSaveTheater("삭제검증관");
+
+        RegisterScreeningCommand registerScreeningCommand = new RegisterScreeningCommand(
+                movie.getId(),
+                theater.getId(),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T12:00:00Z"),
+                OffsetDateTime.parse("2026-02-20T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z")
+        );
+        pipeline.send(registerScreeningCommand);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        // When & Then
+        DeleteMovieCommand command = new DeleteMovieCommand(movie.getId());
+        assertThatThrownBy(() -> pipeline.send(command))
+                .isInstanceOf(MovieDomainException.class)
+                .hasMessageContaining("상영이 연결된 영화는 삭제할 수 없습니다.");
     }
 
     @Test

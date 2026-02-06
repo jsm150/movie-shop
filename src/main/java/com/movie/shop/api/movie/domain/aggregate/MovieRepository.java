@@ -2,6 +2,7 @@ package com.movie.shop.api.movie.domain.aggregate;
 
 import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
+import com.movie.shop.api.movie.domain.policy.MovieDeletionPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,8 @@ public class MovieRepository {
         return movieJpaPort.save(movie);
     }
 
-    public void delete(Movie movie) {
+    public void delete(Movie movie, MovieDeletionPolicy movieDeletionPolicy) {
+        movieDeletionPolicy.validateCanDelete(movie);
         movieJpaPort.delete(movie);
     }
 

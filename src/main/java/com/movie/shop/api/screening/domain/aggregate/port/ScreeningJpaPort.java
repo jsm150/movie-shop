@@ -13,6 +13,8 @@ public interface ScreeningJpaPort {
 
     void delete(Screening screening);
 
+    boolean existsByMovieId(long movieId);
+
     boolean existsOverlappingByTheaterId(long theaterId,
                                          OffsetDateTime startTime,
                                          OffsetDateTime endTime);
