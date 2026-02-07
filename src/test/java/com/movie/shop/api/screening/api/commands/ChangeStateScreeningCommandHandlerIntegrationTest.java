@@ -7,19 +7,34 @@ import com.movie.shop.api.screening.domain.aggregate.ScreeningStateChange;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStatus;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @DisplayName("ChangeStateScreeningCommandHandler 통합 테스트")
 class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationTestSupport {
+
+    @MockitoBean
+    private Clock clock;
+
+    @BeforeEach
+    void setUpClock() {
+        when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+        when(clock.instant()).thenReturn(Instant.parse("2026-03-01T13:00:00Z"));
+    }
 
     @Test
     @Transactional
@@ -184,6 +199,57 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
         assertThatThrownBy(() -> pipeline.send(command))
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("상영 정보를 찾을 수 없습니다.");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("판매 시작 시간 이전에는 OPEN_SALES를 실행할 수 없다")
+    void changeState_openSalesBeforeSalesStart_throwsException() {
+        // given
+        when(clock.instant()).thenReturn(Instant.parse("2026-02-19T23:00:00Z"));
+
+        Screening screening = createScheduledScreening();
+        ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(
+                screening.getId(),
+                ScreeningStateChange.OPEN_SALES,
+                null
+        );
+
+        // when & then
+        assertThatThrownBy(() -> pipeline.send(command))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("판매 시작 시간 이전에는 판매를 시작할 수 없습니다.");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("상영 종료 시간 이전에는 FINISH를 실행할 수 없다")
+    void changeState_finishBeforeScreeningEnd_throwsException() {
+        // given
+        when(clock.instant()).thenReturn(Instant.parse("2026-03-01T11:00:00Z"));
+
+        Screening screening = createScheduledScreening();
+        pipeline.send(new ChangeStateScreeningCommand(
+                screening.getId(),
+                ScreeningStateChange.OPEN_SALES,
+                null
+        ));
+        pipeline.send(new ChangeStateScreeningCommand(
+                screening.getId(),
+                ScreeningStateChange.CLOSE_SALES,
+                null
+        ));
+
+        ChangeStateScreeningCommand command = new ChangeStateScreeningCommand(
+                screening.getId(),
+                ScreeningStateChange.FINISH,
+                null
+        );
+
+        // when & then
+        assertThatThrownBy(() -> pipeline.send(command))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영 종료 시간 이전에는 상영을 종료할 수 없습니다.");
     }
 
     private Screening createScheduledScreening() {

@@ -121,7 +121,7 @@ class ScreeningTest {
                 salesEnd
         );
         setId(screening, 100L);
-        screening.openSales();
+        screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
 
         OffsetDateTime newStart = screeningStart.plusHours(1);
         OffsetDateTime newEnd = screeningEnd.plusHours(1);
@@ -194,6 +194,82 @@ class ScreeningTest {
     }
 
     @Test
+    @DisplayName("판매 시작 시간 이전에는 OPEN_SALES를 수행할 수 없다")
+    void openSales_beforeSalesStart_throwsException() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+
+        assertThatThrownBy(() -> screening.openSales(OffsetDateTime.parse("2026-01-31T10:00:00Z")))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("판매 시작 시간 이전에는 판매를 시작할 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("판매 시작 시간과 같거나 이후면 OPEN_SALES를 수행할 수 있다")
+    void openSales_atOrAfterSalesStart_succeeds() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+
+        screening.openSales(salesStart);
+
+        assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.ON_SALE);
+    }
+
+    @Test
+    @DisplayName("상영 종료 시간 이전에는 FINISH를 수행할 수 없다")
+    void finish_beforeScreeningEnd_throwsException() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+        screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
+        screening.closeSales();
+
+        assertThatThrownBy(() -> screening.finish(OffsetDateTime.parse("2026-02-10T11:59:00Z")))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영 종료 시간 이전에는 상영을 종료할 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("상영 종료 시간과 같거나 이후면 FINISH를 수행할 수 있다")
+    void finish_atOrAfterScreeningEnd_succeeds() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+        screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
+        screening.closeSales();
+
+        screening.finish(screeningEnd);
+
+        assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.FINISHED);
+    }
+
+    @Test
     @DisplayName("SCHEDULED가 아닌 상태에서 삭제 가능 여부를 검증하면 예외가 발생한다")
     void validateCanRemove_whenNotScheduled_throwsException() {
         Screening screening = Screening.register(
@@ -205,7 +281,7 @@ class ScreeningTest {
                 salesStart,
                 salesEnd
         );
-        screening.openSales();
+        screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
 
         assertThatThrownBy(screening::validateCanRemove)
                 .isInstanceOf(ScreeningDomainException.class)
@@ -240,7 +316,7 @@ class ScreeningTest {
                 salesStart,
                 salesEnd
         );
-        screening.openSales();
+        screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
 
         assertThat(screening.blocksTheaterDeactivationOrDeletion()).isTrue();
     }
@@ -257,7 +333,7 @@ class ScreeningTest {
                 salesStart,
                 salesEnd
         );
-        screening.openSales();
+        screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
         screening.closeSales();
 
         assertThat(screening.blocksTheaterDeactivationOrDeletion()).isTrue();
@@ -292,7 +368,7 @@ class ScreeningTest {
                 salesStart,
                 salesEnd
         );
-        screening.openSales();
+        screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
         screening.closeSales();
         screening.finish(OffsetDateTime.parse("2026-02-10T12:01:00Z"));
 

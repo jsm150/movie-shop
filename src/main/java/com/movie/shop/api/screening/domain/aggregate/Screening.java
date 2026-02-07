@@ -113,9 +113,17 @@ public class Screening {
                 .throwIfInvalid(ScreeningDomainException::new);
     }
 
-    public void openSales() {
+    public void openSales(OffsetDateTime now) {
         if (status != ScreeningStatus.SCHEDULED) {
             throw new ScreeningDomainException("판매 시작은 SCHEDULED 상태에서만 가능합니다.");
+        }
+
+        if (now == null) {
+            throw new ScreeningDomainException("현재 시간은 필수입니다.");
+        }
+
+        if (now.isBefore(salesTimeRange.getSalesStartAt())) {
+            throw new ScreeningDomainException("판매 시작 시간 이전에는 판매를 시작할 수 없습니다.");
         }
 
         status = ScreeningStatus.ON_SALE;
@@ -160,6 +168,10 @@ public class Screening {
             throw new ScreeningDomainException("현재 시간은 필수입니다.");
         }
 
+        if (now.isBefore(screeningTimeRange.getEndTime())) {
+            throw new ScreeningDomainException("상영 종료 시간 이전에는 상영을 종료할 수 없습니다.");
+        }
+
         status = ScreeningStatus.FINISHED;
     }
 
@@ -169,7 +181,7 @@ public class Screening {
         }
 
         switch (stateChange) {
-            case OPEN_SALES -> openSales();
+            case OPEN_SALES -> openSales(now);
             case CLOSE_SALES -> closeSales();
             case CANCEL -> cancel(reason, now);
             case FINISH -> finish(now);

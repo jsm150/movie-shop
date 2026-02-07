@@ -193,14 +193,14 @@ class ScreeningScheduleValidationPolicyTest {
         );
 
         switch (status) {
-            case ON_SALE -> screening.openSales();
+            case ON_SALE -> screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
             case SALES_CLOSED -> {
-                screening.openSales();
+                screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
                 screening.closeSales();
             }
             case CANCELED -> screening.cancel("취소 사유", screeningStart.minusHours(1));
             case FINISHED -> {
-                screening.openSales();
+                screening.openSales(OffsetDateTime.parse("2026-02-09T10:00:00Z"));
                 screening.closeSales();
                 screening.finish(screeningEnd.plusMinutes(1));
             }

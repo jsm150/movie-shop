@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.OffsetDateTime;
 
 @Component
@@ -15,12 +16,13 @@ import java.time.OffsetDateTime;
 public class ChangeStateScreeningCommandHandler implements Command.Handler<ChangeStateScreeningCommand, Voidy> {
 
     private final ScreeningRepository screeningRepository;
+    private final Clock clock;
 
     @Override
     @Transactional
     public Voidy handle(ChangeStateScreeningCommand command) {
         Screening screening = screeningRepository.getById(command.screeningId());
-        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime now = OffsetDateTime.now(clock);
         screening.changeState(command.status(), command.cancelReason(), now);
 
         return null;

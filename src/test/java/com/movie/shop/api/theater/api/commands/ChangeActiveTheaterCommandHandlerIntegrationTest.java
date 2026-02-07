@@ -17,18 +17,24 @@ import com.movie.shop.api.theater.domain.aggregate.TheaterType;
 import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @DisplayName("ChangeActiveTheaterCommandHandler 통합 테스트")
@@ -53,6 +59,15 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
 
     @Autowired
     private EntityManager entityManager;
+
+    @MockitoBean
+    private Clock clock;
+
+    @BeforeEach
+    void setUpClock() {
+        when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+        when(clock.instant()).thenReturn(Instant.parse("2026-03-01T13:00:00Z"));
+    }
 
     private Theater createAndSaveTheater(String name, boolean active) {
         Theater theater = Theater.Register(

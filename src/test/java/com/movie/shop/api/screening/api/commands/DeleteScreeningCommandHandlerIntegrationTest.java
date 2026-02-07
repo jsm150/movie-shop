@@ -76,7 +76,7 @@ class DeleteScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
         );
 
         Screening loaded = screeningRepository.getById(screening.getId());
-        loaded.openSales();
+        loaded.openSales(OffsetDateTime.parse("2026-03-01T10:00:00Z"));
         flushAndClear();
 
         DeleteScreeningCommand command = new DeleteScreeningCommand(screening.getId());
