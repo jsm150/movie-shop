@@ -24,27 +24,27 @@ public interface ScreeningJpaAdapter extends JpaRepository<Screening, Long>, Scr
 
     @Override
     @Query("""
-            SELECT (COUNT(s) > 0)
+            SELECT s
             FROM Screening s
             WHERE s.theaterId = :theaterId
               AND s.screeningTimeRange.startTime < :endTime
               AND :startTime < s.screeningTimeRange.endTime
             """)
-    boolean existsOverlappingByTheaterId(@Param("theaterId") long theaterId,
-                                         @Param("startTime") OffsetDateTime startTime,
-                                         @Param("endTime") OffsetDateTime endTime);
+    List<Screening> findConflictCandidatesByTheaterId(@Param("theaterId") long theaterId,
+                                                       @Param("startTime") OffsetDateTime startTime,
+                                                       @Param("endTime") OffsetDateTime endTime);
 
     @Override
     @Query("""
-            SELECT (COUNT(s) > 0)
+            SELECT s
             FROM Screening s
             WHERE s.theaterId = :theaterId
               AND s.id <> :screeningId
               AND s.screeningTimeRange.startTime < :endTime
               AND :startTime < s.screeningTimeRange.endTime
             """)
-    boolean existsOverlappingByTheaterIdAndIdNot(@Param("theaterId") long theaterId,
-                                                 @Param("startTime") OffsetDateTime startTime,
-                                                 @Param("endTime") OffsetDateTime endTime,
-                                                 @Param("screeningId") long screeningId);
+    List<Screening> findConflictCandidatesByTheaterIdAndIdNot(@Param("theaterId") long theaterId,
+                                                               @Param("startTime") OffsetDateTime startTime,
+                                                               @Param("endTime") OffsetDateTime endTime,
+                                                               @Param("screeningId") long screeningId);
 }

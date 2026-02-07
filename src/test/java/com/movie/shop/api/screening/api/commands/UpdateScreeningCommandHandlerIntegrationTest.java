@@ -3,6 +3,7 @@ package com.movie.shop.api.screening.api.commands;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
+import com.movie.shop.api.screening.domain.aggregate.ScreeningStateChange;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStatus;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
@@ -198,6 +199,59 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
         assertThat(updated.getScreeningTimeRange().getEndTime()).isEqualTo(newEnd);
         assertThat(updated.getSalesTimeRange().getSalesStartAt()).isEqualTo(newSalesStart);
         assertThat(updated.getSalesTimeRange().getSalesEndAt()).isEqualTo(newSalesEnd);
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("취소된 상영과 시간이 겹치면 수정에 성공한다")
+    void updateScreening_withCanceledOverlap_updatesSuccessfully() {
+        // given
+        Movie movie1 = createMovie(MovieStatus.COMING_SOON);
+        Movie movie2 = createMovie(MovieStatus.COMING_SOON);
+        Theater theater = createTheater(true);
+
+        Screening target = createScreening(
+                movie1.getId(),
+                theater.getId(),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T12:00:00Z"),
+                OffsetDateTime.parse("2026-02-20T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z")
+        );
+
+        Screening canceledScreening = createScreening(
+                movie2.getId(),
+                theater.getId(),
+                OffsetDateTime.parse("2026-03-01T13:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T15:00:00Z"),
+                OffsetDateTime.parse("2026-02-20T11:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T13:00:00Z")
+        );
+
+        pipeline.send(new ChangeStateScreeningCommand(
+                canceledScreening.getId(),
+                ScreeningStateChange.CANCEL,
+                "운영상 취소"
+        ));
+        flushAndClear();
+
+        UpdateScreeningCommand command = new UpdateScreeningCommand(
+                target.getId(),
+                OffsetDateTime.parse("2026-03-01T14:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T16:00:00Z"),
+                OffsetDateTime.parse("2026-02-20T12:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T14:00:00Z")
+        );
+
+        // when
+        Long resultId = pipeline.send(command);
+        flushAndClear();
+
+        // then
+        Screening updated = screeningJpaPort.findById(target.getId()).orElseThrow();
+        assertThat(resultId).isEqualTo(target.getId());
+        assertThat(updated.getScreeningTimeRange().getStartTime()).isEqualTo(OffsetDateTime.parse("2026-03-01T14:00:00Z"));
+        assertThat(updated.getScreeningTimeRange().getEndTime()).isEqualTo(OffsetDateTime.parse("2026-03-01T16:00:00Z"));
     }
 
     @Test

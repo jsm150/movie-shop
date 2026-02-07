@@ -3,6 +3,7 @@ package com.movie.shop.api.screening.api.commands;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
+import com.movie.shop.api.screening.domain.aggregate.ScreeningStateChange;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStatus;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
@@ -200,5 +201,48 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
         assertThatThrownBy(() -> pipeline.send(command))
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("동일한 극장에 상영 시간이 겹치는 일정이 존재합니다.");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("취소된 상영과 시간이 겹치면 등록에 성공한다")
+    void registerScreening_withCanceledOverlap_succeeds() {
+        // given
+        Movie movie1 = createMovie(MovieStatus.COMING_SOON);
+        Movie movie2 = createMovie(MovieStatus.COMING_SOON);
+        Theater theater = createTheater(true);
+
+        Screening canceledScreening = createScreening(
+                movie1.getId(),
+                theater.getId(),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T12:00:00Z"),
+                OffsetDateTime.parse("2026-02-20T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z")
+        );
+
+        pipeline.send(new ChangeStateScreeningCommand(
+                canceledScreening.getId(),
+                ScreeningStateChange.CANCEL,
+                "운영상 취소"
+        ));
+        flushAndClear();
+
+        RegisterScreeningCommand command = new RegisterScreeningCommand(
+                movie2.getId(),
+                theater.getId(),
+                OffsetDateTime.parse("2026-03-01T11:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T13:00:00Z"),
+                OffsetDateTime.parse("2026-02-20T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T11:00:00Z")
+        );
+
+        // when
+        Long screeningId = pipeline.send(command);
+        flushAndClear();
+
+        // then
+        Screening screening = screeningJpaPort.findById(screeningId).orElseThrow();
+        assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.SCHEDULED);
     }
 }

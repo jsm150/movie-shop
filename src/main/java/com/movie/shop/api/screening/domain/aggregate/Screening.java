@@ -187,4 +187,12 @@ public class Screening {
                 || status == ScreeningStatus.ON_SALE
                 || status == ScreeningStatus.SALES_CLOSED;
     }
+
+    public boolean hasTimeConflictWith(OffsetDateTime targetStart, OffsetDateTime targetEnd) {
+        if (status == ScreeningStatus.CANCELED) {
+            return false;
+        }
+
+        return screeningTimeRange.overlaps(targetStart, targetEnd);
+    }
 }

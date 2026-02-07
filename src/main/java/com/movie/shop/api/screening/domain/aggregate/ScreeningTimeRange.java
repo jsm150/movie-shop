@@ -46,4 +46,8 @@ public class ScreeningTimeRange {
                 : Validation.invalid("상영 시작 시간은 상영 종료 시간 이전 이여야 합니다.");
     }
 
+    public boolean overlaps(OffsetDateTime targetStart, OffsetDateTime targetEnd) {
+        return startTime.isBefore(targetEnd) && targetStart.isBefore(endTime);
+    }
+
 }

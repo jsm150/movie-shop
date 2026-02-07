@@ -5,8 +5,6 @@ import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.OffsetDateTime;
-
 @Component
 @RequiredArgsConstructor
 public class ScreeningRepository {
@@ -15,19 +13,6 @@ public class ScreeningRepository {
 
     public Screening save(Screening screening) {
         return screeningJpaPort.save(screening);
-    }
-
-    public boolean existsOverlappingByTheaterId(long theaterId,
-                                                OffsetDateTime startTime,
-                                                OffsetDateTime endTime) {
-        return screeningJpaPort.existsOverlappingByTheaterId(theaterId, startTime, endTime);
-    }
-
-    public boolean existsOverlappingByTheaterIdAndIdNot(long theaterId,
-                                                        OffsetDateTime startTime,
-                                                        OffsetDateTime endTime,
-                                                        long screeningId) {
-        return screeningJpaPort.existsOverlappingByTheaterIdAndIdNot(theaterId, startTime, endTime, screeningId);
     }
 
     public void removeScheduledById(long screeningId) {

@@ -1,7 +1,7 @@
 package com.movie.shop.api.screening.domain.policy;
 
+import com.movie.shop.api.screening.domain.aggregate.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.screening.domain.policy.port.CheckScreeningTimeConflictPort;
 import com.movie.shop.api.screening.domain.policy.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.port.LoadTheaterScreeningAvailabilityPort;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ public class ScreeningScheduleValidationPolicy {
 
     private final LoadMovieSchedulingAvailabilityPort loadMovieSchedulingAvailabilityPort;
     private final LoadTheaterScreeningAvailabilityPort loadTheaterScreeningAvailabilityPort;
-    private final CheckScreeningTimeConflictPort checkScreeningTimeConflictPort;
+    private final ScreeningJpaPort screeningJpaPort;
 
     public void validateCanCreateScreeningSchedule(long movieId,
                                                    long theaterId,
@@ -55,7 +55,11 @@ public class ScreeningScheduleValidationPolicy {
     }
 
     private void validateNoConflict(long theaterId, OffsetDateTime screeningStart, OffsetDateTime screeningEnd) {
-        if (checkScreeningTimeConflictPort.hasConflict(theaterId, screeningStart, screeningEnd)) {
+        boolean hasConflict = screeningJpaPort.findConflictCandidatesByTheaterId(theaterId, screeningStart, screeningEnd)
+                .stream()
+                .anyMatch(screening -> screening.hasTimeConflictWith(screeningStart, screeningEnd));
+
+        if (hasConflict) {
             throw new ScreeningDomainException("동일한 극장에 상영 시간이 겹치는 일정이 존재합니다.");
         }
     }
@@ -64,7 +68,16 @@ public class ScreeningScheduleValidationPolicy {
                                              long theaterId,
                                              OffsetDateTime screeningStart,
                                              OffsetDateTime screeningEnd) {
-        if (checkScreeningTimeConflictPort.hasConflictExcluding(screeningId, theaterId, screeningStart, screeningEnd)) {
+        boolean hasConflict = screeningJpaPort.findConflictCandidatesByTheaterIdAndIdNot(
+                        theaterId,
+                        screeningStart,
+                        screeningEnd,
+                        screeningId
+                )
+                .stream()
+                .anyMatch(screening -> screening.hasTimeConflictWith(screeningStart, screeningEnd));
+
+        if (hasConflict) {
             throw new ScreeningDomainException("동일한 극장에 상영 시간이 겹치는 일정이 존재합니다.");
         }
     }

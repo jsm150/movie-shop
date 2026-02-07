@@ -18,12 +18,12 @@ public interface ScreeningJpaPort {
 
     boolean existsByMovieId(long movieId);
 
-    boolean existsOverlappingByTheaterId(long theaterId,
-                                         OffsetDateTime startTime,
-                                         OffsetDateTime endTime);
+    List<Screening> findConflictCandidatesByTheaterId(long theaterId,
+                                                      OffsetDateTime startTime,
+                                                      OffsetDateTime endTime);
 
-    boolean existsOverlappingByTheaterIdAndIdNot(long theaterId,
-                                                 OffsetDateTime startTime,
-                                                 OffsetDateTime endTime,
-                                                 long screeningId);
+    List<Screening> findConflictCandidatesByTheaterIdAndIdNot(long theaterId,
+                                                              OffsetDateTime startTime,
+                                                              OffsetDateTime endTime,
+                                                              long screeningId);
 }

@@ -299,6 +299,70 @@ class ScreeningTest {
         assertThat(screening.blocksTheaterDeactivationOrDeletion()).isFalse();
     }
 
+    @Test
+    @DisplayName("SCHEDULED 상태에서 시간이 겹치면 충돌로 판단한다")
+    void hasTimeConflictWith_whenScheduledAndOverlaps_returnsTrue() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+
+        boolean result = screening.hasTimeConflictWith(
+                OffsetDateTime.parse("2026-02-10T11:00:00Z"),
+                OffsetDateTime.parse("2026-02-10T13:00:00Z")
+        );
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DisplayName("SCHEDULED 상태에서 시간이 겹치지 않으면 충돌이 아니다")
+    void hasTimeConflictWith_whenScheduledAndNotOverlaps_returnsFalse() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+
+        boolean result = screening.hasTimeConflictWith(
+                OffsetDateTime.parse("2026-02-10T12:00:00Z"),
+                OffsetDateTime.parse("2026-02-10T13:00:00Z")
+        );
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("CANCELED 상태에서는 시간이 겹쳐도 충돌이 아니다")
+    void hasTimeConflictWith_whenCanceled_returnsFalse() {
+        Screening screening = Screening.register(
+                policy,
+                movieId,
+                theaterId,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        );
+        screening.cancel("취소 사유", OffsetDateTime.parse("2026-02-01T11:00:00Z"));
+
+        boolean result = screening.hasTimeConflictWith(
+                OffsetDateTime.parse("2026-02-10T11:00:00Z"),
+                OffsetDateTime.parse("2026-02-10T13:00:00Z")
+        );
+
+        assertThat(result).isFalse();
+    }
+
     private void setId(Screening screening, long id) throws Exception {
         // 리플렉션으로 식별자를 주입해 상태 전이 시나리오를 검증
         Field idField = Screening.class.getDeclaredField("id");
