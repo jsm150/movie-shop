@@ -40,12 +40,19 @@
 - 도메인 정책에서 포트 사용
 - 인프라 어댑터 구현
 
+## Domain Rule Documentation Sync
+
+- 도메인 영역 변경 시(aggregate/policy/value object/domain exception) 해당 도메인 규칙 문서를 반드시 최신화한다.
+- 문서는 구현 코드에 존재하는 실제 규칙만 기록한다.
+- 문서 양식은 `src/main/java/com/movie/shop/api/screening/domain/SCREENING_DOMAIN_RULES.md`를 기준으로 맞춘다.
+
 ## PR Review Checklist
 
 - 핸들러/인프라에 상태 전이 분기나 비즈니스 판단 코드가 없는가
 - 도메인 aggregate/policy가 규칙을 소유하는가
 - 도메인 예외는 도메인 계층에서 발생하는가
 - `domain` 패키지가 타 도메인 `domain` 패키지를 직접 참조하지 않는가
+- 도메인 규칙이 변경되었을 때 도메인 규칙 문서도 함께 갱신되었는가
 
 ## Commit Message Rule
 
