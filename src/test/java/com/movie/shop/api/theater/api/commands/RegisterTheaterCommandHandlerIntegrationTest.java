@@ -5,7 +5,7 @@ import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.aggregate.TheaterType;
-import com.movie.shop.api.theater.domain.aggregate.port.TheaterJpaPort;
+import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;

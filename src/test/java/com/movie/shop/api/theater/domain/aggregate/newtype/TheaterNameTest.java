@@ -1,6 +1,7 @@
 package com.movie.shop.api.theater.domain.aggregate.newtype;
 
-import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.aggregate.TheaterName;
+import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
 import io.vavr.collection.Seq;
 import io.vavr.control.Validation;
 import org.junit.jupiter.api.BeforeEach;

@@ -3,7 +3,7 @@ package com.movie.shop.api.theater.api.commands;
 import an.awesome.pipelinr.Command;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
-import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

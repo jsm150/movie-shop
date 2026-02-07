@@ -1,6 +1,6 @@
-package com.movie.shop.api.theater.domain.aggregate.newtype;
+package com.movie.shop.api.theater.domain.aggregate;
 
-import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
 import io.vavr.collection.List;
 import io.vavr.collection.Seq;
 import io.vavr.control.Option;

@@ -1,6 +1,6 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
-import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
+import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.movie.domain.policy.MovieDeletionPolicy;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +23,6 @@ public class MovieRepository {
 
     public long count() {
         return movieJpaPort.count();
-    }
-
-    public boolean existsByTitle(String title) {
-        return movieJpaPort.existsByTitle(title);
     }
 
     public Movie getById(long movieId) {

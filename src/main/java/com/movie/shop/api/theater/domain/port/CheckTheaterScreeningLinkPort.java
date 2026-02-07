@@ -1,4 +1,4 @@
-package com.movie.shop.api.theater.domain.policy.port;
+package com.movie.shop.api.theater.domain.port;
 
 public interface CheckTheaterScreeningLinkPort {
 

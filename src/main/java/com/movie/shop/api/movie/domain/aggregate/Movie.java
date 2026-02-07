@@ -1,7 +1,6 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
-import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
-import com.movie.shop.api.movie.domain.aggregate.newtype.MovieTitle;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.shared.domain.EntityValidator;
 import jakarta.persistence.*;

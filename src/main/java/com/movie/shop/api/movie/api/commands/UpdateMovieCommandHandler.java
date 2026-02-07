@@ -4,7 +4,7 @@ import an.awesome.pipelinr.Command;
 import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
-import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

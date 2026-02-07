@@ -1,6 +1,6 @@
 package com.movie.shop.api.theater.domain.aggregate;
 
-import com.movie.shop.api.theater.domain.aggregate.port.TheaterJpaPort;
+import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import com.movie.shop.api.theater.domain.policy.TheaterScreeningProtectionPolicy;
 import lombok.RequiredArgsConstructor;

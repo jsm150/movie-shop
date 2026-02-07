@@ -6,8 +6,8 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
-import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.port.MovieJpaPort;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
@@ -263,6 +263,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         @DisplayName("이미 존재하는 다른 영화의 제목으로 변경하면 실패한다")
         void updateMovie_withDuplicateTitle_throwsException() {
             // Given: DB에 두 개의 영화 저장
+            Movie movie1 = createAndSaveMovie("덩케르크");
             Movie movie2 = createAndSaveMovie("메멘토");
             Long movie2Id = movie2.getId();
 

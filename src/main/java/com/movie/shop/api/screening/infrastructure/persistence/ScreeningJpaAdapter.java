@@ -1,7 +1,7 @@
 package com.movie.shop.api.screening.infrastructure.persistence;
 
 import com.movie.shop.api.screening.domain.aggregate.Screening;
-import com.movie.shop.api.screening.domain.aggregate.port.ScreeningJpaPort;
+import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,4 +1,4 @@
-package com.movie.shop.api.screening.domain.policy.port;
+package com.movie.shop.api.screening.domain.port;
 
 import java.util.Optional;
 

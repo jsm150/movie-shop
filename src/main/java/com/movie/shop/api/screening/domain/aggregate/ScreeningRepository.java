@@ -1,6 +1,6 @@
 package com.movie.shop.api.screening.domain.aggregate;
 
-import com.movie.shop.api.screening.domain.aggregate.port.ScreeningJpaPort;
+import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -1,8 +1,7 @@
 package com.movie.shop.api.theater.domain.aggregate;
 
 import com.movie.shop.api.shared.domain.EntityValidator;
-import com.movie.shop.api.theater.domain.aggregate.newtype.TheaterName;
-import com.movie.shop.api.theater.domain.aggregate.validator.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import com.movie.shop.api.theater.domain.policy.TheaterScreeningProtectionPolicy;
 import jakarta.persistence.*;

@@ -1,7 +1,7 @@
-package com.movie.shop.api.movie.domain.aggregate.newtype;
+package com.movie.shop.api.movie.domain.aggregate;
 
 
-import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import io.vavr.collection.List;
 import io.vavr.collection.Seq;
 import io.vavr.control.Option;

@@ -3,7 +3,7 @@ package com.movie.shop.api.theater.domain.policy;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
-import com.movie.shop.api.theater.domain.policy.port.CheckTheaterScreeningLinkPort;
+import com.movie.shop.api.theater.domain.port.CheckTheaterScreeningLinkPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

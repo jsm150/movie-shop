@@ -5,7 +5,7 @@ import com.movie.shop.api.movie.api.commands.RegisterMovieCommand;
 import com.movie.shop.api.movie.api.commands.RegisterMovieCommand.ActorDto;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
-import com.movie.shop.api.movie.domain.aggregate.port.MovieJpaPort;
+import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;

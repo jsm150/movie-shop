@@ -1,6 +1,7 @@
 package com.movie.shop.api.movie.domain.aggregate.newtype;
 
-import com.movie.shop.api.movie.domain.aggregate.validator.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.aggregate.MovieTitle;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import io.vavr.collection.Seq;
 import io.vavr.control.Validation;
 import org.junit.jupiter.api.BeforeEach;

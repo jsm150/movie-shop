@@ -1,15 +1,15 @@
-package com.movie.shop.api.movie.domain.aggregate.validator;
+package com.movie.shop.api.movie.domain.policy;
 
-import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class MovieTitleDuplicateValidator {
-    private final MovieRepository movieRepository;
+    private final MovieJpaPort movieJpaPort;
 
     public boolean validateNotDuplicate(String movieTitle) {
-        return !movieRepository.existsByTitle(movieTitle);
+        return !movieJpaPort.existsByTitle(movieTitle);
     }
 }

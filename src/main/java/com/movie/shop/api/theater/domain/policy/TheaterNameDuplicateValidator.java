@@ -1,4 +1,4 @@
-package com.movie.shop.api.theater.domain.aggregate.validator;
+package com.movie.shop.api.theater.domain.policy;
 
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import lombok.RequiredArgsConstructor;

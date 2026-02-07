@@ -1,4 +1,4 @@
-package com.movie.shop.api.screening.domain.aggregate.port;
+package com.movie.shop.api.screening.domain.port;
 
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 

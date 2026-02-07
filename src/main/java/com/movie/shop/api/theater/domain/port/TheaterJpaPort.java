@@ -1,4 +1,4 @@
-package com.movie.shop.api.theater.domain.aggregate.port;
+package com.movie.shop.api.theater.domain.port;
 
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 

@@ -1,9 +1,9 @@
 package com.movie.shop.api.screening.domain.policy;
 
-import com.movie.shop.api.screening.domain.aggregate.port.ScreeningJpaPort;
+import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.screening.domain.policy.port.LoadMovieSchedulingAvailabilityPort;
-import com.movie.shop.api.screening.domain.policy.port.LoadTheaterScreeningAvailabilityPort;
+import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
+import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
