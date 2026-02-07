@@ -263,7 +263,6 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         @DisplayName("이미 존재하는 다른 영화의 제목으로 변경하면 실패한다")
         void updateMovie_withDuplicateTitle_throwsException() {
             // Given: DB에 두 개의 영화 저장
-            Movie movie1 = createAndSaveMovie("덩케르크");
             Movie movie2 = createAndSaveMovie("메멘토");
             Long movie2Id = movie2.getId();
 

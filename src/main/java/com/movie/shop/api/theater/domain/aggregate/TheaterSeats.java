@@ -1,7 +1,5 @@
 package com.movie.shop.api.theater.domain.aggregate;
 
-import io.vavr.Tuple;
-import io.vavr.Tuple3;
 import io.vavr.collection.Seq;
 import io.vavr.control.Validation;
 import jakarta.persistence.*;
