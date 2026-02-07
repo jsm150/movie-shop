@@ -288,4 +288,34 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("상영 등록/수정은 COMING_SOON 또는 NOW_SHOWING 상태의 영화만 가능합니다.");
     }
+
+    @Test
+    @Transactional
+    @DisplayName("상영 시간이 영화 런타임보다 짧으면 수정에 실패한다")
+    void updateScreening_withShorterThanMovieRuntime_throwsException() {
+        // given
+        Movie movie = createMovie(MovieStatus.COMING_SOON);
+        Theater theater = createTheater(true);
+        Screening screening = createScreening(
+                movie.getId(),
+                theater.getId(),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T12:00:00Z"),
+                OffsetDateTime.parse("2026-02-20T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z")
+        );
+
+        UpdateScreeningCommand command = new UpdateScreeningCommand(
+                screening.getId(),
+                OffsetDateTime.parse("2026-03-01T13:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T14:40:00Z"),
+                OffsetDateTime.parse("2026-02-20T12:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T13:00:00Z")
+        );
+
+        // when & then
+        assertThatThrownBy(() -> pipeline.send(command))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영 시간은 영화 런타임(120분) 이상이어야 합니다.");
+    }
 }

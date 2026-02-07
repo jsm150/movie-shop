@@ -4,9 +4,11 @@ import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
+import com.movie.shop.api.screening.domain.port.MovieSchedulingAvailability;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 
 @Component
@@ -21,7 +23,7 @@ public class ScreeningScheduleValidationPolicy {
                                                    long theaterId,
                                                    OffsetDateTime screeningStart,
                                                    OffsetDateTime screeningEnd) {
-        validateMovie(movieId);
+        validateMovie(movieId, screeningStart, screeningEnd);
         validateTheater(theaterId);
         validateNoConflict(theaterId, screeningStart, screeningEnd);
     }
@@ -31,18 +33,37 @@ public class ScreeningScheduleValidationPolicy {
                                                long theaterId,
                                                OffsetDateTime screeningStart,
                                                OffsetDateTime screeningEnd) {
-        validateMovie(movieId);
+        validateMovie(movieId, screeningStart, screeningEnd);
         validateTheater(theaterId);
         validateNoConflictExcluding(screeningId, theaterId, screeningStart, screeningEnd);
     }
 
-    private void validateMovie(long movieId) {
-        boolean movieAvailable = loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)
+    private void validateMovie(long movieId, OffsetDateTime screeningStart, OffsetDateTime screeningEnd) {
+        MovieSchedulingAvailability movieSchedulingAvailability = loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId)
                 .orElseThrow(() -> new ScreeningDomainException("영화 정보를 찾을 수 없습니다."));
 
-        if (!movieAvailable) {
+        if (!movieSchedulingAvailability.schedulable()) {
             throw new ScreeningDomainException("상영 등록/수정은 COMING_SOON 또는 NOW_SHOWING 상태의 영화만 가능합니다.");
         }
+
+        if (!canValidateRuntime(screeningStart, screeningEnd)) {
+            return;
+        }
+
+        Duration screeningDuration = Duration.between(screeningStart, screeningEnd);
+        Duration runtimeDuration = Duration.ofMinutes(movieSchedulingAvailability.runtimeMinutes());
+
+        if (screeningDuration.compareTo(runtimeDuration) < 0) {
+            throw new ScreeningDomainException(
+                    "상영 시간은 영화 런타임(%d분) 이상이어야 합니다.".formatted(movieSchedulingAvailability.runtimeMinutes())
+            );
+        }
+    }
+
+    private boolean canValidateRuntime(OffsetDateTime screeningStart, OffsetDateTime screeningEnd) {
+        return screeningStart != null
+                && screeningEnd != null
+                && screeningStart.isBefore(screeningEnd);
     }
 
     private void validateTheater(long theaterId) {

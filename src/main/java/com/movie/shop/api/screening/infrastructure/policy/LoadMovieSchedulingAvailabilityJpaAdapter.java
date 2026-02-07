@@ -1,8 +1,8 @@
 package com.movie.shop.api.screening.infrastructure.policy;
 
-import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
+import com.movie.shop.api.screening.domain.port.MovieSchedulingAvailability;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +15,8 @@ public class LoadMovieSchedulingAvailabilityJpaAdapter implements LoadMovieSched
     private final MovieJpaPort movieJpaPort;
 
     @Override
-    public Optional<Boolean> loadMovieSchedulingAvailability(long movieId) {
-        return movieJpaPort.findById(movieId).map(Movie::canBeScheduled);
+    public Optional<MovieSchedulingAvailability> loadMovieSchedulingAvailability(long movieId) {
+        return movieJpaPort.findById(movieId)
+                .map(movie -> new MovieSchedulingAvailability(movie.canBeScheduled(), movie.getRuntimeMinutes()));
     }
 }

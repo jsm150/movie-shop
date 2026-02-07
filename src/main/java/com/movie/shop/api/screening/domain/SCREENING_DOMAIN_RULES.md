@@ -24,14 +24,14 @@ screening/
 │   │   ├── ScreeningStateChange.java      ← 상태 변경 요청 enum
 │   │   ├── ScreeningTimeRange.java        ← 상영 시간 범위 VO
 │   │   ├── SalesTimeRange.java            ← 판매 시간 범위 VO
-│   │   ├── ScreeningRepository.java       ← 도메인 리포지토리
-│   │   └── port/
-│   │       └── ScreeningJpaPort.java      ← 영속화 포트
+│   │   └── ScreeningRepository.java       ← 도메인 리포지토리
 │   ├── policy/
-│   │   ├── ScreeningScheduleValidationPolicy.java  ← 일정 검증 정책
-│   │   └── port/
-│   │       ├── LoadMovieSchedulingAvailabilityPort.java   ← 영화 가용 확인 포트
-│   │       └── LoadTheaterScreeningAvailabilityPort.java  ← 극장 가용 확인 포트
+│   │   └── ScreeningScheduleValidationPolicy.java  ← 일정 검증 정책
+│   ├── port/
+│   │   ├── ScreeningJpaPort.java                    ← 영속화 포트
+│   │   ├── LoadMovieSchedulingAvailabilityPort.java   ← 영화 스케줄 가능/런타임 확인 포트
+│   │   ├── MovieSchedulingAvailability.java           ← 영화 스케줄 가능/런타임 조회 모델
+│   │   └── LoadTheaterScreeningAvailabilityPort.java  ← 극장 가용 확인 포트
 │   └── exceptions/
 │       └── ScreeningDomainException.java  ← 도메인 예외
 └── infrastructure/
@@ -241,7 +241,7 @@ screening/
 
 ```
 ScreeningScheduleValidationPolicy
-  ├── LoadMovieSchedulingAvailabilityPort   → (movie 도메인 조회)
+  ├── LoadMovieSchedulingAvailabilityPort   → (movie 스케줄 가능 여부 + runtimeMinutes 조회)
   ├── LoadTheaterScreeningAvailabilityPort  → (theater 도메인 조회)
   └── ScreeningJpaPort                     → (충돌 후보 조회)
 ```
@@ -254,9 +254,10 @@ ScreeningScheduleValidationPolicy
 |---|---|---|---|---|
 | 1 | SCR-RULE-026 | 영화 존재 여부 | 조회 결과 있음 | 영화 정보를 찾을 수 없습니다. |
 | 2 | SCR-RULE-026 | 영화 스케줄 가능 상태 | `COMING_SOON` 또는 `NOW_SHOWING` | 상영 등록/수정은 COMING_SOON 또는 NOW_SHOWING 상태의 영화만 가능합니다. |
-| 3 | SCR-RULE-027 | 극장 존재 여부 | 조회 결과 있음 | 극장 정보를 찾을 수 없습니다. |
-| 4 | SCR-RULE-027 | 극장 상영 가능 상태 | 활성화 상태 | 활성화된 극장에서만 상영 등록/수정이 가능합니다. |
-| 5 | SCR-RULE-028 | 시간 충돌 여부 | 후보 중 충돌 없음 | 동일한 극장에 상영 시간이 겹치는 일정이 존재합니다. |
+| 3 | SCR-RULE-030 | 영화 런타임 연계 | `screeningStart != null && screeningEnd != null && screeningStart < screeningEnd`일 때 `상영 구간 >= runtimeMinutes` | 상영 시간은 영화 런타임(%d분) 이상이어야 합니다. |
+| 4 | SCR-RULE-027 | 극장 존재 여부 | 조회 결과 있음 | 극장 정보를 찾을 수 없습니다. |
+| 5 | SCR-RULE-027 | 극장 상영 가능 상태 | 활성화 상태 | 활성화된 극장에서만 상영 등록/수정이 가능합니다. |
+| 6 | SCR-RULE-028 | 시간 충돌 여부 | 후보 중 충돌 없음 | 동일한 극장에 상영 시간이 겹치는 일정이 존재합니다. |
 
 ### 9.3 등록 vs 수정 차이
 
@@ -317,6 +318,7 @@ ScreeningScheduleValidationPolicy
 | SCR-RULE-027 | 극장 스케줄 가능 정책 | 극장 정보를 찾을 수 없습니다. / 활성화된 극장에서만 상영 등록/수정이 가능합니다. |
 | SCR-RULE-028 | 상영 시간 충돌 정책 | 동일한 극장에 상영 시간이 겹치는 일정이 존재합니다. |
 | SCR-RULE-029 | 상영 조회 실패 | 상영 정보를 찾을 수 없습니다. |
+| SCR-RULE-030 | 영화 런타임 연계 정책 | 상영 시간은 영화 런타임(%d분) 이상이어야 합니다. |
 
 ### 11.2 예외 메시지 → 규칙 ID 역매핑
 
@@ -345,6 +347,7 @@ ScreeningScheduleValidationPolicy
 | 활성화된 극장에서만 상영 등록/수정이 가능합니다. | SCR-RULE-027 |
 | 동일한 극장에 상영 시간이 겹치는 일정이 존재합니다. | SCR-RULE-028 |
 | 상영 정보를 찾을 수 없습니다. | SCR-RULE-029 |
+| 상영 시간은 영화 런타임(%d분) 이상이어야 합니다. | SCR-RULE-030 |
 
 ---
 
@@ -353,10 +356,10 @@ ScreeningScheduleValidationPolicy
 | 검증 대상 | 테스트 파일 |
 |---|---|
 | Aggregate 규칙 | `screening/domain/aggregate/ScreeningTest.java` |
-| 정책 규칙 | `screening/domain/policy/ScreeningScheduleValidationPolicyTest.java` |
+| 정책 규칙(영화 런타임 연계 포함) | `screening/domain/policy/ScreeningScheduleValidationPolicyTest.java` |
 | 상태 전이 + 시각 통합 | `screening/api/commands/ChangeStateScreeningCommandHandlerIntegrationTest.java` |
-| 등록 회귀 | `screening/api/commands/RegisterScreeningCommandHandlerIntegrationTest.java` |
-| 수정 회귀 | `screening/api/commands/UpdateScreeningCommandHandlerIntegrationTest.java` |
+| 등록 회귀(런타임 미달/범위 우선순위 포함) | `screening/api/commands/RegisterScreeningCommandHandlerIntegrationTest.java` |
+| 수정 회귀(런타임 미달 포함) | `screening/api/commands/UpdateScreeningCommandHandlerIntegrationTest.java` |
 | 삭제 회귀 | `screening/api/commands/DeleteScreeningCommandHandlerIntegrationTest.java` |
 
 > 테스트 경로 기준: `src/test/java/com/movie/shop/api/`

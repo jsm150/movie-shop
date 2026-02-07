@@ -245,4 +245,50 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
         Screening screening = screeningJpaPort.findById(screeningId).orElseThrow();
         assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.SCHEDULED);
     }
+
+    @Test
+    @Transactional
+    @DisplayName("상영 시간이 영화 런타임보다 짧으면 등록에 실패한다")
+    void registerScreening_withShorterThanMovieRuntime_throwsException() {
+        // given
+        Movie movie = createMovie(MovieStatus.COMING_SOON);
+        Theater theater = createTheater(true);
+
+        RegisterScreeningCommand command = new RegisterScreeningCommand(
+                movie.getId(),
+                theater.getId(),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T11:40:00Z"),
+                OffsetDateTime.parse("2026-02-20T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z")
+        );
+
+        // when & then
+        assertThatThrownBy(() -> pipeline.send(command))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영 시간은 영화 런타임(120분) 이상이어야 합니다.");
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("상영 시작과 종료가 같으면 런타임 검증보다 기존 범위 검증 메시지가 우선한다")
+    void registerScreening_withInvalidScreeningRange_throwsScreeningRangeMessage() {
+        // given
+        Movie movie = createMovie(MovieStatus.COMING_SOON);
+        Theater theater = createTheater(true);
+
+        RegisterScreeningCommand command = new RegisterScreeningCommand(
+                movie.getId(),
+                theater.getId(),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z"),
+                OffsetDateTime.parse("2026-02-20T10:00:00Z"),
+                OffsetDateTime.parse("2026-03-01T10:00:00Z")
+        );
+
+        // when & then
+        assertThatThrownBy(() -> pipeline.send(command))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영 시작 시간은 상영 종료 시간 이전 이여야 합니다.");
+    }
 }
