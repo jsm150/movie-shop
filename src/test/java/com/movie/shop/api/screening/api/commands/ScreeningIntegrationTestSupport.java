@@ -11,8 +11,12 @@ import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
+import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
+import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
+import com.movie.shop.api.screening.domain.port.MovieSchedulingAvailability;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
+import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
 import com.movie.shop.api.theater.api.commands.ChangeActiveTheaterCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
@@ -25,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
@@ -62,7 +67,10 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected TheaterNameDuplicateValidator theaterNameDuplicateValidator;
 
     @Autowired
-    protected ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy;
+    protected LoadMovieSchedulingAvailabilityPort loadMovieSchedulingAvailabilityPort;
+
+    @Autowired
+    protected LoadTheaterScreeningAvailabilityPort loadTheaterScreeningAvailabilityPort;
 
     protected Movie createMovie(MovieStatus status) {
         long seq = SEQUENCE.getAndIncrement();
@@ -137,8 +145,20 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
                                         OffsetDateTime end,
                                         OffsetDateTime salesStart,
                                         OffsetDateTime salesEnd) {
+        Optional<MovieSchedulingAvailability> movieSchedulingAvailability =
+                loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId);
+
+        ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
+                movieSchedulingAvailability,
+                loadTheaterScreeningAvailabilityPort.loadTheaterScreeningAvailability(theaterId),
+                screeningJpaPort.findConflictCandidatesByTheaterId(theaterId, start, end)
+        );
+        ScreeningTimeRuntimeValidationPolicy screeningTimeRuntimeValidationPolicy =
+                new ScreeningTimeRuntimeValidationPolicy(movieSchedulingAvailability);
+
         Screening screening = Screening.register(
                 screeningScheduleValidationPolicy,
+                screeningTimeRuntimeValidationPolicy,
                 movieId,
                 theaterId,
                 start,

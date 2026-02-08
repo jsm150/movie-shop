@@ -1,7 +1,7 @@
 package com.movie.shop.api.screening.infrastructure.policy;
 
 import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
-import com.movie.shop.api.theater.domain.aggregate.Theater;
+import com.movie.shop.api.screening.domain.port.TheaterScreeningAvailability;
 import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,7 +15,8 @@ public class LoadTheaterScreeningAvailabilityJpaAdapter implements LoadTheaterSc
     private final TheaterJpaPort theaterJpaPort;
 
     @Override
-    public Optional<Boolean> loadTheaterScreeningAvailability(long theaterId) {
-        return theaterJpaPort.findById(theaterId).map(Theater::canHostScreening);
+    public Optional<TheaterScreeningAvailability> loadTheaterScreeningAvailability(long theaterId) {
+        return theaterJpaPort.findById(theaterId)
+                .map(theater -> new TheaterScreeningAvailability(theater.canHostScreening()));
     }
 }

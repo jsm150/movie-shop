@@ -2,6 +2,7 @@ package com.movie.shop.api.screening.domain.aggregate;
 
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
+import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
 import com.movie.shop.api.shared.domain.EntityValidator;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -60,18 +61,22 @@ public class Screening {
     @Column(name = "cancel_reason", length = 200)
     private String cancelReason;
 
-    public static Screening register(ScreeningScheduleValidationPolicy policy,
+    public static Screening register(ScreeningScheduleValidationPolicy schedulePolicy,
+                                     ScreeningTimeRuntimeValidationPolicy runtimePolicy,
                                      long movieId,
                                      long theaterId,
                                      OffsetDateTime screeningStart,
                                      OffsetDateTime screeningEnd,
                                      OffsetDateTime salesStart,
                                      OffsetDateTime salesEnd) {
-        if (policy == null) {
+        if (schedulePolicy == null) {
             throw new ScreeningDomainException("상영 일정 검증 정책은 필수입니다.");
         }
+        if (runtimePolicy == null) {
+            throw new ScreeningDomainException("상영 시간 런타임 검증 정책은 필수입니다.");
+        }
 
-        policy.validateCanCreateScreeningSchedule(movieId, theaterId, screeningStart, screeningEnd);
+        schedulePolicy.validateCanCreateScreeningSchedule(screeningStart, screeningEnd);
 
         var screening = new Screening();
         screening.movieId = movieId;
@@ -79,7 +84,7 @@ public class Screening {
         screening.status = ScreeningStatus.SCHEDULED;
 
         EntityValidator.create()
-                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd), screening::setScreeningTimeRange)
+                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, runtimePolicy), screening::setScreeningTimeRange)
                 .apply(SalesTimeRange.create(salesStart, salesEnd, screeningStart), screening::setSalesTimeRange)
                 .validateBean(screening)
                 .throwIfInvalid(ScreeningDomainException::new);
@@ -87,27 +92,31 @@ public class Screening {
         return screening;
     }
 
-    public void reschedule(ScreeningScheduleValidationPolicy policy,
+    public void reschedule(ScreeningScheduleValidationPolicy schedulePolicy,
+                           ScreeningTimeRuntimeValidationPolicy runtimePolicy,
                            OffsetDateTime screeningStart,
                            OffsetDateTime screeningEnd,
                            OffsetDateTime salesStart,
                            OffsetDateTime salesEnd) {
-        if (policy == null) {
+        if (schedulePolicy == null) {
             throw new ScreeningDomainException("상영 일정 검증 정책은 필수입니다.");
+        }
+        if (runtimePolicy == null) {
+            throw new ScreeningDomainException("상영 시간 런타임 검증 정책은 필수입니다.");
         }
 
         if (this.id == null) {
             throw new ScreeningDomainException("상영 ID가 존재하지 않아 일정 변경 검증을 수행할 수 없습니다.");
         }
 
-        policy.validateCanRescheduleScreening(this.id, this.movieId, this.theaterId, screeningStart, screeningEnd);
+        schedulePolicy.validateCanRescheduleScreening(screeningStart, screeningEnd);
 
         if (status != ScreeningStatus.SCHEDULED) {
             throw new ScreeningDomainException("SCHEDULED 상태의 상영만 일정 변경이 가능합니다.");
         }
 
         EntityValidator.create()
-                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd), this::setScreeningTimeRange)
+                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, runtimePolicy), this::setScreeningTimeRange)
                 .apply(SalesTimeRange.create(salesStart, salesEnd, screeningStart), this::setSalesTimeRange)
                 .validateBean(this)
                 .throwIfInvalid(ScreeningDomainException::new);
