@@ -1,7 +1,6 @@
 package com.movie.shop.api.screening.domain.policy;
 
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.screening.domain.port.MovieSchedulingAvailability;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;

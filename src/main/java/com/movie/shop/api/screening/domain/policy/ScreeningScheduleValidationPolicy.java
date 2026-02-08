@@ -2,8 +2,6 @@ package com.movie.shop.api.screening.domain.policy;
 
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.screening.domain.port.MovieSchedulingAvailability;
-import com.movie.shop.api.screening.domain.port.TheaterScreeningAvailability;
 
 import java.time.OffsetDateTime;
 import java.util.List;

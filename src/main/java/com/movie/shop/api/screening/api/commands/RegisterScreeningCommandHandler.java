@@ -5,7 +5,7 @@ import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
-import com.movie.shop.api.screening.domain.port.MovieSchedulingAvailability;
+import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;

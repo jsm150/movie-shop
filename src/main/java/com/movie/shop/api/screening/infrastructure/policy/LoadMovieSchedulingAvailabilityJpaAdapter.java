@@ -2,7 +2,7 @@ package com.movie.shop.api.screening.infrastructure.policy;
 
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
-import com.movie.shop.api.screening.domain.port.MovieSchedulingAvailability;
+import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
