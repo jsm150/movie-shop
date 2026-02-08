@@ -6,6 +6,7 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
@@ -40,9 +41,6 @@ class DeleteTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
     private TheaterNameDuplicateValidator validator;
 
     @Autowired
-    private MovieTitleDuplicateValidator movieTitleDuplicateValidator;
-
-    @Autowired
     private MovieRepository movieRepository;
 
     @Autowired
@@ -53,6 +51,10 @@ class DeleteTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private EntityManager entityManager;
+
+    private MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
+        return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
+    }
 
     private Theater createAndSaveTheater(String name) {
         Theater theater = Theater.Register(
@@ -75,7 +77,7 @@ class DeleteTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
         long seq = SEQUENCE.getAndIncrement();
 
         Movie movie = Movie.Register(
-                movieTitleDuplicateValidator,
+                nonDuplicateTitleValidator(),
                 "극장삭제테스트영화-" + seq,
                 "테스트 감독",
                 List.of("드라마"),

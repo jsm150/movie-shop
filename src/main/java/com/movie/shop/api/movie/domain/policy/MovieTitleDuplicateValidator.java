@@ -1,15 +1,16 @@
 package com.movie.shop.api.movie.domain.policy;
 
-import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import java.util.Objects;
 
-@Component
-@RequiredArgsConstructor
 public class MovieTitleDuplicateValidator {
-    private final MovieJpaPort movieJpaPort;
+
+    private final MovieTitleDuplication titleDuplication;
+
+    public MovieTitleDuplicateValidator(MovieTitleDuplication titleDuplication) {
+        this.titleDuplication = Objects.requireNonNull(titleDuplication, "영화 제목 중복 정보는 필수입니다.");
+    }
 
     public boolean validateNotDuplicate(String movieTitle) {
-        return !movieJpaPort.existsByTitle(movieTitle);
+        return !titleDuplication.duplicated();
     }
 }

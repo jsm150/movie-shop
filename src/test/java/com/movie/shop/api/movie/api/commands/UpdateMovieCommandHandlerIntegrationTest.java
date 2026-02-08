@@ -7,6 +7,7 @@ import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
@@ -31,9 +32,6 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     private Pipeline pipeline;
 
     @Autowired
-    private MovieTitleDuplicateValidator validator;
-
-    @Autowired
     private MovieRepository movieRepository;
 
     @Autowired
@@ -41,6 +39,10 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private EntityManager entityManager;
+
+    private MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
+        return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
+    }
 
     private Movie createAndSaveMovie(String title) {
         Actor actor = new Actor(
@@ -51,7 +53,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         );
 
         Movie movie = Movie.Register(
-                validator,
+                nonDuplicateTitleValidator(),
                 title,
                 "크리스토퍼 놀란",
                 List.of("SF", "드라마"),

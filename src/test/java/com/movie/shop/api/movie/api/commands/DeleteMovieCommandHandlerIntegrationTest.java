@@ -7,6 +7,7 @@ import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
@@ -34,9 +35,6 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     private Pipeline pipeline;
 
     @Autowired
-    private MovieTitleDuplicateValidator validator;
-
-    @Autowired
     private TheaterNameDuplicateValidator theaterNameDuplicateValidator;
 
     @Autowired
@@ -50,6 +48,10 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private EntityManager entityManager;
+
+    private MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
+        return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
+    }
 
     private Theater createAndSaveTheater(String name) {
         Theater theater = Theater.Register(
@@ -83,7 +85,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
 
         Movie movie = Movie.Register(
-                validator,
+                nonDuplicateTitleValidator(),
                 "인터스텔라",
                 "크리스토퍼 놀란",
                 List.of("SF", "드라마"),
@@ -133,7 +135,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     void deleteMovie_withNowShowingStatus_throwsException() {
         // Given
         Movie movie = Movie.Register(
-                validator,
+                nonDuplicateTitleValidator(),
                 "삭제불가상영중영화",
                 "감독",
                 List.of("드라마"),
@@ -162,7 +164,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     void deleteMovie_withLinkedScreening_throwsException() {
         // Given
         Movie movie = Movie.Register(
-                validator,
+                nonDuplicateTitleValidator(),
                 "삭제불가연결영화",
                 "감독",
                 List.of("드라마"),
@@ -216,7 +218,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         );
 
         Movie movie = Movie.Register(
-                validator,
+                nonDuplicateTitleValidator(),
                 "다크 나이트",
                 "크리스토퍼 놀란",
                 List.of("액션", "범죄"),
@@ -264,7 +266,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         );
 
         Movie movie1 = Movie.Register(
-                validator,
+                nonDuplicateTitleValidator(),
                 "영화1",
                 "감독1",
                 List.of("장르1"),
@@ -283,7 +285,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         );
 
         Movie movie2 = Movie.Register(
-                validator,
+                nonDuplicateTitleValidator(),
                 "영화2",
                 "감독2",
                 List.of("장르2"),

@@ -1,6 +1,8 @@
 package com.movie.shop.api.movie.domain.port;
 
+import com.movie.shop.api.movie.domain.policy.MovieScreeningLinkStatus;
+
 public interface CheckMovieScreeningLinkPort {
 
-    boolean existsByMovieId(long movieId);
+    MovieScreeningLinkStatus loadMovieScreeningLinkStatus(long movieId);
 }

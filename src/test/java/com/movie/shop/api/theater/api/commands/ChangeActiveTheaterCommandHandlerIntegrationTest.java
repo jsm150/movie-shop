@@ -6,6 +6,7 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import com.movie.shop.api.screening.api.commands.ChangeStateScreeningCommand;
 import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
@@ -49,9 +50,6 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
     private TheaterNameDuplicateValidator validator;
 
     @Autowired
-    private MovieTitleDuplicateValidator movieTitleDuplicateValidator;
-
-    @Autowired
     private MovieRepository movieRepository;
 
     @Autowired
@@ -59,6 +57,10 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
 
     @Autowired
     private EntityManager entityManager;
+
+    private MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
+        return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
+    }
 
     @MockitoBean
     private Clock clock;
@@ -98,7 +100,7 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
         long seq = SEQUENCE.getAndIncrement();
 
         Movie movie = Movie.Register(
-                movieTitleDuplicateValidator,
+                nonDuplicateTitleValidator(),
                 "극장활성변경테스트영화-" + seq,
                 "테스트 감독",
                 List.of("드라마"),

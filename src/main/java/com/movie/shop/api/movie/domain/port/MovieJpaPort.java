@@ -1,6 +1,7 @@
 package com.movie.shop.api.movie.domain.port;
 
 import com.movie.shop.api.movie.domain.aggregate.Movie;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplication;
 
 import java.util.Optional;
 
@@ -14,5 +15,5 @@ public interface MovieJpaPort {
 
     long count();
 
-    boolean existsByTitle(String title);
+    MovieTitleDuplication loadTitleDuplication(String title);
 }

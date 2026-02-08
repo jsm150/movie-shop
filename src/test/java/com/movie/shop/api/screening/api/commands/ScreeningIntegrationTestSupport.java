@@ -8,6 +8,7 @@ import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
+import com.movie.shop.api.movie.domain.policy.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
@@ -61,9 +62,6 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected ScreeningJpaPort screeningJpaPort;
 
     @Autowired
-    protected MovieTitleDuplicateValidator movieTitleDuplicateValidator;
-
-    @Autowired
     protected TheaterNameDuplicateValidator theaterNameDuplicateValidator;
 
     @Autowired
@@ -72,11 +70,15 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     @Autowired
     protected LoadTheaterScreeningAvailabilityPort loadTheaterScreeningAvailabilityPort;
 
+    protected MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
+        return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
+    }
+
     protected Movie createMovie(MovieStatus status) {
         long seq = SEQUENCE.getAndIncrement();
 
         Movie movie = Movie.Register(
-                movieTitleDuplicateValidator,
+                nonDuplicateTitleValidator(),
                 "통합테스트영화-" + seq,
                 "테스트 감독",
                 List.of("드라마"),
