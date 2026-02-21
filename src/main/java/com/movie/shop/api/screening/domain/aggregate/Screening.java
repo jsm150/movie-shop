@@ -21,7 +21,7 @@ import java.time.OffsetDateTime;
 @Table(
         name = "screening",
         indexes = {
-                @Index(name = "idx_screening_theater_start", columnList = "theater_id,start_time"),
+                @Index(name = "idx_screening_theater_end_start", columnList = "theater_id,end_time,start_time"),
                 @Index(name = "idx_screening_movie_start", columnList = "movie_id,start_time")
         }
 )
