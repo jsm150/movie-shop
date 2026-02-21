@@ -15,6 +15,7 @@ import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
+import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
@@ -152,7 +153,9 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
                 movieSchedulingAvailability,
-                loadTheaterScreeningAvailabilityPort.loadTheaterScreeningAvailability(theaterId),
+                loadTheaterScreeningAvailabilityPort.loadTheaterScreeningAvailability(theaterId)
+        );
+        ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
                 screeningJpaPort.findConflictCandidatesByTheaterId(theaterId, start, end)
         );
         ScreeningTimeRuntimeValidationPolicy screeningTimeRuntimeValidationPolicy =
@@ -160,6 +163,7 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
 
         Screening screening = Screening.register(
                 screeningScheduleValidationPolicy,
+                screeningConflictValidationPolicy,
                 screeningTimeRuntimeValidationPolicy,
                 movieId,
                 theaterId,

@@ -1,5 +1,6 @@
 package com.movie.shop.api.screening.domain.aggregate;
 
+import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.shared.domain.ValidationUtils;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -32,15 +33,22 @@ public class SalesTimeRange {
 
     public static Validation<Seq<String>, SalesTimeRange> create(OffsetDateTime salesStartAt,
                                                                   OffsetDateTime salesEndAt,
-                                                                  OffsetDateTime screeningStartAt) {
+                                                                  OffsetDateTime screeningStartAt,
+                                                                  OffsetDateTime screeningEndAt,
+                                                                  ScreeningConflictValidationPolicy conflictPolicy) {
         return Validation.combine(
                 ValidationUtils.notNull(salesStartAt, "판매 시작 시간은 필수입니다."),
                 ValidationUtils.notNull(salesEndAt, "판매 종료 시간은 필수입니다."),
-                ValidationUtils.notNull(screeningStartAt, "상영 시작 시간은 필수입니다.")
+                ValidationUtils.notNull(screeningStartAt, "상영 시작 시간은 필수입니다."),
+                ValidationUtils.notNull(screeningEndAt, "상영 종료 시간은 필수입니다."),
+                ValidationUtils.notNull(conflictPolicy, "상영 시간 충돌 검증 정책은 필수입니다.")
         )
                 .ap(Tuple::of)
-                .flatMap(tuple -> validate(tuple._1, tuple._2, tuple._3).mapError(List::of))
-                .map(tuple -> new SalesTimeRange(tuple._1, tuple._2));
+                .flatMap(tuple -> {
+                    conflictPolicy.validateNoConflict(screeningStartAt, screeningEndAt);
+                    return validate(salesStartAt, salesEndAt, screeningStartAt).mapError(List::of);
+                })
+                .map(tuple -> tuple.apply(SalesTimeRange::new));
     }
 
     private static Validation<String, Tuple2<OffsetDateTime, OffsetDateTime>> validate(OffsetDateTime salesStartAt,

@@ -6,6 +6,7 @@ import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
+import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
@@ -35,7 +36,9 @@ public class UpdateScreeningCommandHandler implements Command.Handler<UpdateScre
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
                 movieSchedulingAvailability,
-                loadTheaterScreeningAvailabilityPort.loadTheaterScreeningAvailability(screening.getTheaterId()),
+                loadTheaterScreeningAvailabilityPort.loadTheaterScreeningAvailability(screening.getTheaterId())
+        );
+        ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
                 screeningJpaPort.findConflictCandidatesByTheaterIdAndIdNot(
                         screening.getTheaterId(),
                         command.screeningStartTime(),
@@ -48,6 +51,7 @@ public class UpdateScreeningCommandHandler implements Command.Handler<UpdateScre
 
         screening.reschedule(
                 screeningScheduleValidationPolicy,
+                screeningConflictValidationPolicy,
                 screeningTimeRuntimeValidationPolicy,
                 command.screeningStartTime(),
                 command.screeningEndTime(),

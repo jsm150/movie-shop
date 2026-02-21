@@ -1,28 +1,15 @@
 package com.movie.shop.api.screening.domain.policy;
 
-import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 
-import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Optional;
 
 public record ScreeningScheduleValidationPolicy(Optional<MovieSchedulingAvailability> movieSchedulingAvailability,
-                                                Optional<TheaterScreeningAvailability> theaterScreeningAvailability,
-                                                List<Screening> conflictCandidates) {
+                                                Optional<TheaterScreeningAvailability> theaterScreeningAvailability) {
 
-    public void validateCanCreateScreeningSchedule(OffsetDateTime screeningStart,
-                                                   OffsetDateTime screeningEnd) {
+    public void validate() {
         validateMovie();
         validateTheater();
-        validateNoConflict(screeningStart, screeningEnd);
-    }
-
-    public void validateCanRescheduleScreening(OffsetDateTime screeningStart,
-                                               OffsetDateTime screeningEnd) {
-        validateMovie();
-        validateTheater();
-        validateNoConflict(screeningStart, screeningEnd);
     }
 
     private void validateMovie() {
@@ -40,16 +27,6 @@ public record ScreeningScheduleValidationPolicy(Optional<MovieSchedulingAvailabi
 
         if (!theater.available()) {
             throw new ScreeningDomainException("활성화된 극장에서만 상영 등록/수정이 가능합니다.");
-        }
-    }
-
-    private void validateNoConflict(OffsetDateTime screeningStart, OffsetDateTime screeningEnd) {
-        boolean hasConflict = conflictCandidates
-                .stream()
-                .anyMatch(screening -> screening.hasTimeConflictWith(screeningStart, screeningEnd));
-
-        if (hasConflict) {
-            throw new ScreeningDomainException("동일한 극장에 상영 시간이 겹치는 일정이 존재합니다.");
         }
     }
 }

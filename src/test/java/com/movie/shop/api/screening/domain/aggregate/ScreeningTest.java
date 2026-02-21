@@ -1,6 +1,7 @@
 package com.movie.shop.api.screening.domain.aggregate;
 
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
+import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
@@ -21,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ScreeningTest {
 
     private ScreeningScheduleValidationPolicy schedulePolicy;
+    private ScreeningConflictValidationPolicy conflictPolicy;
     private ScreeningTimeRuntimeValidationPolicy runtimePolicy;
 
     private long movieId;
@@ -40,9 +42,9 @@ class ScreeningTest {
         salesEnd = screeningStart;
         schedulePolicy = new ScreeningScheduleValidationPolicy(
                 Optional.of(new MovieSchedulingAvailability(true, 120)),
-                Optional.of(new TheaterScreeningAvailability(true)),
-                List.of()
+                Optional.of(new TheaterScreeningAvailability(true))
         );
+        conflictPolicy = new ScreeningConflictValidationPolicy(List.of());
         runtimePolicy = new ScreeningTimeRuntimeValidationPolicy(
                 Optional.of(new MovieSchedulingAvailability(true, 120))
         );
@@ -53,6 +55,7 @@ class ScreeningTest {
     void register_withValidPolicy_succeeds() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -76,6 +79,7 @@ class ScreeningTest {
     void register_withNullPolicy_throwsException() {
         assertThatThrownBy(() -> Screening.register(
                 null,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -92,6 +96,7 @@ class ScreeningTest {
     void reschedule_withNullPolicy_throwsException() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -103,6 +108,7 @@ class ScreeningTest {
 
         assertThatThrownBy(() -> screening.reschedule(
                 null,
+                conflictPolicy,
                 runtimePolicy,
                 screeningStart.plusHours(1),
                 screeningEnd.plusHours(1),
@@ -117,6 +123,7 @@ class ScreeningTest {
     void reschedule_whenNotScheduledStatus_throwsException() throws Exception {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -135,6 +142,7 @@ class ScreeningTest {
 
         assertThatThrownBy(() -> screening.reschedule(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 newStart,
                 newEnd,
@@ -150,6 +158,7 @@ class ScreeningTest {
     void reschedule_withValidPolicyAndScheduledStatus_succeeds() throws Exception {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -167,6 +176,7 @@ class ScreeningTest {
 
         screening.reschedule(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 newStart,
                 newEnd,
@@ -185,6 +195,7 @@ class ScreeningTest {
     void validateCanRemove_whenScheduled_doesNotThrow() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -202,6 +213,7 @@ class ScreeningTest {
     void openSales_beforeSalesStart_throwsException() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -221,6 +233,7 @@ class ScreeningTest {
     void openSales_atOrAfterSalesStart_succeeds() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -240,6 +253,7 @@ class ScreeningTest {
     void finish_beforeScreeningEnd_throwsException() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -261,6 +275,7 @@ class ScreeningTest {
     void finish_atOrAfterScreeningEnd_succeeds() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -282,6 +297,7 @@ class ScreeningTest {
     void validateCanRemove_whenNotScheduled_throwsException() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -302,6 +318,7 @@ class ScreeningTest {
     void blocksTheaterDeactivationOrDeletion_whenScheduled_returnsTrue() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -319,6 +336,7 @@ class ScreeningTest {
     void blocksTheaterDeactivationOrDeletion_whenOnSale_returnsTrue() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -337,6 +355,7 @@ class ScreeningTest {
     void blocksTheaterDeactivationOrDeletion_whenSalesClosed_returnsTrue() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -356,6 +375,7 @@ class ScreeningTest {
     void blocksTheaterDeactivationOrDeletion_whenCanceled_returnsFalse() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -374,6 +394,7 @@ class ScreeningTest {
     void blocksTheaterDeactivationOrDeletion_whenFinished_returnsFalse() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -394,6 +415,7 @@ class ScreeningTest {
     void hasTimeConflictWith_whenScheduledAndOverlaps_returnsTrue() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -416,6 +438,7 @@ class ScreeningTest {
     void hasTimeConflictWith_whenScheduledAndNotOverlaps_returnsFalse() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,
@@ -438,6 +461,7 @@ class ScreeningTest {
     void hasTimeConflictWith_whenCanceled_returnsFalse() {
         Screening screening = Screening.register(
                 schedulePolicy,
+                conflictPolicy,
                 runtimePolicy,
                 movieId,
                 theaterId,

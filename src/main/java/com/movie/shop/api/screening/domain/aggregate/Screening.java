@@ -1,6 +1,7 @@
 package com.movie.shop.api.screening.domain.aggregate;
 
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
+import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
 import com.movie.shop.api.shared.domain.EntityValidator;
@@ -62,6 +63,7 @@ public class Screening {
     private String cancelReason;
 
     public static Screening register(ScreeningScheduleValidationPolicy schedulePolicy,
+                                     ScreeningConflictValidationPolicy conflictPolicy,
                                      ScreeningTimeRuntimeValidationPolicy runtimePolicy,
                                      long movieId,
                                      long theaterId,
@@ -72,11 +74,14 @@ public class Screening {
         if (schedulePolicy == null) {
             throw new ScreeningDomainException("상영 일정 검증 정책은 필수입니다.");
         }
+        if (conflictPolicy == null) {
+            throw new ScreeningDomainException("상영 시간 충돌 검증 정책은 필수입니다.");
+        }
         if (runtimePolicy == null) {
             throw new ScreeningDomainException("상영 시간 런타임 검증 정책은 필수입니다.");
         }
 
-        schedulePolicy.validateCanCreateScreeningSchedule(screeningStart, screeningEnd);
+        schedulePolicy.validate();
 
         var screening = new Screening();
         screening.movieId = movieId;
@@ -85,7 +90,7 @@ public class Screening {
 
         EntityValidator.create()
                 .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, runtimePolicy), screening::setScreeningTimeRange)
-                .apply(SalesTimeRange.create(salesStart, salesEnd, screeningStart), screening::setSalesTimeRange)
+                .apply(SalesTimeRange.create(salesStart, salesEnd, screeningStart, screeningEnd, conflictPolicy), screening::setSalesTimeRange)
                 .validateBean(screening)
                 .throwIfInvalid(ScreeningDomainException::new);
 
@@ -93,6 +98,7 @@ public class Screening {
     }
 
     public void reschedule(ScreeningScheduleValidationPolicy schedulePolicy,
+                           ScreeningConflictValidationPolicy conflictPolicy,
                            ScreeningTimeRuntimeValidationPolicy runtimePolicy,
                            OffsetDateTime screeningStart,
                            OffsetDateTime screeningEnd,
@@ -100,6 +106,9 @@ public class Screening {
                            OffsetDateTime salesEnd) {
         if (schedulePolicy == null) {
             throw new ScreeningDomainException("상영 일정 검증 정책은 필수입니다.");
+        }
+        if (conflictPolicy == null) {
+            throw new ScreeningDomainException("상영 시간 충돌 검증 정책은 필수입니다.");
         }
         if (runtimePolicy == null) {
             throw new ScreeningDomainException("상영 시간 런타임 검증 정책은 필수입니다.");
@@ -109,7 +118,7 @@ public class Screening {
             throw new ScreeningDomainException("상영 ID가 존재하지 않아 일정 변경 검증을 수행할 수 없습니다.");
         }
 
-        schedulePolicy.validateCanRescheduleScreening(screeningStart, screeningEnd);
+        schedulePolicy.validate();
 
         if (status != ScreeningStatus.SCHEDULED) {
             throw new ScreeningDomainException("SCHEDULED 상태의 상영만 일정 변경이 가능합니다.");
@@ -117,7 +126,7 @@ public class Screening {
 
         EntityValidator.create()
                 .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, runtimePolicy), this::setScreeningTimeRange)
-                .apply(SalesTimeRange.create(salesStart, salesEnd, screeningStart), this::setSalesTimeRange)
+                .apply(SalesTimeRange.create(salesStart, salesEnd, screeningStart, screeningEnd, conflictPolicy), this::setSalesTimeRange)
                 .validateBean(this)
                 .throwIfInvalid(ScreeningDomainException::new);
     }

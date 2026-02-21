@@ -6,6 +6,7 @@ import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
+import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
@@ -33,7 +34,9 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
                 movieSchedulingAvailability,
-                loadTheaterScreeningAvailabilityPort.loadTheaterScreeningAvailability(command.theaterId()),
+                loadTheaterScreeningAvailabilityPort.loadTheaterScreeningAvailability(command.theaterId())
+        );
+        ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
                 screeningJpaPort.findConflictCandidatesByTheaterId(
                         command.theaterId(),
                         command.screeningStartTime(),
@@ -45,6 +48,7 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
 
         Screening screening = Screening.register(
                 screeningScheduleValidationPolicy,
+                screeningConflictValidationPolicy,
                 screeningTimeRuntimeValidationPolicy,
                 command.movieId(),
                 command.theaterId(),
