@@ -41,7 +41,7 @@ public class MovieTitle {
     }
 
     private static Validation<String, String> validateNotBlank(String title) {
-        return title != null && !title.isEmpty()
+        return title != null && !title.trim().isEmpty()
                 ? Validation.valid(title)
                 : Validation.invalid("영화 제목은 필수입니다.");
     }
