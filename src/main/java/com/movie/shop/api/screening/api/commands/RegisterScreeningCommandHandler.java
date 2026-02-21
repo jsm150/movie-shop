@@ -11,6 +11,7 @@ import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPol
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -25,7 +26,7 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
     private final ScreeningJpaPort screeningJpaPort;
 
     @Override
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Long handle(RegisterScreeningCommand command) {
         Optional<MovieSchedulingAvailability> movieSchedulingAvailability =
                 loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(command.movieId());
