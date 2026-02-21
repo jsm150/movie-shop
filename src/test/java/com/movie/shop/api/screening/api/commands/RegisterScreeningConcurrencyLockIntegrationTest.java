@@ -397,8 +397,6 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
 
     private void cleanupCommittedData() {
         jdbcTemplate.update("DELETE FROM screening");
-        jdbcTemplate.update("DELETE FROM movie_actors");
-        jdbcTemplate.update("DELETE FROM movie_genres");
         jdbcTemplate.update("DELETE FROM movie");
         jdbcTemplate.update("DELETE FROM theater");
     }

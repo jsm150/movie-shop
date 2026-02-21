@@ -9,6 +9,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -38,9 +40,8 @@ public class Movie {
     private String director;
     
     @NotEmpty(message = "최소 하나 이상의 장르가 필요합니다.")
-    @ElementCollection
-    @CollectionTable(name = "movie_genres", joinColumns = @JoinColumn(name = "movie_id"))
-    @Column(name = "genre", nullable = false)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "genres_json", columnDefinition = "json", nullable = false)
     private List<@NotBlank(message = "장르는 빈 값이나 공백을 포함할 수 없습니다.") String> genres = new ArrayList<>();
     
     @Positive(message = "상영 시간은 0보다 커야 합니다.")
@@ -62,8 +63,8 @@ public class Movie {
     private OffsetDateTime releaseDate;
 
     @NotEmpty(message = "최소 한 명 이상의 출연진이 필요합니다.")
-    @ElementCollection
-    @CollectionTable(name = "movie_actors", joinColumns = @JoinColumn(name = "movie_id"))
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "casts_json", columnDefinition = "json", nullable = false)
     private List<Actor> casts = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
