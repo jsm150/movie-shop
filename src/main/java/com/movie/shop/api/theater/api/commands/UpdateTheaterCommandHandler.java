@@ -20,15 +20,7 @@ public class UpdateTheaterCommandHandler implements Command.Handler<UpdateTheate
     public Long handle(UpdateTheaterCommand command) {
         Theater theater = theaterRepository.getById(command.theaterId());
 
-        theater.Update(
-                theaterNameDuplicateValidator,
-                command.name(),
-                command.floor(),
-                command.type(),
-                command.seats(),
-                command.rowCount(),
-                command.columnCount()
-        );
+        theater.updateName(theaterNameDuplicateValidator, command.name());
 
         return command.theaterId();
     }

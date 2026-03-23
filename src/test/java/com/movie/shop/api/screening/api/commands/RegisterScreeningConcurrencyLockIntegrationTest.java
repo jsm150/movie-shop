@@ -10,7 +10,6 @@ import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.theater.api.commands.RegisterTheaterCommand;
-import com.movie.shop.api.theater.domain.aggregate.TheaterType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,11 +73,11 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
     @DisplayName("등록 경합 시 갭락으로 두 번째 트랜잭션은 대기 후 충돌 예외가 발생한다")
     void registerScreening_concurrently_gapLockBlocksAndRejectsSecond() throws Exception {
         long movieId = registerSchedulableMovie();
-        long theaterId = registerTheater();
+        long auditoriumId = registerAuditorium();
 
         RegisterScreeningCommand firstCommand = new RegisterScreeningCommand(
                 movieId,
-                theaterId,
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -86,7 +85,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
         );
         RegisterScreeningCommand secondCommand = new RegisterScreeningCommand(
                 movieId,
-                theaterId,
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T11:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T13:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -121,9 +120,9 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
 
             Throwable secondFailure = extractFutureFailure(secondFuture);
             assertThat(secondFailure).isInstanceOf(ScreeningDomainException.class)
-                    .hasMessageContaining("동일한 극장에 상영 시간이 겹치는 일정이 존재합니다.");
+                    .hasMessageContaining("동일한 상영관에 상영 시간이 겹치는 일정이 존재합니다.");
 
-            List<Screening> screenings = screeningJpaPort.findAllByTheaterId(theaterId);
+            List<Screening> screenings = screeningJpaPort.findAllByTheaterId(auditoriumId);
             assertThat(screenings).hasSize(1);
             assertThat(screenings.getFirst().getId()).isEqualTo(firstScreeningId);
         } finally {
@@ -135,11 +134,11 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
     @DisplayName("수정 경합 시 self-exclude 락으로 두 번째 수정이 대기 후 진행된다")
     void updateScreening_concurrently_selfExcludeLockWaitsThenProceeds() throws Exception {
         long movieId = registerSchedulableMovie();
-        long theaterId = registerTheater();
+        long auditoriumId = registerAuditorium();
 
         long secondScreeningId = registerScreening(
                 movieId,
-                theaterId,
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T16:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T18:00:00Z")
         );
@@ -160,7 +159,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
             Future<Void> firstFuture = executor.submit(() ->
                     transactionTemplate.execute(status -> {
                         screeningJpaPort.findConflictCandidatesByTheaterIdAndIdNot(
-                                theaterId,
+                                auditoriumId,
                                 secondUpdate.screeningStartTime(),
                                 secondUpdate.screeningEndTime(),
                                 secondScreeningId
@@ -199,7 +198,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
     @DisplayName("동시 insert 경합에서 gap lock 구간 조회는 공존하지만 insert는 1건만 성공한다")
     void gapLock_allowsConcurrentRangeLocks_butSimultaneousInsertEndsWithSingleWinner() throws Exception {
         long movieId = registerSchedulableMovie();
-        long theaterId = registerTheater();
+        long auditoriumId = registerAuditorium();
 
         OffsetDateTime firstStart = OffsetDateTime.parse("2026-03-02T10:00:00Z");
         OffsetDateTime firstEnd = OffsetDateTime.parse("2026-03-02T12:00:00Z");
@@ -214,7 +213,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
         try {
             Future<Throwable> firstFuture = executor.submit(() -> runConcurrentInsertTransaction(
                     movieId,
-                    theaterId,
+                    auditoriumId,
                     firstStart,
                     firstEnd,
                     firstStart,
@@ -225,7 +224,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
             ));
             Future<Throwable> secondFuture = executor.submit(() -> runConcurrentInsertTransaction(
                     movieId,
-                    theaterId,
+                    auditoriumId,
                     secondStart,
                     secondEnd,
                     secondStart,
@@ -250,7 +249,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
             Integer count = jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM screening WHERE theater_id = ?",
                     Integer.class,
-                    theaterId
+                    auditoriumId
             );
             assertThat(count).isEqualTo(1);
         } finally {
@@ -280,22 +279,44 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
         return movieId;
     }
 
-    private long registerTheater() {
+    private long registerAuditorium() {
         long seq = SEQUENCE.getAndIncrement();
-        return pipeline.send(new RegisterTheaterCommand(
-                "동시성극장-" + seq,
+        long theaterId = pipeline.send(new RegisterTheaterCommand("동시성영화관-" + seq));
+        String auditoriumName = "동시성상영관-" + seq;
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO auditorium
+                (theater_id, name, floor, auditorium_type, is_active, seats, row_count, column_count)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                theaterId,
+                auditoriumName,
                 1,
-                TheaterType.Standard,
-                List.of("A1", "A2", "B1", "B2"),
-                2,
+                "Standard",
+                true,
+                "[\"A1\",\"A2\"]",
+                1,
                 2
-        ));
+        );
+
+        Long auditoriumId = jdbcTemplate.queryForObject(
+                "SELECT auditorium_id FROM auditorium WHERE theater_id = ? AND name = ?",
+                Long.class,
+                theaterId,
+                auditoriumName
+        );
+
+        if (auditoriumId == null) {
+            throw new IllegalStateException("상영관 ID를 조회할 수 없습니다.");
+        }
+        return auditoriumId;
     }
 
-    private long registerScreening(long movieId, long theaterId, OffsetDateTime start, OffsetDateTime end) {
+    private long registerScreening(long movieId, long auditoriumId, OffsetDateTime start, OffsetDateTime end) {
         return pipeline.send(new RegisterScreeningCommand(
                 movieId,
-                theaterId,
+                auditoriumId,
                 start,
                 end,
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -304,7 +325,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
     }
 
     private Throwable runConcurrentInsertTransaction(long movieId,
-                                                     long theaterId,
+                                                     long auditoriumId,
                                                      OffsetDateTime lockQueryStart,
                                                      OffsetDateTime lockQueryEnd,
                                                      OffsetDateTime insertStart,
@@ -316,7 +337,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
             transactionTemplate.execute(status -> {
                 withTemporaryLockWaitTimeout(3, () -> {
                     screeningJpaPort.findConflictCandidatesByTheaterId(
-                            theaterId,
+                            auditoriumId,
                             lockQueryStart,
                             lockQueryEnd
                     );
@@ -332,7 +353,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
                             VALUES (?, ?, ?, ?, ?, ?, ?)
                             """,
                             movieId,
-                            theaterId,
+                            auditoriumId,
                             java.sql.Timestamp.from(insertStart.toInstant()),
                             java.sql.Timestamp.from(insertEnd.toInstant()),
                             java.sql.Timestamp.from(insertStart.minusDays(3).toInstant()),
@@ -397,6 +418,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
 
     private void cleanupCommittedData() {
         jdbcTemplate.update("DELETE FROM screening");
+        jdbcTemplate.update("DELETE FROM auditorium");
         jdbcTemplate.update("DELETE FROM movie");
         jdbcTemplate.update("DELETE FROM theater");
     }
@@ -462,10 +484,4 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
         return current == null ? throwable : current;
     }
 
-    private int toInt(Object value) {
-        if (value instanceof Number number) {
-            return number.intValue();
-        }
-        return Integer.parseInt(String.valueOf(value));
-    }
 }

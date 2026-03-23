@@ -6,7 +6,6 @@ import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStateChange;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStatus;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.theater.domain.aggregate.Theater;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +26,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
     void registerScreening_withValidData_persistsToDatabase() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
         OffsetDateTime start = OffsetDateTime.parse("2026-03-01T10:00:00Z");
         OffsetDateTime end = OffsetDateTime.parse("2026-03-01T12:00:00Z");
         OffsetDateTime salesStart = OffsetDateTime.parse("2026-02-20T10:00:00Z");
@@ -35,7 +34,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
         RegisterScreeningCommand command = new RegisterScreeningCommand(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 start,
                 end,
                 salesStart,
@@ -49,7 +48,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
         // then
         Screening screening = screeningJpaPort.findById(screeningId).orElseThrow();
         assertThat(screening.getMovieId()).isEqualTo(movie.getId());
-        assertThat(screening.getTheaterId()).isEqualTo(theater.getId());
+        assertThat(screening.getTheaterId()).isEqualTo(auditoriumId);
         assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.SCHEDULED);
         assertThat(screening.getScreeningTimeRange().getStartTime()).isEqualTo(start);
         assertThat(screening.getScreeningTimeRange().getEndTime()).isEqualTo(end);
@@ -62,11 +61,11 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
     @DisplayName("존재하지 않는 영화 ID로 등록하면 실패한다")
     void registerScreening_withMissingMovie_throwsException() {
         // given
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
 
         RegisterScreeningCommand command = new RegisterScreeningCommand(
                 999999L,
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -81,7 +80,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
     @Test
     @Transactional
-    @DisplayName("존재하지 않는 극장 ID로 등록하면 실패한다")
+    @DisplayName("존재하지 않는 상영관 ID로 등록하면 실패한다")
     void registerScreening_withMissingTheater_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
@@ -98,7 +97,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
         // when & then
         assertThatThrownBy(() -> pipeline.send(command))
                 .isInstanceOf(ScreeningDomainException.class)
-                .hasMessageContaining("극장 정보를 찾을 수 없습니다.");
+                .hasMessageContaining("상영관 정보를 찾을 수 없습니다.");
     }
 
     @Test
@@ -107,11 +106,11 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
     void registerScreening_withPreparingMovie_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.PREPARING);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
 
         RegisterScreeningCommand command = new RegisterScreeningCommand(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -130,11 +129,11 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
     void registerScreening_withEndedMovie_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.ENDED);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
 
         RegisterScreeningCommand command = new RegisterScreeningCommand(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -149,15 +148,15 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
     @Test
     @Transactional
-    @DisplayName("비활성화된 극장으로 등록하면 실패한다")
+    @DisplayName("비활성화된 상영관으로 등록하면 실패한다")
     void registerScreening_withInactiveTheater_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(false);
+        long auditoriumId = createAuditorium(false);
 
         RegisterScreeningCommand command = new RegisterScreeningCommand(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -167,21 +166,21 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
         // when & then
         assertThatThrownBy(() -> pipeline.send(command))
                 .isInstanceOf(ScreeningDomainException.class)
-                .hasMessageContaining("활성화된 극장에서만 상영 등록/수정이 가능합니다.");
+                .hasMessageContaining("활성화된 상영관에서만 상영 등록/수정이 가능합니다.");
     }
 
     @Test
     @Transactional
-    @DisplayName("동일 극장에 상영 시간이 겹치면 등록에 실패한다")
+    @DisplayName("동일 상영관에 상영 시간이 겹치면 등록에 실패한다")
     void registerScreening_withOverlappingTime_throwsException() {
         // given
         Movie movie1 = createMovie(MovieStatus.COMING_SOON);
         Movie movie2 = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
 
         createScreening(
                 movie1.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -190,7 +189,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
         RegisterScreeningCommand command = new RegisterScreeningCommand(
                 movie2.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T11:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T13:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -200,7 +199,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
         // when & then
         assertThatThrownBy(() -> pipeline.send(command))
                 .isInstanceOf(ScreeningDomainException.class)
-                .hasMessageContaining("동일한 극장에 상영 시간이 겹치는 일정이 존재합니다.");
+                .hasMessageContaining("동일한 상영관에 상영 시간이 겹치는 일정이 존재합니다.");
     }
 
     @Test
@@ -210,11 +209,11 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
         // given
         Movie movie1 = createMovie(MovieStatus.COMING_SOON);
         Movie movie2 = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
 
         Screening canceledScreening = createScreening(
                 movie1.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -230,7 +229,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
 
         RegisterScreeningCommand command = new RegisterScreeningCommand(
                 movie2.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T11:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T13:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -252,11 +251,11 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
     void registerScreening_withShorterThanMovieRuntime_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
 
         RegisterScreeningCommand command = new RegisterScreeningCommand(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T11:40:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -275,11 +274,11 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
     void registerScreening_withInvalidScreeningRange_throwsScreeningRangeMessage() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
 
         RegisterScreeningCommand command = new RegisterScreeningCommand(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),

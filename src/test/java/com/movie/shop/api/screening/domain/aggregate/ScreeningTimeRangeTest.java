@@ -2,7 +2,8 @@ package com.movie.shop.api.screening.domain.aggregate;
 
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
+import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
+
 import io.vavr.collection.Seq;
 import io.vavr.control.Validation;
 import org.junit.jupiter.api.DisplayName;

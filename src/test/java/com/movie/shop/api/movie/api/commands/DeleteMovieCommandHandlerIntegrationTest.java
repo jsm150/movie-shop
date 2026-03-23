@@ -7,19 +7,19 @@ import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
-import com.movie.shop.api.theater.domain.aggregate.TheaterType;
 import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
@@ -49,25 +49,51 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     private MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
         return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
     }
 
     private Theater createAndSaveTheater(String name) {
-        Theater theater = Theater.Register(
-                theaterNameDuplicateValidator,
-                name,
-                1,
-                TheaterType.Standard,
-                List.of("A1", "A2", "B1", "B2"),
-                2,
-                2
-        );
+        Theater theater = Theater.register(theaterNameDuplicateValidator, name);
 
         theater = theaterRepository.save(theater);
         entityManager.flush();
         entityManager.clear();
         return theater;
+    }
+
+    private long createAndSaveAuditorium(long theaterId, String name) {
+        jdbcTemplate.update(
+                """
+                INSERT INTO auditorium
+                (theater_id, name, floor, auditorium_type, is_active, seats, row_count, column_count)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                theaterId,
+                name,
+                1,
+                "Standard",
+                true,
+                "[\"A1\",\"A2\"]",
+                1,
+                2
+        );
+
+        Long auditoriumId = jdbcTemplate.queryForObject(
+                "SELECT auditorium_id FROM auditorium WHERE theater_id = ? AND name = ?",
+                Long.class,
+                theaterId,
+                name
+        );
+
+        if (auditoriumId == null) {
+            throw new IllegalStateException("상영관 ID를 조회할 수 없습니다.");
+        }
+
+        return auditoriumId;
     }
 
     @Test
@@ -177,10 +203,11 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         movie.moveToComingSoon();
         movie = movieRepository.save(movie);
         Theater theater = createAndSaveTheater("삭제검증관");
+        long auditoriumId = createAndSaveAuditorium(theater.getId(), "삭제검증상영관");
 
         RegisterScreeningCommand registerScreeningCommand = new RegisterScreeningCommand(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),

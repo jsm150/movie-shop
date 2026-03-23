@@ -1,6 +1,6 @@
 package com.movie.shop.api.movie.domain.port;
 
-import com.movie.shop.api.movie.domain.policy.MovieScreeningLinkStatus;
+import com.movie.shop.api.movie.domain.policy.status.MovieScreeningLinkStatus;
 
 public interface CheckMovieScreeningLinkPort {
 

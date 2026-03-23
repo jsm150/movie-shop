@@ -6,7 +6,6 @@ import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStateChange;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStatus;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.theater.domain.aggregate.Theater;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -254,10 +253,10 @@ class ChangeStateScreeningCommandHandlerIntegrationTest extends ScreeningIntegra
 
     private Screening createScheduledScreening() {
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
         return createScreening(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),

@@ -4,17 +4,14 @@ import an.awesome.pipelinr.Pipeline;
 import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
-import com.movie.shop.api.theater.domain.aggregate.TheaterType;
-import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
+import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,65 +34,31 @@ class RegisterTheaterCommandHandlerIntegrationTest extends AbstractContainerBase
 
     @Test
     @Transactional
-    @DisplayName("상영관 등록하면 DB에 값이 저장된다")
+    @DisplayName("영화관을 등록하면 DB에 값이 저장된다")
     void registerTheater_persistsToDatabase() {
-        // given
-        RegisterTheaterCommand command = new RegisterTheaterCommand(
-                "1관",
-                1,
-                TheaterType.Standard,
-                List.of("A1", "A2", "A3", "B1", "B2", "B3"),
-                2,
-                3
-        );
+        RegisterTheaterCommand command = new RegisterTheaterCommand("강남점");
 
-        // when
         Long theaterId = pipeline.send(command);
         entityManager.flush();
         entityManager.clear();
 
-        // then
         Theater theater = theaterJpaPort.findById(theaterId).orElseThrow();
-        assertThat(theater.getName().getName()).isEqualTo("1관");
-        assertThat(theater.getFloor()).isEqualTo(1);
-        assertThat(theater.getTheaterType()).isEqualTo(TheaterType.Standard);
-        assertThat(theater.getSeats().getSeats()).containsExactly("A1", "A2", "A3", "B1", "B2", "B3");
-        assertThat(theater.getSeats().getRowCount()).isEqualTo(2);
-        assertThat(theater.getSeats().getColumnCount()).isEqualTo(3);
+        assertThat(theater.getName().getName()).isEqualTo("강남점");
         assertThat(theater.isActive()).isTrue();
     }
 
     @Test
     @Transactional
-    @DisplayName("동일한 상영관 이름으로 등록하면 중복을 허용하지 않는다")
+    @DisplayName("동일한 영화관 이름으로 등록하면 실패한다")
     void registerTheater_withDuplicateName_fails() {
-        // given
-        RegisterTheaterCommand first = new RegisterTheaterCommand(
-                "1관",
-                1,
-                TheaterType.Standard,
-                List.of("A1", "A2", "A3", "B1", "B2", "B3"),
-                2,
-                3
-        );
-        pipeline.send(first);
+        pipeline.send(new RegisterTheaterCommand("강남점"));
         entityManager.flush();
         entityManager.clear();
 
-        RegisterTheaterCommand duplicate = new RegisterTheaterCommand(
-                "1관",
-                2,
-                TheaterType.IMAX,
-                List.of("C1", "C2", "C3", "D1", "D2", "D3"),
-                2,
-                3
-        );
-
-        // when & then
-        assertThatThrownBy(() -> pipeline.send(duplicate))
+        assertThatThrownBy(() -> pipeline.send(new RegisterTheaterCommand("강남점")))
                 .isInstanceOf(TheaterDomainException.class)
-                .hasMessageContaining("'1관' 이름의 상영관이 이미 존재합니다.");
+                .hasMessageContaining("'강남점' 이름의 영화관이 이미 존재합니다.");
 
-        assertThat(theaterRepository.count()).isEqualTo(1);
+        assertThat(theaterJpaPort.count()).isEqualTo(1);
     }
 }

@@ -8,26 +8,26 @@ import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
-import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
-import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
+import com.movie.shop.api.screening.domain.port.LoadAuditoriumScreeningAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
+import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
 import com.movie.shop.api.theater.api.commands.ChangeActiveTheaterCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
-import com.movie.shop.api.theater.domain.aggregate.TheaterType;
 import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -69,7 +69,10 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected LoadMovieSchedulingAvailabilityPort loadMovieSchedulingAvailabilityPort;
 
     @Autowired
-    protected LoadTheaterScreeningAvailabilityPort loadTheaterScreeningAvailabilityPort;
+    protected LoadAuditoriumScreeningAvailabilityPort loadAuditoriumScreeningAvailabilityPort;
+
+    @Autowired
+    protected JdbcTemplate jdbcTemplate;
 
     protected MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
         return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
@@ -120,15 +123,7 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected Theater createTheater(boolean active) {
         long seq = SEQUENCE.getAndIncrement();
 
-        Theater theater = Theater.Register(
-                theaterNameDuplicateValidator,
-                "통합테스트관-" + seq,
-                1,
-                TheaterType.Standard,
-                List.of("A1", "A2", "B1", "B2"),
-                2,
-                2
-        );
+        Theater theater = Theater.register(theaterNameDuplicateValidator, "통합테스트관-" + seq);
 
         theater = theaterRepository.save(theater);
         flushAndClear();
@@ -142,8 +137,45 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
         return theater;
     }
 
+    protected long createAuditorium(boolean active) {
+        long seq = SEQUENCE.getAndIncrement();
+
+        Theater theater = createTheater(true);
+        String auditoriumName = "통합테스트상영관-" + seq;
+
+        jdbcTemplate.update(
+                """
+                INSERT INTO auditorium
+                (theater_id, name, floor, auditorium_type, is_active, seats, row_count, column_count)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                theater.getId(),
+                auditoriumName,
+                1,
+                "Standard",
+                active,
+                "[\"A1\",\"A2\"]",
+                1,
+                2
+        );
+
+        Long auditoriumId = jdbcTemplate.queryForObject(
+                "SELECT auditorium_id FROM auditorium WHERE theater_id = ? AND name = ?",
+                Long.class,
+                theater.getId(),
+                auditoriumName
+        );
+
+        if (auditoriumId == null) {
+            throw new IllegalStateException("상영관 ID를 조회할 수 없습니다.");
+        }
+
+        flushAndClear();
+        return auditoriumId;
+    }
+
     protected Screening createScreening(long movieId,
-                                        long theaterId,
+                                        long auditoriumId,
                                         OffsetDateTime start,
                                         OffsetDateTime end,
                                         OffsetDateTime salesStart,
@@ -153,10 +185,10 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
                 movieSchedulingAvailability,
-                loadTheaterScreeningAvailabilityPort.loadTheaterScreeningAvailability(theaterId)
+                loadAuditoriumScreeningAvailabilityPort.loadTheaterScreeningAvailability(auditoriumId)
         );
         ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
-                screeningJpaPort.findConflictCandidatesByTheaterId(theaterId, start, end)
+                screeningJpaPort.findConflictCandidatesByTheaterId(auditoriumId, start, end)
         );
         ScreeningTimeRuntimeValidationPolicy screeningTimeRuntimeValidationPolicy =
                 new ScreeningTimeRuntimeValidationPolicy(movieSchedulingAvailability);
@@ -166,7 +198,7 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
                 screeningConflictValidationPolicy,
                 screeningTimeRuntimeValidationPolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 start,
                 end,
                 salesStart,

@@ -4,8 +4,9 @@ import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
-import com.movie.shop.api.screening.domain.policy.TheaterScreeningAvailability;
+import com.movie.shop.api.screening.domain.policy.status.AuditoriumScreeningAvailability;
+import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,7 @@ class ScreeningTest {
         salesEnd = screeningStart;
         schedulePolicy = new ScreeningScheduleValidationPolicy(
                 Optional.of(new MovieSchedulingAvailability(true, 120)),
-                Optional.of(new TheaterScreeningAvailability(true))
+                Optional.of(new AuditoriumScreeningAvailability(true))
         );
         conflictPolicy = new ScreeningConflictValidationPolicy(List.of());
         runtimePolicy = new ScreeningTimeRuntimeValidationPolicy(

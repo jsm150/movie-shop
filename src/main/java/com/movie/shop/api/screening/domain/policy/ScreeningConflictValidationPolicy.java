@@ -14,7 +14,7 @@ public record ScreeningConflictValidationPolicy(List<Screening> conflictCandidat
                 .anyMatch(screening -> screening.hasTimeConflictWith(screeningStart, screeningEnd));
 
         if (hasConflict) {
-            throw new ScreeningDomainException("동일한 극장에 상영 시간이 겹치는 일정이 존재합니다.");
+            throw new ScreeningDomainException("동일한 상영관에 상영 시간이 겹치는 일정이 존재합니다.");
         }
     }
 }

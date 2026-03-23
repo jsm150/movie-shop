@@ -1,23 +1,26 @@
 package com.movie.shop.api.theater.domain.aggregate;
 
 import com.movie.shop.api.shared.domain.EntityValidator;
-import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
-import com.movie.shop.api.theater.domain.policy.TheaterScreeningProtectionPolicy;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import com.movie.shop.api.theater.domain.policy.TheaterAuditoriumLinkProtectionPolicy;
+import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.constraints.Range;
-
-import java.util.List;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Theater {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "theater_id", nullable = false)
@@ -25,54 +28,31 @@ public class Theater {
 
     @Setter(AccessLevel.PRIVATE)
     @AttributeOverride(
-        name = "name",
-        column = @Column(name = "name", unique = true, nullable = false, length = 50)
+            name = "name",
+            column = @Column(name = "name", unique = true, nullable = false, length = 50)
     )
     @Embedded
     private TheaterName name;
 
-    @Range(min = -10, max = 100, message = "층수는 -10에서 100 사이여야 합니다.")
-    @Column
-    private int floor;
-
-    // 상영관 타입
-    @Enumerated(EnumType.STRING)
-    @Column
-    private TheaterType theaterType;
-
-    @Setter(AccessLevel.PRIVATE)
-    @NotNull(message = "최소 하나 이상의 좌석이 필요합니다.")
-    @Embedded
-    private TheaterSeats seats;
-
-    // 운영 상태
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
-    public static Theater Register(TheaterNameDuplicateValidator nameDuplicateValidator, String name, int floor, TheaterType type, List<String> seats, int rowCount, int columnCount) {
+    public static Theater register(TheaterNameDuplicateValidator nameDuplicateValidator, String name) {
         var theater = new Theater();
-        theater.floor = floor;
-        theater.theaterType = type;
         theater.active = true;
 
         EntityValidator.create()
-            .apply(TheaterName.createNew(name, nameDuplicateValidator), theater::setName)
-            .apply(TheaterSeats.create(seats, rowCount, columnCount), theater::setSeats)
-            .validateBean(theater)
-            .throwIfInvalid(TheaterDomainException::new);
+                .apply(TheaterName.createNew(name, nameDuplicateValidator), theater::setName)
+                .validateBean(theater)
+                .throwIfInvalid(TheaterDomainException::new);
 
         return theater;
     }
 
-    public void Update(TheaterNameDuplicateValidator nameDuplicateValidator, String name, int floor, TheaterType type, List<String> seats, int rowCount, int columnCount) {
-        this.floor = floor;
-        this.theaterType = type;
-
+    public void updateName(TheaterNameDuplicateValidator nameDuplicateValidator, String name) {
         EntityValidator.create()
-            .apply(TheaterName.createFrom(this.name, name, nameDuplicateValidator), this::setName)
-            .apply(TheaterSeats.create(seats, rowCount, columnCount), this::setSeats)
-            .validateBean(this)
-            .throwIfInvalid(TheaterDomainException::new);
+                .apply(TheaterName.createFrom(this.name, name, nameDuplicateValidator), this::setName)
+                .throwIfInvalid(TheaterDomainException::new);
     }
 
     private void deactivate() {
@@ -83,13 +63,13 @@ public class Theater {
         active = true;
     }
 
-    public void changeActive(TheaterActiveChange activeChange, TheaterScreeningProtectionPolicy policy) {
+    public void changeActive(TheaterActiveChange activeChange, TheaterAuditoriumLinkProtectionPolicy policy) {
         if (activeChange == null) {
-            throw new TheaterDomainException("변경할 상영관 활성 상태는 필수입니다.");
+            throw new TheaterDomainException("변경할 영화관 활성 상태는 필수입니다.");
         }
 
         if (policy == null) {
-            throw new TheaterDomainException("상영관 활성 상태 변경 정책은 필수입니다.");
+            throw new TheaterDomainException("영화관 활성 상태 변경 정책은 필수입니다.");
         }
 
         switch (activeChange) {
@@ -100,9 +80,4 @@ public class Theater {
             }
         }
     }
-
-    public boolean canHostScreening() {
-        return active;
-    }
-
 }

@@ -2,6 +2,8 @@ package com.movie.shop.api.movie.domain.policy;
 
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
+import com.movie.shop.api.movie.domain.policy.status.MovieScreeningLinkStatus;
+
 import java.util.Objects;
 
 public class MovieDeletionPolicy {

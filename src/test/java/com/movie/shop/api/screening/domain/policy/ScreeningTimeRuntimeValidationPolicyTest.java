@@ -1,6 +1,8 @@
 package com.movie.shop.api.screening.domain.policy;
 
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
+import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

@@ -2,6 +2,8 @@ package com.movie.shop.api.movie.domain.policy;
 
 import java.util.Objects;
 
+import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
+
 public class MovieTitleDuplicateValidator {
 
     private final MovieTitleDuplication titleDuplication;

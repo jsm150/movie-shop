@@ -1,8 +1,9 @@
-package com.movie.shop.api.theater.domain.aggregate;
+package com.movie.shop.api.auditorium.domain.aggregate;
 
 import io.vavr.collection.Seq;
 import io.vavr.control.Validation;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.List;
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class TheaterSeats {
+public class AuditoriumSeats {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "json")
@@ -24,20 +25,20 @@ public class TheaterSeats {
 
     private int columnCount;
 
-    private TheaterSeats(List<String> seats, int rowCount, int columnCount) {
+    private AuditoriumSeats(List<String> seats, int rowCount, int columnCount) {
         this.seats = seats;
         this.rowCount = rowCount;
         this.columnCount = columnCount;
     }
 
-    public static Validation<Seq<String>, TheaterSeats> create(List<String> seats, int rowCount, int columnCount) {
+    public static Validation<Seq<String>, AuditoriumSeats> create(List<String> seats, int rowCount, int columnCount) {
         return Validation.combine(
                 validateSeatsNotEmpty(seats)
                         .flatMap(s -> validateSeatCount(s, rowCount, columnCount))
-                        .flatMap(TheaterSeats::validateDistinct),
+                        .flatMap(AuditoriumSeats::validateDistinct),
                 validateRowCount(rowCount),
                 validateColumnCount(columnCount)
-            ).ap(TheaterSeats::new);
+        ).ap(AuditoriumSeats::new);
     }
 
     private static Validation<String, List<String>> validateSeatsNotEmpty(List<String> seats) {
@@ -76,6 +77,5 @@ public class TheaterSeats {
         return seats.stream().distinct().count() == seats.size()
                 ? Validation.valid(seats)
                 : Validation.invalid("중복된 좌석이 있습니다.");
-
     }
 }

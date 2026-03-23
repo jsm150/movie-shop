@@ -6,7 +6,6 @@ import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStateChange;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStatus;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.theater.domain.aggregate.Theater;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,10 +26,10 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
     void updateScreening_withScheduledStatus_updatesDatabase() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
         Screening screening = createScreening(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -89,10 +88,10 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
     void updateScreening_whenNotScheduled_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
         Screening screening = createScreening(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -124,11 +123,11 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
         // given
         Movie movie1 = createMovie(MovieStatus.COMING_SOON);
         Movie movie2 = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
 
         Screening target = createScreening(
                 movie1.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -137,7 +136,7 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
 
         createScreening(
                 movie2.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T13:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T15:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T11:00:00Z"),
@@ -155,7 +154,7 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
         // when & then
         assertThatThrownBy(() -> pipeline.send(command))
                 .isInstanceOf(ScreeningDomainException.class)
-                .hasMessageContaining("동일한 극장에 상영 시간이 겹치는 일정이 존재합니다.");
+                .hasMessageContaining("동일한 상영관에 상영 시간이 겹치는 일정이 존재합니다.");
     }
 
     @Test
@@ -164,10 +163,10 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
     void updateScreening_withSelfOverlapOnly_updatesSuccessfully() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
         Screening target = createScreening(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -208,11 +207,11 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
         // given
         Movie movie1 = createMovie(MovieStatus.COMING_SOON);
         Movie movie2 = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
 
         Screening target = createScreening(
                 movie1.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -221,7 +220,7 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
 
         Screening canceledScreening = createScreening(
                 movie2.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T13:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T15:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T11:00:00Z"),
@@ -260,10 +259,10 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
     void updateScreening_withUnschedulableMovie_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
         Screening screening = createScreening(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),
@@ -295,10 +294,10 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
     void updateScreening_withShorterThanMovieRuntime_throwsException() {
         // given
         Movie movie = createMovie(MovieStatus.COMING_SOON);
-        Theater theater = createTheater(true);
+        long auditoriumId = createAuditorium(true);
         Screening screening = createScreening(
                 movie.getId(),
-                theater.getId(),
+                auditoriumId,
                 OffsetDateTime.parse("2026-03-01T10:00:00Z"),
                 OffsetDateTime.parse("2026-03-01T12:00:00Z"),
                 OffsetDateTime.parse("2026-02-20T10:00:00Z"),

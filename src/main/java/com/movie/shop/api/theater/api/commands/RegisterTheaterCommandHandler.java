@@ -18,14 +18,9 @@ public class RegisterTheaterCommandHandler implements Command.Handler<RegisterTh
     @Override
     @Transactional
     public Long handle(RegisterTheaterCommand command) {
-        var theater = Theater.Register(
+        var theater = Theater.register(
                 theaterNameDuplicateValidator,
-                command.name(),
-                command.floor(),
-                command.type(),
-                command.seats(),
-                command.rowCount(),
-                command.columnCount()
+                command.name()
         );
 
         theaterRepository.save(theater);

@@ -1,6 +1,9 @@
 package com.movie.shop.api.screening.domain.policy;
 
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
+import com.movie.shop.api.screening.domain.policy.status.AuditoriumScreeningAvailability;
+import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -73,7 +76,7 @@ class ScreeningScheduleValidationPolicyTest {
 
         assertThatThrownBy(policy::validate)
                 .isInstanceOf(ScreeningDomainException.class)
-                .hasMessageContaining("극장 정보를 찾을 수 없습니다.");
+                .hasMessageContaining("상영관 정보를 찾을 수 없습니다.");
     }
 
     @Test
@@ -86,11 +89,11 @@ class ScreeningScheduleValidationPolicyTest {
 
         assertThatThrownBy(policy::validate)
                 .isInstanceOf(ScreeningDomainException.class)
-                .hasMessageContaining("활성화된 극장에서만");
+                .hasMessageContaining("활성화된 상영관에서만");
     }
 
     private ScreeningScheduleValidationPolicy newPolicy(Optional<MovieSchedulingAvailability> movieAvailability,
-                                                        Optional<TheaterScreeningAvailability> theaterAvailability) {
+                                                        Optional<AuditoriumScreeningAvailability> theaterAvailability) {
         return new ScreeningScheduleValidationPolicy(movieAvailability, theaterAvailability);
     }
 
@@ -98,7 +101,7 @@ class ScreeningScheduleValidationPolicyTest {
         return new MovieSchedulingAvailability(schedulable, runtimeMinutes);
     }
 
-    private TheaterScreeningAvailability theaterAvailability(boolean available) {
-        return new TheaterScreeningAvailability(available);
+    private AuditoriumScreeningAvailability theaterAvailability(boolean available) {
+        return new AuditoriumScreeningAvailability(available);
     }
 }

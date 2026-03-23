@@ -36,7 +36,7 @@ public class Screening {
     @Column(nullable = false, name = "movie_id")
     private long movieId;
 
-    @Positive(message = "극장 ID는 0보다 커야 합니다.")
+    @Positive(message = "상영관 ID는 0보다 커야 합니다.")
     @Column(nullable = false, name = "theater_id")
     private long theaterId;
 

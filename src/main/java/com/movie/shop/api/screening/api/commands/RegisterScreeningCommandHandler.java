@@ -4,12 +4,13 @@ import an.awesome.pipelinr.Command;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
-import com.movie.shop.api.screening.domain.port.LoadTheaterScreeningAvailabilityPort;
-import com.movie.shop.api.screening.domain.policy.MovieSchedulingAvailability;
+import com.movie.shop.api.screening.domain.port.LoadAuditoriumScreeningAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
+import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
@@ -23,7 +24,7 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
 
     private final ScreeningRepository screeningRepository;
     private final LoadMovieSchedulingAvailabilityPort loadMovieSchedulingAvailabilityPort;
-    private final LoadTheaterScreeningAvailabilityPort loadTheaterScreeningAvailabilityPort;
+    private final LoadAuditoriumScreeningAvailabilityPort loadAuditoriumScreeningAvailabilityPort;
     private final ScreeningJpaPort screeningJpaPort;
 
     @Override
@@ -34,7 +35,7 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
                 movieSchedulingAvailability,
-                loadTheaterScreeningAvailabilityPort.loadTheaterScreeningAvailability(command.theaterId())
+                loadAuditoriumScreeningAvailabilityPort.loadTheaterScreeningAvailability(command.theaterId())
         );
         ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
                 screeningJpaPort.findConflictCandidatesByTheaterId(

@@ -1,7 +1,7 @@
 package com.movie.shop.api.movie.domain.port;
 
 import com.movie.shop.api.movie.domain.aggregate.Movie;
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplication;
+import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 
 import java.util.Optional;
 

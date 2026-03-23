@@ -3,6 +3,9 @@ package com.movie.shop.api.screening.domain.policy;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStatus;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
+import com.movie.shop.api.screening.domain.policy.status.AuditoriumScreeningAvailability;
+import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -56,7 +59,7 @@ class ScreeningConflictValidationPolicyTest {
 
         assertThatThrownBy(() -> policy.validateNoConflict(screeningStart, screeningEnd))
                 .isInstanceOf(ScreeningDomainException.class)
-                .hasMessageContaining("동일한 극장에 상영 시간이 겹치는 일정");
+                .hasMessageContaining("동일한 상영관에 상영 시간이 겹치는 일정");
     }
 
     @Test
@@ -67,13 +70,13 @@ class ScreeningConflictValidationPolicyTest {
 
         assertThatThrownBy(() -> policy.validateNoConflict(screeningStart, screeningEnd))
                 .isInstanceOf(ScreeningDomainException.class)
-                .hasMessageContaining("동일한 극장에 상영 시간이 겹치는 일정");
+                .hasMessageContaining("동일한 상영관에 상영 시간이 겹치는 일정");
     }
 
     private Screening createScreening(ScreeningStatus status) {
         ScreeningScheduleValidationPolicy schedulePolicy = new ScreeningScheduleValidationPolicy(
                 Optional.of(new MovieSchedulingAvailability(true, MOVIE_RUNTIME_MINUTES)),
-                Optional.of(new TheaterScreeningAvailability(true))
+                Optional.of(new AuditoriumScreeningAvailability(true))
         );
         ScreeningConflictValidationPolicy conflictPolicy = new ScreeningConflictValidationPolicy(List.of());
         ScreeningTimeRuntimeValidationPolicy runtimePolicy = new ScreeningTimeRuntimeValidationPolicy(

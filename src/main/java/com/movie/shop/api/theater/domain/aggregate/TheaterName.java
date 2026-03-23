@@ -27,7 +27,9 @@ public class TheaterName {
                 .mapError(List::of);
     }
 
-    public static Validation<Seq<String>, TheaterName> createFrom(TheaterName nowName, String newName, TheaterNameDuplicateValidator validator) {
+    public static Validation<Seq<String>, TheaterName> createFrom(TheaterName nowName,
+                                                                   String newName,
+                                                                   TheaterNameDuplicateValidator validator) {
         return validateNotBlank(newName)
                 .flatMap(TheaterName::validateLength)
                 .flatMap(n -> Option.of(n)
@@ -42,18 +44,18 @@ public class TheaterName {
     private static Validation<String, String> validateNotBlank(String name) {
         return name != null && !name.isEmpty()
                 ? Validation.valid(name)
-                : Validation.invalid("상영관 이름은 필수입니다.");
+                : Validation.invalid("영화관 이름은 필수입니다.");
     }
 
     private static Validation<String, String> validateLength(String name) {
         return name.length() <= 50
                 ? Validation.valid(name)
-                : Validation.invalid("상영관 이름은 50자를 초과할 수 없습니다.");
+                : Validation.invalid("영화관 이름은 50자를 초과할 수 없습니다.");
     }
 
     private static Validation<String, String> validateNotDuplicate(String name, TheaterNameDuplicateValidator validator) {
         return validator.validateNotDuplicate(name)
                 ? Validation.valid(name)
-                : Validation.invalid("'" + name + "' 이름의 상영관이 이미 존재합니다.");
+                : Validation.invalid("'" + name + "' 이름의 영화관이 이미 존재합니다.");
     }
 }

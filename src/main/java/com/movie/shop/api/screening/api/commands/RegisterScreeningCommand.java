@@ -10,7 +10,7 @@ public record RegisterScreeningCommand(
         @Schema(description = "영화 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
         long movieId,
 
-        @Schema(description = "극장 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+        @Schema(description = "상영관 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
         long theaterId,
 
         @Schema(description = "상영 시작 시간", example = "2026-02-06T10:00:00+09:00", requiredMode = Schema.RequiredMode.REQUIRED)

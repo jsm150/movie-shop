@@ -1,15 +1,17 @@
 package com.movie.shop.api.theater.domain.policy;
 
-import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 
 @Component
 @RequiredArgsConstructor
 public class TheaterNameDuplicateValidator {
-    private final TheaterRepository theaterRepository;
+
+    private final TheaterJpaPort theaterJpaPort;
 
     public boolean validateNotDuplicate(String theaterName) {
-        return !theaterRepository.existsByName(theaterName);
+        return !theaterJpaPort.existsByName(theaterName);
     }
 }
