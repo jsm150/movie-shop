@@ -4,9 +4,8 @@ import an.awesome.pipelinr.Command;
 import an.awesome.pipelinr.Voidy;
 import com.movie.shop.api.auditorium.domain.aggregate.Auditorium;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumRepository;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusAndDeletionPolicy;
+import com.movie.shop.api.auditorium.domain.policy.AuditoriumDeletionPolicy;
 import com.movie.shop.api.auditorium.domain.port.CheckAuditoriumScreeningLinkPort;
-import com.movie.shop.api.auditorium.domain.port.LoadAuditoriumTheaterActivationStatusPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,19 +16,17 @@ public class DeleteAuditoriumCommandHandler implements Command.Handler<DeleteAud
 
     private final AuditoriumRepository auditoriumRepository;
     private final CheckAuditoriumScreeningLinkPort checkAuditoriumScreeningLinkPort;
-    private final LoadAuditoriumTheaterActivationStatusPort loadAuditoriumTheaterActivationStatusPort;
 
     @Override
     @Transactional
     public Voidy handle(DeleteAuditoriumCommand command) {
         Auditorium auditorium = auditoriumRepository.getById(command.auditoriumId());
 
-        AuditoriumStatusAndDeletionPolicy auditoriumStatusAndDeletionPolicy = new AuditoriumStatusAndDeletionPolicy(
-                checkAuditoriumScreeningLinkPort.loadAuditoriumScreeningLinkStatus(command.auditoriumId()),
-                loadAuditoriumTheaterActivationStatusPort.loadAuditoriumTheaterActivationStatus(auditorium.getTheaterId())
+        AuditoriumDeletionPolicy auditoriumDeletionPolicy = new AuditoriumDeletionPolicy(
+                checkAuditoriumScreeningLinkPort.loadAuditoriumScreeningLinkStatus(command.auditoriumId())
         );
 
-        auditoriumRepository.delete(auditorium, auditoriumStatusAndDeletionPolicy);
+        auditoriumRepository.delete(auditorium, auditoriumDeletionPolicy);
         return null;
     }
 }

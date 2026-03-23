@@ -2,7 +2,7 @@ package com.movie.shop.api.auditorium.domain.aggregate;
 
 import com.movie.shop.api.auditorium.domain.exceptions.AuditoriumDomainException;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumNameDuplicatePolicy;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusAndDeletionPolicy;
+import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusPolicy;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumTheaterExistencePolicy;
 import com.movie.shop.api.shared.domain.EntityValidator;
 import jakarta.persistence.AttributeOverride;
@@ -117,7 +117,7 @@ public class Auditorium {
         active = true;
     }
 
-    public void changeStatus(AuditoriumStatusChange activeChange, AuditoriumStatusAndDeletionPolicy policy) {
+    public void changeStatus(AuditoriumStatusChange activeChange, AuditoriumStatusPolicy policy) {
         if (activeChange == null) {
             throw new AuditoriumDomainException("변경할 상영관 활성 상태는 필수입니다.");
         }

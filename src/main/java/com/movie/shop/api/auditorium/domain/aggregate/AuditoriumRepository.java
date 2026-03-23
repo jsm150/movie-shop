@@ -1,7 +1,7 @@
 package com.movie.shop.api.auditorium.domain.aggregate;
 
 import com.movie.shop.api.auditorium.domain.exceptions.AuditoriumDomainException;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusAndDeletionPolicy;
+import com.movie.shop.api.auditorium.domain.policy.AuditoriumDeletionPolicy;
 import com.movie.shop.api.auditorium.domain.port.AuditoriumJpaPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,7 @@ public class AuditoriumRepository {
         return auditoriumJpaPort.save(auditorium);
     }
 
-    public void delete(Auditorium auditorium, AuditoriumStatusAndDeletionPolicy policy) {
+    public void delete(Auditorium auditorium, AuditoriumDeletionPolicy policy) {
         if (policy == null) {
             throw new AuditoriumDomainException("상영관 삭제 정책은 필수입니다.");
         }

@@ -9,13 +9,13 @@ import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumTheaterActiv
 import java.util.Objects;
 import java.util.Optional;
 
-public class AuditoriumStatusAndDeletionPolicy {
+public class AuditoriumStatusPolicy {
 
     private final AuditoriumScreeningLinkStatus screeningLinkStatus;
     private final Optional<AuditoriumTheaterActivationStatus> theaterActivationStatus;
 
-    public AuditoriumStatusAndDeletionPolicy(AuditoriumScreeningLinkStatus screeningLinkStatus,
-                                             Optional<AuditoriumTheaterActivationStatus> theaterActivationStatus) {
+    public AuditoriumStatusPolicy(AuditoriumScreeningLinkStatus screeningLinkStatus,
+                                  Optional<AuditoriumTheaterActivationStatus> theaterActivationStatus) {
         this.screeningLinkStatus = Objects.requireNonNull(screeningLinkStatus, "상영 연결 상태는 필수입니다.");
         this.theaterActivationStatus = Objects.requireNonNull(theaterActivationStatus, "영화관 활성 상태 정보는 필수입니다.");
     }
@@ -24,12 +24,6 @@ public class AuditoriumStatusAndDeletionPolicy {
         switch (activeChange) {
             case ACTIVATE -> validateCanActivate();
             case DEACTIVATE -> validateCanDeactivate(auditorium);
-        }
-    }
-
-    public void validateCanDelete(Auditorium auditorium) {
-        if (screeningLinkStatus.blockingScreeningExists()) {
-            throw new AuditoriumDomainException("예정/판매중/판매종료 상영이 존재하는 상영관은 삭제할 수 없습니다.");
         }
     }
 

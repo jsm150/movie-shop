@@ -2,7 +2,7 @@ package com.movie.shop.api.auditorium.domain.aggregate;
 
 import com.movie.shop.api.auditorium.domain.exceptions.AuditoriumDomainException;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumNameDuplicatePolicy;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusAndDeletionPolicy;
+import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusPolicy;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumTheaterExistencePolicy;
 import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumScreeningLinkStatus;
 import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumTheaterActivationStatus;
@@ -139,7 +139,7 @@ class AuditoriumTest {
     @DisplayName("비활성 상태이면 상영 가능 여부가 false를 반환한다")
     void canHostScreening_whenInactive_returnsFalse() {
         Auditorium auditorium = createAuditorium();
-        AuditoriumStatusAndDeletionPolicy policy = new AuditoriumStatusAndDeletionPolicy(
+        AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
                 new AuditoriumScreeningLinkStatus(false),
                 Optional.empty()
         );
@@ -153,7 +153,7 @@ class AuditoriumTest {
     @DisplayName("DEACTIVATE 요청 시 차단 상영이 있으면 예외가 발생한다")
     void changeActive_whenDeactivateBlocked_throwsException() {
         Auditorium auditorium = createAuditorium();
-        AuditoriumStatusAndDeletionPolicy policy = new AuditoriumStatusAndDeletionPolicy(
+        AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
                 new AuditoriumScreeningLinkStatus(true),
                 Optional.empty()
         );
@@ -167,7 +167,7 @@ class AuditoriumTest {
     @DisplayName("DEACTIVATE 요청 시 차단 상영이 없으면 비활성 상태로 변경된다")
     void changeActive_whenDeactivateAllowed_becomesInactive() {
         Auditorium auditorium = createAuditorium();
-        AuditoriumStatusAndDeletionPolicy policy = new AuditoriumStatusAndDeletionPolicy(
+        AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
                 new AuditoriumScreeningLinkStatus(false),
                 Optional.empty()
         );
@@ -183,7 +183,7 @@ class AuditoriumTest {
         Auditorium auditorium = createAuditorium();
         setActive(auditorium, false);
 
-        AuditoriumStatusAndDeletionPolicy policy = new AuditoriumStatusAndDeletionPolicy(
+        AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
                 new AuditoriumScreeningLinkStatus(false),
                 Optional.of(new AuditoriumTheaterActivationStatus(true))
         );
@@ -199,7 +199,7 @@ class AuditoriumTest {
         Auditorium auditorium = createAuditorium();
         setActive(auditorium, false);
 
-        AuditoriumStatusAndDeletionPolicy policy = new AuditoriumStatusAndDeletionPolicy(
+        AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
                 new AuditoriumScreeningLinkStatus(false),
                 Optional.of(new AuditoriumTheaterActivationStatus(false))
         );
@@ -215,7 +215,7 @@ class AuditoriumTest {
         Auditorium auditorium = createAuditorium();
         setActive(auditorium, false);
 
-        AuditoriumStatusAndDeletionPolicy policy = new AuditoriumStatusAndDeletionPolicy(
+        AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
                 new AuditoriumScreeningLinkStatus(false),
                 Optional.empty()
         );

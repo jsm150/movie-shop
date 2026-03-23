@@ -4,7 +4,7 @@ import an.awesome.pipelinr.Command;
 import an.awesome.pipelinr.Voidy;
 import com.movie.shop.api.auditorium.domain.aggregate.Auditorium;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumRepository;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusAndDeletionPolicy;
+import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusPolicy;
 import com.movie.shop.api.auditorium.domain.port.CheckAuditoriumScreeningLinkPort;
 import com.movie.shop.api.auditorium.domain.port.LoadAuditoriumTheaterActivationStatusPort;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +24,12 @@ public class ChangeStatusAuditoriumCommandHandler implements Command.Handler<Cha
     public Voidy handle(ChangeStatusAuditoriumCommand command) {
         Auditorium auditorium = auditoriumRepository.getById(command.auditoriumId());
 
-        AuditoriumStatusAndDeletionPolicy auditoriumStatusAndDeletionPolicy = new AuditoriumStatusAndDeletionPolicy(
+        AuditoriumStatusPolicy auditoriumStatusPolicy = new AuditoriumStatusPolicy(
                 checkAuditoriumScreeningLinkPort.loadAuditoriumScreeningLinkStatus(command.auditoriumId()),
                 loadAuditoriumTheaterActivationStatusPort.loadAuditoriumTheaterActivationStatus(auditorium.getTheaterId())
         );
 
-        auditorium.changeStatus(command.status(), auditoriumStatusAndDeletionPolicy);
+        auditorium.changeStatus(command.status(), auditoriumStatusPolicy);
         return null;
     }
 }
