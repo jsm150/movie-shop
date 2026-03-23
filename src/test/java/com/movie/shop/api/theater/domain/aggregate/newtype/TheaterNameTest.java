@@ -1,7 +1,8 @@
 package com.movie.shop.api.theater.domain.aggregate.newtype;
 
 import com.movie.shop.api.theater.domain.aggregate.TheaterName;
-import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
+import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import io.vavr.collection.Seq;
 import io.vavr.control.Validation;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,15 +14,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("TheaterName 단위 테스트")
 class TheaterNameTest {
 
     @Mock
-    private TheaterNameDuplicateValidator mockValidator;
+    private TheaterNamePolicy mockValidator;
 
     @Nested
     @DisplayName("createNew 메서드 테스트")
@@ -31,7 +32,6 @@ class TheaterNameTest {
         @DisplayName("유효한 영화관 이름으로 생성 성공한다")
         void createNew_withValidName_success() {
             String validName = "강남점";
-            when(mockValidator.validateNotDuplicate(validName)).thenReturn(true);
 
             Validation<Seq<String>, TheaterName> result = TheaterName.createNew(validName, mockValidator);
 
@@ -71,13 +71,13 @@ class TheaterNameTest {
         @Test
         @DisplayName("중복된 이름으로 생성 실패한다")
         void createNew_withDuplicateName_fail() {
-            String duplicateName = "강남점";
-            when(mockValidator.validateNotDuplicate(duplicateName)).thenReturn(false);
+            doThrow(new TheaterDomainException("동일한 이름의 영화관이 이미 존재합니다."))
+                    .when(mockValidator)
+                    .validateNotDuplicate();
 
-            Validation<Seq<String>, TheaterName> result = TheaterName.createNew(duplicateName, mockValidator);
-
-            assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).contains("'" + duplicateName + "' 이름의 영화관이 이미 존재합니다.");
+            assertThatThrownBy(() -> TheaterName.createNew("강남점", mockValidator))
+                    .isInstanceOf(TheaterDomainException.class)
+                    .hasMessageContaining("동일한 이름의 영화관이 이미 존재합니다.");
         }
     }
 
@@ -89,7 +89,6 @@ class TheaterNameTest {
 
         @BeforeEach
         void setUp() {
-            when(mockValidator.validateNotDuplicate("기존영화관")).thenReturn(true);
             existingName = TheaterName.createNew("기존영화관", mockValidator).get();
         }
 
@@ -97,7 +96,6 @@ class TheaterNameTest {
         @DisplayName("다른 유효한 이름으로 변경 성공한다")
         void createFrom_withDifferentValidName_success() {
             String newName = "새영화관";
-            when(mockValidator.validateNotDuplicate(newName)).thenReturn(true);
 
             Validation<Seq<String>, TheaterName> result = TheaterName.createFrom(existingName, newName, mockValidator);
 
@@ -109,7 +107,6 @@ class TheaterNameTest {
         @DisplayName("동일한 이름으로 변경하면 중복 검증 스킵하고 성공한다")
         void createFrom_withSameName_successWithoutDuplicateCheck() {
             String sameName = "기존영화관";
-            lenient().when(mockValidator.validateNotDuplicate(existingName.getName())).thenReturn(false);
 
             Validation<Seq<String>, TheaterName> result = TheaterName.createFrom(existingName, sameName, mockValidator);
 
@@ -120,13 +117,13 @@ class TheaterNameTest {
         @Test
         @DisplayName("중복된 이름으로 변경 실패한다")
         void createFrom_withDuplicateName_fail() {
-            String duplicateName = "중복영화관";
-            when(mockValidator.validateNotDuplicate(duplicateName)).thenReturn(false);
+            doThrow(new TheaterDomainException("동일한 이름의 영화관이 이미 존재합니다."))
+                    .when(mockValidator)
+                    .validateNotDuplicate();
 
-            Validation<Seq<String>, TheaterName> result = TheaterName.createFrom(existingName, duplicateName, mockValidator);
-
-            assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).contains("'" + duplicateName + "' 이름의 영화관이 이미 존재합니다.");
+            assertThatThrownBy(() -> TheaterName.createFrom(existingName, "중복영화관", mockValidator))
+                    .isInstanceOf(TheaterDomainException.class)
+                    .hasMessageContaining("동일한 이름의 영화관이 이미 존재합니다.");
         }
     }
 }

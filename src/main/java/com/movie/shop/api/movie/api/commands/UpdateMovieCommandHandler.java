@@ -5,7 +5,7 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,8 +31,8 @@ public class UpdateMovieCommandHandler implements Command.Handler<UpdateMovieCom
                 ))
                 .toList();
 
-        MovieTitleDuplicateValidator movieTitleDuplicateValidator =
-                new MovieTitleDuplicateValidator(movieJpaPort.loadTitleDuplication(command.title()));
+        MovieTitlePolicy movieTitleDuplicateValidator =
+                new MovieTitlePolicy(movieJpaPort.loadTitleDuplication(command.title()));
 
         movie.Update(
                 movieTitleDuplicateValidator,

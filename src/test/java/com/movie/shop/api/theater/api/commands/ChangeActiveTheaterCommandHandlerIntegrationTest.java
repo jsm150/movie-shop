@@ -6,7 +6,8 @@ import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
-import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
+import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
     private TheaterRepository theaterRepository;
 
     @Autowired
-    private TheaterNameDuplicateValidator theaterNameDuplicateValidator;
+    private TheaterJpaPort theaterJpaPort;
 
     @Autowired
     private EntityManager entityManager;
@@ -38,6 +39,9 @@ class ChangeActiveTheaterCommandHandlerIntegrationTest extends AbstractContainer
     private JdbcTemplate jdbcTemplate;
 
     private Theater createAndSaveTheater(String name) {
+        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(
+                theaterJpaPort.loadNameDuplication(name)
+        );
         Theater theater = Theater.register(theaterNameDuplicateValidator, name);
         theater = theaterRepository.save(theater);
         entityManager.flush();

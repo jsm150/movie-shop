@@ -5,7 +5,8 @@ import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
-import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
+import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,12 +28,15 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
     private TheaterRepository theaterRepository;
 
     @Autowired
-    private TheaterNameDuplicateValidator theaterNameDuplicateValidator;
+    private TheaterJpaPort theaterJpaPort;
 
     @Autowired
     private EntityManager entityManager;
 
     private Theater createAndSaveTheater(String name) {
+        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(
+                theaterJpaPort.loadNameDuplication(name)
+        );
         Theater theater = Theater.register(theaterNameDuplicateValidator, name);
         theater = theaterRepository.save(theater);
         entityManager.flush();
@@ -78,7 +82,7 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         assertThatThrownBy(() -> pipeline.send(new UpdateTheaterCommand(target.getId(), "강남점")))
                 .isInstanceOf(TheaterDomainException.class)
-                .hasMessageContaining("'강남점' 이름의 영화관이 이미 존재합니다.");
+                .hasMessageContaining("동일한 이름의 영화관이 이미 존재합니다.");
     }
 
     @Test

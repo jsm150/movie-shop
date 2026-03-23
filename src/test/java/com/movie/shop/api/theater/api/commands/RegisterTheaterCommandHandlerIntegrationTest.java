@@ -57,7 +57,7 @@ class RegisterTheaterCommandHandlerIntegrationTest extends AbstractContainerBase
 
         assertThatThrownBy(() -> pipeline.send(new RegisterTheaterCommand("강남점")))
                 .isInstanceOf(TheaterDomainException.class)
-                .hasMessageContaining("'강남점' 이름의 영화관이 이미 존재합니다.");
+                .hasMessageContaining("동일한 이름의 영화관이 이미 존재합니다.");
 
         assertThat(theaterJpaPort.count()).isEqualTo(1);
     }

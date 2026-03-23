@@ -20,7 +20,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Auditorium 단위 테스트")
@@ -46,8 +45,6 @@ class AuditoriumTest {
         validSeats = List.of("A1", "A2", "A3", "B1", "B2", "B3");
         validRowCount = 2;
         validColumnCount = 3;
-
-        lenient().when(validator.validateNotDuplicate(theaterId, validName)).thenReturn(true);
     }
 
     @Test

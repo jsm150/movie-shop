@@ -2,7 +2,7 @@ package com.movie.shop.api.theater.domain.aggregate;
 
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import com.movie.shop.api.theater.domain.policy.TheaterAuditoriumLinkProtectionPolicy;
-import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,16 +15,14 @@ import java.lang.reflect.Field;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Theater 단위 테스트")
 class TheaterTest {
 
     @Mock
-    private TheaterNameDuplicateValidator validator;
+    private TheaterNamePolicy validator;
 
     @Mock
     private TheaterAuditoriumLinkProtectionPolicy theaterAuditoriumLinkProtectionPolicy;
@@ -34,7 +32,6 @@ class TheaterTest {
     @BeforeEach
     void setUp() {
         validName = "강남점";
-        lenient().when(validator.validateNotDuplicate(validName)).thenReturn(true);
     }
 
     @Test
@@ -59,7 +56,6 @@ class TheaterTest {
     void updateName_withValidName_success() {
         Theater theater = Theater.register(validator, validName);
 
-        when(validator.validateNotDuplicate("홍대점")).thenReturn(true);
         theater.updateName(validator, "홍대점");
 
         assertThat(theater.getName().getName()).isEqualTo("홍대점");
@@ -70,7 +66,9 @@ class TheaterTest {
     void updateName_withDuplicateName_fail() {
         Theater theater = Theater.register(validator, validName);
 
-        when(validator.validateNotDuplicate("홍대점")).thenReturn(false);
+        doThrow(new TheaterDomainException("동일한 이름의 영화관이 이미 존재합니다."))
+                .when(validator)
+                .validateNotDuplicate();
 
         assertThatThrownBy(() -> theater.updateName(validator, "홍대점"))
                 .isInstanceOf(TheaterDomainException.class)

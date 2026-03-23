@@ -7,13 +7,14 @@ import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
-import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
+import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     private Pipeline pipeline;
 
     @Autowired
-    private TheaterNameDuplicateValidator theaterNameDuplicateValidator;
+    private TheaterJpaPort theaterJpaPort;
 
     @Autowired
     private MovieRepository movieRepository;
@@ -52,11 +53,14 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
-        return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
+    private MovieTitlePolicy nonDuplicateTitleValidator() {
+        return new MovieTitlePolicy(new MovieTitleDuplication(false));
     }
 
     private Theater createAndSaveTheater(String name) {
+        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(
+                theaterJpaPort.loadNameDuplication(name)
+        );
         Theater theater = Theater.register(theaterNameDuplicateValidator, name);
 
         theater = theaterRepository.save(theater);

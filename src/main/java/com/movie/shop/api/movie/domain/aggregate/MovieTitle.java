@@ -1,7 +1,7 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
 
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import io.vavr.collection.List;
 import io.vavr.collection.Seq;
 import io.vavr.control.Option;
@@ -20,7 +20,7 @@ public class MovieTitle {
         this.title = title;
     }
 
-    public static Validation<Seq<String>, MovieTitle> createNew(String title, MovieTitleDuplicateValidator validator) {
+    public static Validation<Seq<String>, MovieTitle> createNew(String title, MovieTitlePolicy validator) {
         return validateNotBlank(title)
                 .flatMap(MovieTitle::validateLength)
                 .flatMap(t -> validateNotDuplicate(t, validator))
@@ -28,7 +28,7 @@ public class MovieTitle {
                 .mapError(List::of);
     }
 
-    public static Validation<Seq<String>, MovieTitle> createFrom(MovieTitle nowTitle, String newTitle, MovieTitleDuplicateValidator validator) {
+    public static Validation<Seq<String>, MovieTitle> createFrom(MovieTitle nowTitle, String newTitle, MovieTitlePolicy validator) {
         return validateNotBlank(newTitle)
                 .flatMap(MovieTitle::validateLength)
                 .flatMap(t -> Option.of(t)
@@ -52,10 +52,9 @@ public class MovieTitle {
                 : Validation.invalid("영화 제목은 200자를 초과할 수 없습니다.");
     }
 
-    private static Validation<String, String> validateNotDuplicate(String title, MovieTitleDuplicateValidator validator) {
-        return validator.validateNotDuplicate(title)
-                ? Validation.valid(title)
-                : Validation.invalid("'" + title + "' 제목을 가진 영화가 이미 존재합니다.");
+    private static Validation<String, String> validateNotDuplicate(String title, MovieTitlePolicy validator) {
+        validator.validateNotDuplicate();
+        return Validation.valid(title);
     }
 
 }

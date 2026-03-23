@@ -13,7 +13,8 @@ import com.movie.shop.api.theater.api.commands.ChangeActiveTheaterCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
-import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
+import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -30,13 +31,10 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
     protected TheaterRepository theaterRepository;
 
     @Autowired
-    protected TheaterNameDuplicateValidator theaterNameDuplicateValidator;
+    protected TheaterJpaPort theaterJpaPort;
 
     @Autowired
     protected AuditoriumRepository auditoriumRepository;
-
-    @Autowired
-    protected AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy;
 
     @Autowired
     protected AuditoriumJpaPort auditoriumJpaPort;
@@ -48,6 +46,9 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
     protected JdbcTemplate jdbcTemplate;
 
     protected Theater createAndSaveTheater(String name, boolean active) {
+        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(
+                theaterJpaPort.loadNameDuplication(name)
+        );
         Theater theater = Theater.register(theaterNameDuplicateValidator, name);
         theater = theaterRepository.save(theater);
         flushAndClear();
@@ -62,6 +63,9 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
     }
 
     protected Auditorium createAndSaveAuditorium(long theaterId, String name) {
+        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(
+                auditoriumJpaPort.loadNameDuplication(theaterId, name)
+        );
         Auditorium auditorium = Auditorium.register(
                 auditoriumNameDuplicatePolicy,
                 new AuditoriumTheaterExistencePolicy(new AuditoriumTheaterExistenceStatus(true)),

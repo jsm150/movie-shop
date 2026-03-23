@@ -1,7 +1,8 @@
 package com.movie.shop.api.movie.domain.aggregate.newtype;
 
 import com.movie.shop.api.movie.domain.aggregate.MovieTitle;
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
+import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import io.vavr.collection.Seq;
 import io.vavr.control.Validation;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,15 +14,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MovieTitle 단위 테스트")
 class MovieTitleTest {
 
     @Mock
-    private MovieTitleDuplicateValidator mockValidator;
+    private MovieTitlePolicy mockValidator;
 
     @Nested
     @DisplayName("createNew 메서드 테스트")
@@ -32,7 +33,6 @@ class MovieTitleTest {
         void createNew_withValidTitle_success() {
             // given
             String validTitle = "인터스텔라";
-            when(mockValidator.validateNotDuplicate(validTitle)).thenReturn(true);
 
             // when
             Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew(validTitle, mockValidator);
@@ -81,16 +81,13 @@ class MovieTitleTest {
         @Test
         @DisplayName("중복된 제목으로 생성 실패한다")
         void createNew_withDuplicateTitle_fail() {
-            // given
-            String duplicateTitle = "인터스텔라";
-            when(mockValidator.validateNotDuplicate(duplicateTitle)).thenReturn(false);
+            doThrow(new MovieDomainException("동일한 제목의 영화가 이미 존재합니다."))
+                    .when(mockValidator)
+                    .validateNotDuplicate();
 
-            // when
-            Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew(duplicateTitle, mockValidator);
-
-            // then
-            assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).contains("'" + duplicateTitle + "' 제목을 가진 영화가 이미 존재합니다.");
+            assertThatThrownBy(() -> MovieTitle.createNew("인터스텔라", mockValidator))
+                    .isInstanceOf(MovieDomainException.class)
+                    .hasMessageContaining("동일한 제목의 영화가 이미 존재합니다.");
         }
 
         @Test
@@ -98,7 +95,6 @@ class MovieTitleTest {
         void createNew_withExactly200Characters_success() {
             // given
             String titleWith200Chars = "a".repeat(200);
-            when(mockValidator.validateNotDuplicate(titleWith200Chars)).thenReturn(true);
 
             // when
             Validation<Seq<String>, MovieTitle> result = MovieTitle.createNew(titleWith200Chars, mockValidator);
@@ -117,7 +113,6 @@ class MovieTitleTest {
 
         @BeforeEach
         void setUp() {
-            when(mockValidator.validateNotDuplicate("기존 영화 제목")).thenReturn(true);
             existingTitle = MovieTitle.createNew("기존 영화 제목", mockValidator).get();
         }
 
@@ -126,7 +121,6 @@ class MovieTitleTest {
         void createFrom_withDifferentValidTitle_success() {
             // given
             String newTitle = "새로운 영화 제목";
-            when(mockValidator.validateNotDuplicate(newTitle)).thenReturn(true);
 
             // when
             Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, newTitle, mockValidator);
@@ -139,9 +133,7 @@ class MovieTitleTest {
         @Test
         @DisplayName("동일한 제목으로 변경하면 중복 검증 스킵하고 성공한다")
         void createFrom_withSameTitle_successWithoutDuplicateCheck() {
-            // given
             String sameTitle = "기존 영화 제목";
-            lenient().when(mockValidator.validateNotDuplicate(existingTitle.getTitle())).thenReturn(false);
 
             // when
             Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, sameTitle, mockValidator);
@@ -190,16 +182,13 @@ class MovieTitleTest {
         @Test
         @DisplayName("중복된 제목으로 변경 실패한다")
         void createFrom_withDuplicateTitle_fail() {
-            // given
-            String duplicateTitle = "중복된 제목";
-            when(mockValidator.validateNotDuplicate(duplicateTitle)).thenReturn(false);
+            doThrow(new MovieDomainException("동일한 제목의 영화가 이미 존재합니다."))
+                    .when(mockValidator)
+                    .validateNotDuplicate();
 
-            // when
-            Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, duplicateTitle, mockValidator);
-
-            // then
-            assertThat(result.isInvalid()).isTrue();
-            assertThat(result.getError()).contains("'" + duplicateTitle + "' 제목을 가진 영화가 이미 존재합니다.");
+            assertThatThrownBy(() -> MovieTitle.createFrom(existingTitle, "중복된 제목", mockValidator))
+                    .isInstanceOf(MovieDomainException.class)
+                    .hasMessageContaining("동일한 제목의 영화가 이미 존재합니다.");
         }
 
         @Test
@@ -207,7 +196,6 @@ class MovieTitleTest {
         void createFrom_withExactly200Characters_success() {
             // given
             String titleWith200Chars = "b".repeat(200);
-            when(mockValidator.validateNotDuplicate(titleWith200Chars)).thenReturn(true);
 
             // when
             Validation<Seq<String>, MovieTitle> result = MovieTitle.createFrom(existingTitle, titleWith200Chars, mockValidator);

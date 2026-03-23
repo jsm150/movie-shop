@@ -8,7 +8,7 @@ import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
@@ -38,8 +38,8 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
     @Autowired
     private EntityManager entityManager;
 
-    private MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
-        return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
+    private MovieTitlePolicy nonDuplicateTitleValidator() {
+        return new MovieTitlePolicy(new MovieTitleDuplication(false));
     }
 
     private Movie createAndSaveMovie(String title) {

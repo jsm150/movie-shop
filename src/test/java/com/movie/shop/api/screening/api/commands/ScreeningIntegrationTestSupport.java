@@ -8,7 +8,7 @@ import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
@@ -24,7 +24,7 @@ import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
-import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -63,9 +63,6 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected ScreeningJpaPort screeningJpaPort;
 
     @Autowired
-    protected TheaterNameDuplicateValidator theaterNameDuplicateValidator;
-
-    @Autowired
     protected LoadMovieSchedulingAvailabilityPort loadMovieSchedulingAvailabilityPort;
 
     @Autowired
@@ -74,8 +71,8 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     @Autowired
     protected JdbcTemplate jdbcTemplate;
 
-    protected MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
-        return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
+    protected MovieTitlePolicy nonDuplicateTitleValidator() {
+        return new MovieTitlePolicy(new MovieTitleDuplication(false));
     }
 
     protected Movie createMovie(MovieStatus status) {
@@ -122,8 +119,12 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
 
     protected Theater createTheater(boolean active) {
         long seq = SEQUENCE.getAndIncrement();
+        String theaterName = "통합테스트관-" + seq;
+        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(
+                theaterJpaPort.loadNameDuplication(theaterName)
+        );
 
-        Theater theater = Theater.register(theaterNameDuplicateValidator, "통합테스트관-" + seq);
+        Theater theater = Theater.register(theaterNameDuplicateValidator, theaterName);
 
         theater = theaterRepository.save(theater);
         flushAndClear();

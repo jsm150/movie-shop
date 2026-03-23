@@ -7,7 +7,7 @@ import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
@@ -40,8 +40,8 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     @Autowired
     private EntityManager entityManager;
 
-    private MovieTitleDuplicateValidator nonDuplicateTitleValidator() {
-        return new MovieTitleDuplicateValidator(new MovieTitleDuplication(false));
+    private MovieTitlePolicy nonDuplicateTitleValidator() {
+        return new MovieTitlePolicy(new MovieTitleDuplication(false));
     }
 
     private Movie createAndSaveMovie(String title) {
@@ -291,7 +291,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
             assertThatThrownBy(() -> pipeline.send(command))
                     .isInstanceOf(MovieDomainException.class)
-                    .hasMessageContaining("덩케르크");
+                    .hasMessageContaining("동일한 제목의 영화가 이미 존재합니다.");
         }
 
     }

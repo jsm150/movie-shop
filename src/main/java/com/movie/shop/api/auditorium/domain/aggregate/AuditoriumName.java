@@ -19,25 +19,23 @@ public class AuditoriumName {
         this.name = name;
     }
 
-    public static Validation<Seq<String>, AuditoriumName> createNew(long theaterId,
-                                                                     String name,
+    public static Validation<Seq<String>, AuditoriumName> createNew(String name,
                                                                      AuditoriumNameDuplicatePolicy validator) {
         return validateNotBlank(name)
                 .flatMap(AuditoriumName::validateLength)
-                .flatMap(n -> validateNotDuplicate(theaterId, n, validator))
+                .flatMap(n -> validateNotDuplicate(n, validator))
                 .map(AuditoriumName::new)
                 .mapError(List::of);
     }
 
-    public static Validation<Seq<String>, AuditoriumName> createFrom(long theaterId,
-                                                                      AuditoriumName nowName,
+    public static Validation<Seq<String>, AuditoriumName> createFrom(AuditoriumName nowName,
                                                                       String newName,
                                                                       AuditoriumNameDuplicatePolicy validator) {
         return validateNotBlank(newName)
                 .flatMap(AuditoriumName::validateLength)
                 .flatMap(n -> Option.of(n)
                         .filter(val -> !nowName.getName().equals(val))
-                        .map(val -> validateNotDuplicate(theaterId, val, validator))
+                        .map(val -> validateNotDuplicate(val, validator))
                         .getOrElse(Validation.valid(n))
                 )
                 .map(AuditoriumName::new)
@@ -56,11 +54,9 @@ public class AuditoriumName {
                 : Validation.invalid("상영관 이름은 50자를 초과할 수 없습니다.");
     }
 
-    private static Validation<String, String> validateNotDuplicate(long theaterId,
-                                                                    String name,
+    private static Validation<String, String> validateNotDuplicate(String name,
                                                                     AuditoriumNameDuplicatePolicy validator) {
-        return validator.validateNotDuplicate(theaterId, name)
-                ? Validation.valid(name)
-                : Validation.invalid("'" + name + "' 이름의 상영관이 해당 영화관에 이미 존재합니다.");
+        validator.validateNotDuplicate();
+        return Validation.valid(name);
     }
 }

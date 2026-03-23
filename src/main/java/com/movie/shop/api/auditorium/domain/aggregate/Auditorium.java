@@ -84,7 +84,7 @@ public class Auditorium {
         auditorium.active = true;
 
         EntityValidator.create()
-                .apply(AuditoriumName.createNew(theaterId, name, nameDuplicateValidator), auditorium::setName)
+                .apply(AuditoriumName.createNew(name, nameDuplicateValidator), auditorium::setName)
                 .apply(AuditoriumSeats.create(seats, rowCount, columnCount), auditorium::setSeats)
                 .validateBean(auditorium)
                 .throwIfInvalid(AuditoriumDomainException::new);
@@ -103,7 +103,7 @@ public class Auditorium {
         this.auditoriumType = type;
 
         EntityValidator.create()
-                .apply(AuditoriumName.createFrom(theaterId, this.name, name, nameDuplicateValidator), this::setName)
+                .apply(AuditoriumName.createFrom(this.name, name, nameDuplicateValidator), this::setName)
                 .apply(AuditoriumSeats.create(seats, rowCount, columnCount), this::setSeats)
                 .validateBean(this)
                 .throwIfInvalid(AuditoriumDomainException::new);

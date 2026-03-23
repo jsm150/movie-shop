@@ -1,6 +1,6 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.shared.domain.EntityValidator;
 import jakarta.persistence.*;
@@ -71,7 +71,7 @@ public class Movie {
     @Column(nullable = false)
     private MovieStatus status;
 
-    public static Movie Register(MovieTitleDuplicateValidator titleDuplicateValidator, String title, String director, List<String> genres, int runtimeMinutes,
+    public static Movie Register(MovieTitlePolicy titleDuplicateValidator, String title, String director, List<String> genres, int runtimeMinutes,
                                  AudienceRating audienceRating, String synopsis, OffsetDateTime releaseDate, List<Actor> casts) {
         
         var movie = new Movie();
@@ -92,7 +92,7 @@ public class Movie {
         return movie;
     }
 
-    public void Update(MovieTitleDuplicateValidator titleDuplicateValidator, String title, String director, List<String> genres,
+    public void Update(MovieTitlePolicy titleDuplicateValidator, String title, String director, List<String> genres,
                        int runtimeMinutes, AudienceRating audienceRating, String synopsis,
                        OffsetDateTime releaseDate, List<Actor> casts) {
         

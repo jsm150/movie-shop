@@ -5,6 +5,7 @@ import com.movie.shop.api.auditorium.domain.aggregate.Auditorium;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumRepository;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumNameDuplicatePolicy;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumTheaterExistencePolicy;
+import com.movie.shop.api.auditorium.domain.port.AuditoriumJpaPort;
 import com.movie.shop.api.auditorium.domain.port.LoadAuditoriumTheaterExistenceStatusPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -15,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegisterAuditoriumCommandHandler implements Command.Handler<RegisterAuditoriumCommand, Long> {
 
     private final AuditoriumRepository auditoriumRepository;
-    private final AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy;
+    private final AuditoriumJpaPort auditoriumJpaPort;
     private final LoadAuditoriumTheaterExistenceStatusPort loadAuditoriumTheaterExistenceStatusPort;
 
     @Override
@@ -23,6 +24,9 @@ public class RegisterAuditoriumCommandHandler implements Command.Handler<Registe
     public Long handle(RegisterAuditoriumCommand command) {
         AuditoriumTheaterExistencePolicy auditoriumTheaterExistencePolicy = new AuditoriumTheaterExistencePolicy(
                 loadAuditoriumTheaterExistenceStatusPort.loadAuditoriumTheaterExistenceStatus(command.theaterId())
+        );
+        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(
+                auditoriumJpaPort.loadNameDuplication(command.theaterId(), command.name())
         );
 
         Auditorium auditorium = Auditorium.register(

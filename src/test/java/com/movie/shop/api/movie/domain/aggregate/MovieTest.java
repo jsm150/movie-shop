@@ -1,6 +1,6 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
-import com.movie.shop.api.movie.domain.policy.MovieTitleDuplicateValidator;
+import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,14 +18,14 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class MovieTest {
 
     @Mock
-    private MovieTitleDuplicateValidator validator;
+    private MovieTitlePolicy validator;
 
     private String validTitle;
     private String validDirector;
@@ -48,8 +48,6 @@ class MovieTest {
         validCasts = List.of(
                 new Actor("매튜 매코너히", OffsetDateTime.parse("1969-11-04T00:00:00Z"), "USA", "쿠퍼")
         );
-
-        when(validator.validateNotDuplicate(validTitle)).thenReturn(true);
     }
 
     @Test
@@ -359,7 +357,9 @@ class MovieTest {
     @DisplayName("중복된 제목으로 영화를 생성하면 예외가 발생한다")
     void createMovie_withDuplicateTitle_throwsException() {
         // given
-        when(validator.validateNotDuplicate(validTitle)).thenReturn(false);
+        doThrow(new MovieDomainException("동일한 제목의 영화가 이미 존재합니다."))
+                .when(validator)
+                .validateNotDuplicate();
 
         // when & then
         assertThatThrownBy(() -> Movie.Register(

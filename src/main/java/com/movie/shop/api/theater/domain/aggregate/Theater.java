@@ -3,7 +3,7 @@ package com.movie.shop.api.theater.domain.aggregate;
 import com.movie.shop.api.shared.domain.EntityValidator;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import com.movie.shop.api.theater.domain.policy.TheaterAuditoriumLinkProtectionPolicy;
-import com.movie.shop.api.theater.domain.policy.TheaterNameDuplicateValidator;
+import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -37,7 +37,7 @@ public class Theater {
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
-    public static Theater register(TheaterNameDuplicateValidator nameDuplicateValidator, String name) {
+    public static Theater register(TheaterNamePolicy nameDuplicateValidator, String name) {
         var theater = new Theater();
         theater.active = true;
 
@@ -49,7 +49,7 @@ public class Theater {
         return theater;
     }
 
-    public void updateName(TheaterNameDuplicateValidator nameDuplicateValidator, String name) {
+    public void updateName(TheaterNamePolicy nameDuplicateValidator, String name) {
         EntityValidator.create()
                 .apply(TheaterName.createFrom(this.name, name, nameDuplicateValidator), this::setName)
                 .throwIfInvalid(TheaterDomainException::new);
