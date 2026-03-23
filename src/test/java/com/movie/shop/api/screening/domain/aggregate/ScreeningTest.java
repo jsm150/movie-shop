@@ -27,7 +27,7 @@ class ScreeningTest {
     private ScreeningTimeRuntimeValidationPolicy runtimePolicy;
 
     private long movieId;
-    private long theaterId;
+    private long auditoriumId;
     private OffsetDateTime screeningStart;
     private OffsetDateTime screeningEnd;
     private OffsetDateTime salesStart;
@@ -36,7 +36,7 @@ class ScreeningTest {
     @BeforeEach
     void setUp() {
         movieId = 1L;
-        theaterId = 2L;
+        auditoriumId = 2L;
         screeningStart = OffsetDateTime.parse("2026-02-10T10:00:00Z");
         screeningEnd = OffsetDateTime.parse("2026-02-10T12:00:00Z");
         salesStart = OffsetDateTime.parse("2026-02-01T10:00:00Z");
@@ -59,7 +59,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -67,7 +67,7 @@ class ScreeningTest {
         );
 
         assertThat(screening.getMovieId()).isEqualTo(movieId);
-        assertThat(screening.getTheaterId()).isEqualTo(theaterId);
+        assertThat(screening.getAuditoriumId()).isEqualTo(auditoriumId);
         assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.SCHEDULED);
         assertThat(screening.getScreeningTimeRange().getStartTime()).isEqualTo(screeningStart);
         assertThat(screening.getScreeningTimeRange().getEndTime()).isEqualTo(screeningEnd);
@@ -83,7 +83,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -100,7 +100,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -127,7 +127,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -162,7 +162,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -199,7 +199,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -217,7 +217,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -237,7 +237,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -257,7 +257,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -279,7 +279,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -301,7 +301,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -322,7 +322,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -340,7 +340,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -359,7 +359,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -379,7 +379,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -398,7 +398,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -419,7 +419,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -442,7 +442,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -465,7 +465,7 @@ class ScreeningTest {
                 conflictPolicy,
                 runtimePolicy,
                 movieId,
-                theaterId,
+                auditoriumId,
                 screeningStart,
                 screeningEnd,
                 salesStart,

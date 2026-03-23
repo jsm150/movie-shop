@@ -35,11 +35,11 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
                 movieSchedulingAvailability,
-                loadAuditoriumScreeningAvailabilityPort.loadTheaterScreeningAvailability(command.theaterId())
+                loadAuditoriumScreeningAvailabilityPort.loadAuditoriumScreeningAvailability(command.auditoriumId())
         );
         ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
-                screeningJpaPort.findConflictCandidatesByTheaterId(
-                        command.theaterId(),
+                screeningJpaPort.findConflictCandidatesByAuditoriumId(
+                        command.auditoriumId(),
                         command.screeningStartTime(),
                         command.screeningEndTime()
                 )
@@ -52,7 +52,7 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
                 screeningConflictValidationPolicy,
                 screeningTimeRuntimeValidationPolicy,
                 command.movieId(),
-                command.theaterId(),
+                command.auditoriumId(),
                 command.screeningStartTime(),
                 command.screeningEndTime(),
                 command.salesStartAt(),

@@ -22,7 +22,7 @@ import java.time.OffsetDateTime;
 @Table(
         name = "screening",
         indexes = {
-                @Index(name = "idx_screening_theater_end_start", columnList = "theater_id,end_time,start_time"),
+                @Index(name = "idx_screening_auditorium_end_start", columnList = "auditorium_id,end_time,start_time"),
                 @Index(name = "idx_screening_movie_start", columnList = "movie_id,start_time")
         }
 )
@@ -37,8 +37,8 @@ public class Screening {
     private long movieId;
 
     @Positive(message = "상영관 ID는 0보다 커야 합니다.")
-    @Column(nullable = false, name = "theater_id")
-    private long theaterId;
+    @Column(nullable = false, name = "auditorium_id")
+    private long auditoriumId;
 
     @Setter(AccessLevel.PRIVATE)
     @NotNull(message = "상영 시간 범위는 필수입니다.")
@@ -66,7 +66,7 @@ public class Screening {
                                      ScreeningConflictValidationPolicy conflictPolicy,
                                      ScreeningTimeRuntimeValidationPolicy runtimePolicy,
                                      long movieId,
-                                     long theaterId,
+                                     long auditoriumId,
                                      OffsetDateTime screeningStart,
                                      OffsetDateTime screeningEnd,
                                      OffsetDateTime salesStart,
@@ -85,7 +85,7 @@ public class Screening {
 
         var screening = new Screening();
         screening.movieId = movieId;
-        screening.theaterId = theaterId;
+        screening.auditoriumId = auditoriumId;
         screening.status = ScreeningStatus.SCHEDULED;
 
         EntityValidator.create()

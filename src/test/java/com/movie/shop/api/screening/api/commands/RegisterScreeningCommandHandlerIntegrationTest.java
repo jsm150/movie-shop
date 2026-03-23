@@ -48,7 +48,7 @@ class RegisterScreeningCommandHandlerIntegrationTest extends ScreeningIntegratio
         // then
         Screening screening = screeningJpaPort.findById(screeningId).orElseThrow();
         assertThat(screening.getMovieId()).isEqualTo(movie.getId());
-        assertThat(screening.getTheaterId()).isEqualTo(auditoriumId);
+        assertThat(screening.getAuditoriumId()).isEqualTo(auditoriumId);
         assertThat(screening.getStatus()).isEqualTo(ScreeningStatus.SCHEDULED);
         assertThat(screening.getScreeningTimeRange().getStartTime()).isEqualTo(start);
         assertThat(screening.getScreeningTimeRange().getEndTime()).isEqualTo(end);

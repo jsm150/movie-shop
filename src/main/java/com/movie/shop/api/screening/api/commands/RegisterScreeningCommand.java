@@ -11,7 +11,7 @@ public record RegisterScreeningCommand(
         long movieId,
 
         @Schema(description = "상영관 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
-        long theaterId,
+        long auditoriumId,
 
         @Schema(description = "상영 시작 시간", example = "2026-02-06T10:00:00+09:00", requiredMode = Schema.RequiredMode.REQUIRED)
         OffsetDateTime screeningStartTime,

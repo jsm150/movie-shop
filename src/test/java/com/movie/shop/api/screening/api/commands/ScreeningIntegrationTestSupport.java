@@ -185,10 +185,10 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
                 movieSchedulingAvailability,
-                loadAuditoriumScreeningAvailabilityPort.loadTheaterScreeningAvailability(auditoriumId)
+                loadAuditoriumScreeningAvailabilityPort.loadAuditoriumScreeningAvailability(auditoriumId)
         );
         ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
-                screeningJpaPort.findConflictCandidatesByTheaterId(auditoriumId, start, end)
+                screeningJpaPort.findConflictCandidatesByAuditoriumId(auditoriumId, start, end)
         );
         ScreeningTimeRuntimeValidationPolicy screeningTimeRuntimeValidationPolicy =
                 new ScreeningTimeRuntimeValidationPolicy(movieSchedulingAvailability);

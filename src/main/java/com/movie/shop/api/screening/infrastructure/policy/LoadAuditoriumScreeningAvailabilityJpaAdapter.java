@@ -16,7 +16,7 @@ public class LoadAuditoriumScreeningAvailabilityJpaAdapter implements LoadAudito
     private final AuditoriumJpaPort auditoriumJpaPort;
 
     @Override
-    public Optional<AuditoriumScreeningAvailability> loadTheaterScreeningAvailability(long auditoriumId) {
+    public Optional<AuditoriumScreeningAvailability> loadAuditoriumScreeningAvailability(long auditoriumId) {
         return auditoriumJpaPort.findById(auditoriumId)
                 .map(auditorium -> new AuditoriumScreeningAvailability(auditorium.canHostScreening()));
     }

@@ -14,7 +14,7 @@ import java.util.List;
 public interface ScreeningJpaAdapter extends JpaRepository<Screening, Long>, ScreeningJpaPort {
 
     @Override
-    List<Screening> findAllByTheaterId(long theaterId);
+    List<Screening> findAllByAuditoriumId(long auditoriumId);
 
     @Override
     @Query("""
@@ -29,11 +29,11 @@ public interface ScreeningJpaAdapter extends JpaRepository<Screening, Long>, Scr
     @Query("""
             SELECT s
             FROM Screening s
-            WHERE s.theaterId = :theaterId
+            WHERE s.auditoriumId = :auditoriumId
               AND s.screeningTimeRange.startTime < :endTime
               AND :startTime < s.screeningTimeRange.endTime
             """)
-    List<Screening> findConflictCandidatesByTheaterId(@Param("theaterId") long theaterId,
+    List<Screening> findConflictCandidatesByAuditoriumId(@Param("auditoriumId") long auditoriumId,
                                                        @Param("startTime") OffsetDateTime startTime,
                                                        @Param("endTime") OffsetDateTime endTime);
 
@@ -42,12 +42,12 @@ public interface ScreeningJpaAdapter extends JpaRepository<Screening, Long>, Scr
     @Query("""
             SELECT s
             FROM Screening s
-            WHERE s.theaterId = :theaterId
+            WHERE s.auditoriumId = :auditoriumId
               AND s.id <> :screeningId
               AND s.screeningTimeRange.startTime < :endTime
               AND :startTime < s.screeningTimeRange.endTime
             """)
-    List<Screening> findConflictCandidatesByTheaterIdAndIdNot(@Param("theaterId") long theaterId,
+    List<Screening> findConflictCandidatesByAuditoriumIdAndIdNot(@Param("auditoriumId") long auditoriumId,
                                                                @Param("startTime") OffsetDateTime startTime,
                                                                @Param("endTime") OffsetDateTime endTime,
                                                                @Param("screeningId") long screeningId);

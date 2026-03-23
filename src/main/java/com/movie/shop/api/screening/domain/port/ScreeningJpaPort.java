@@ -14,15 +14,15 @@ public interface ScreeningJpaPort {
 
     void delete(Screening screening);
 
-    List<Screening> findAllByTheaterId(long theaterId);
+    List<Screening> findAllByAuditoriumId(long auditoriumId);
 
     boolean existsByMovieId(long movieId);
 
-    List<Screening> findConflictCandidatesByTheaterId(long theaterId,
+    List<Screening> findConflictCandidatesByAuditoriumId(long auditoriumId,
                                                       OffsetDateTime startTime,
                                                       OffsetDateTime endTime);
 
-    List<Screening> findConflictCandidatesByTheaterIdAndIdNot(long theaterId,
+    List<Screening> findConflictCandidatesByAuditoriumIdAndIdNot(long auditoriumId,
                                                               OffsetDateTime startTime,
                                                               OffsetDateTime endTime,
                                                               long screeningId);

@@ -37,11 +37,11 @@ public class UpdateScreeningCommandHandler implements Command.Handler<UpdateScre
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
                 movieSchedulingAvailability,
-                loadAuditoriumScreeningAvailabilityPort.loadTheaterScreeningAvailability(screening.getTheaterId())
+                loadAuditoriumScreeningAvailabilityPort.loadAuditoriumScreeningAvailability(screening.getAuditoriumId())
         );
         ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
-                screeningJpaPort.findConflictCandidatesByTheaterIdAndIdNot(
-                        screening.getTheaterId(),
+                screeningJpaPort.findConflictCandidatesByAuditoriumIdAndIdNot(
+                        screening.getAuditoriumId(),
                         command.screeningStartTime(),
                         command.screeningEndTime(),
                         screening.getId()

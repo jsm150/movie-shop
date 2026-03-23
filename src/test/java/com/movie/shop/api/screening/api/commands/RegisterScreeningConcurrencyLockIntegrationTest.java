@@ -122,7 +122,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
             assertThat(secondFailure).isInstanceOf(ScreeningDomainException.class)
                     .hasMessageContaining("동일한 상영관에 상영 시간이 겹치는 일정이 존재합니다.");
 
-            List<Screening> screenings = screeningJpaPort.findAllByTheaterId(auditoriumId);
+            List<Screening> screenings = screeningJpaPort.findAllByAuditoriumId(auditoriumId);
             assertThat(screenings).hasSize(1);
             assertThat(screenings.getFirst().getId()).isEqualTo(firstScreeningId);
         } finally {
@@ -158,7 +158,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
         try {
             Future<Void> firstFuture = executor.submit(() ->
                     transactionTemplate.execute(status -> {
-                        screeningJpaPort.findConflictCandidatesByTheaterIdAndIdNot(
+                        screeningJpaPort.findConflictCandidatesByAuditoriumIdAndIdNot(
                                 auditoriumId,
                                 secondUpdate.screeningStartTime(),
                                 secondUpdate.screeningEndTime(),
@@ -247,7 +247,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
             assertThat(isLockConflictFailure(failure)).isTrue();
 
             Integer count = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM screening WHERE theater_id = ?",
+                    "SELECT COUNT(*) FROM screening WHERE auditorium_id = ?",
                     Integer.class,
                     auditoriumId
             );
@@ -336,7 +336,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
         try {
             transactionTemplate.execute(status -> {
                 withTemporaryLockWaitTimeout(3, () -> {
-                    screeningJpaPort.findConflictCandidatesByTheaterId(
+                    screeningJpaPort.findConflictCandidatesByAuditoriumId(
                             auditoriumId,
                             lockQueryStart,
                             lockQueryEnd
@@ -349,7 +349,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
                     jdbcTemplate.update(
                             """
                             INSERT INTO screening
-                            (movie_id, theater_id, start_time, end_time, sales_start_at, sales_end_at, status)
+                            (movie_id, auditorium_id, start_time, end_time, sales_start_at, sales_end_at, status)
                             VALUES (?, ?, ?, ?, ?, ?, ?)
                             """,
                             movieId,

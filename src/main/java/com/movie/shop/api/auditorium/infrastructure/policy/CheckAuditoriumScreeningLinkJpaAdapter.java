@@ -14,7 +14,7 @@ public class CheckAuditoriumScreeningLinkJpaAdapter implements CheckAuditoriumSc
 
     @Override
     public AuditoriumScreeningLinkStatus loadAuditoriumScreeningLinkStatus(long auditoriumId) {
-        boolean blockingScreeningExists = screeningJpaPort.findAllByTheaterId(auditoriumId).stream()
+        boolean blockingScreeningExists = screeningJpaPort.findAllByAuditoriumId(auditoriumId).stream()
                 .anyMatch(screening -> screening.blocksTheaterDeactivationOrDeletion());
 
         return new AuditoriumScreeningLinkStatus(blockingScreeningExists);
