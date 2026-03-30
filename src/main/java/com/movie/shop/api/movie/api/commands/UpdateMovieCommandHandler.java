@@ -32,7 +32,7 @@ public class UpdateMovieCommandHandler implements Command.Handler<UpdateMovieCom
                 .toList();
 
         MovieTitlePolicy movieTitleDuplicateValidator =
-                new MovieTitlePolicy(movieJpaPort.loadTitleDuplication(command.title()));
+                new MovieTitlePolicy(movieJpaPort);
 
         movie.Update(
                 movieTitleDuplicateValidator,

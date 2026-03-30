@@ -8,8 +8,8 @@ import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
+import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
-import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
@@ -36,10 +36,13 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
     private MovieRepository movieRepository;
 
     @Autowired
+    private MovieJpaPort movieJpaPort;
+
+    @Autowired
     private EntityManager entityManager;
 
     private MovieTitlePolicy nonDuplicateTitleValidator() {
-        return new MovieTitlePolicy(new MovieTitleDuplication(false));
+        return new MovieTitlePolicy(movieJpaPort);
     }
 
     private Movie createAndSaveMovie(String title) {

@@ -8,7 +8,6 @@ import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
-import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +40,7 @@ class UpdateMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     private EntityManager entityManager;
 
     private MovieTitlePolicy nonDuplicateTitleValidator() {
-        return new MovieTitlePolicy(new MovieTitleDuplication(false));
+        return new MovieTitlePolicy(movieJpaPort);
     }
 
     private Movie createAndSaveMovie(String title) {

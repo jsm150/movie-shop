@@ -1,6 +1,5 @@
 package com.movie.shop.api.movie.infrastructure.policy;
 
-import com.movie.shop.api.movie.domain.policy.status.MovieScreeningLinkStatus;
 import com.movie.shop.api.movie.domain.port.CheckMovieScreeningLinkPort;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,7 @@ public class CheckMovieScreeningLinkJpaAdapter implements CheckMovieScreeningLin
     private final ScreeningJpaPort screeningJpaPort;
 
     @Override
-    public MovieScreeningLinkStatus loadMovieScreeningLinkStatus(long movieId) {
-        return new MovieScreeningLinkStatus(screeningJpaPort.existsByMovieId(movieId));
+    public boolean loadMovieScreeningLinkStatus(long movieId) {
+        return screeningJpaPort.existsByMovieId(movieId);
     }
 }

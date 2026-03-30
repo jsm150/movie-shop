@@ -22,9 +22,7 @@ public class DeleteMovieCommandHandler implements Command.Handler<DeleteMovieCom
     public Voidy handle(DeleteMovieCommand command) {
         Movie movie = movieRepository.getById(command.movieId());
 
-        MovieDeletionPolicy movieDeletionPolicy = new MovieDeletionPolicy(
-                checkMovieScreeningLinkPort.loadMovieScreeningLinkStatus(command.movieId())
-        );
+        MovieDeletionPolicy movieDeletionPolicy = new MovieDeletionPolicy(checkMovieScreeningLinkPort);
 
         movieRepository.delete(movie, movieDeletionPolicy);
         return null;

@@ -8,7 +8,6 @@ import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
-import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
@@ -54,7 +53,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     private JdbcTemplate jdbcTemplate;
 
     private MovieTitlePolicy nonDuplicateTitleValidator() {
-        return new MovieTitlePolicy(new MovieTitleDuplication(false));
+        return new MovieTitlePolicy(movieJpaPort);
     }
 
     private Theater createAndSaveTheater(String name) {

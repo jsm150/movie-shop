@@ -18,6 +18,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
@@ -359,7 +360,7 @@ class MovieTest {
         // given
         doThrow(new MovieDomainException("동일한 제목의 영화가 이미 존재합니다."))
                 .when(validator)
-                .validateNotDuplicate();
+                .validateNotDuplicate(anyString());
 
         // when & then
         assertThatThrownBy(() -> Movie.Register(

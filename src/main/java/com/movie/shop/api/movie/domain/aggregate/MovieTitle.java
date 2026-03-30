@@ -53,7 +53,7 @@ public class MovieTitle {
     }
 
     private static Validation<String, String> validateNotDuplicate(String title, MovieTitlePolicy validator) {
-        validator.validateNotDuplicate();
+        validator.validateNotDuplicate(title);
         return Validation.valid(title);
     }
 

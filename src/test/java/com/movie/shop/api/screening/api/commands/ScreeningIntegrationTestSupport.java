@@ -9,7 +9,6 @@ import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
-import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
@@ -72,7 +71,7 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected JdbcTemplate jdbcTemplate;
 
     protected MovieTitlePolicy nonDuplicateTitleValidator() {
-        return new MovieTitlePolicy(new MovieTitleDuplication(false));
+        return new MovieTitlePolicy(movieJpaPort);
     }
 
     protected Movie createMovie(MovieStatus status) {

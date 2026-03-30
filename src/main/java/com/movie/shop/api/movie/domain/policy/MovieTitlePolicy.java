@@ -1,20 +1,20 @@
 package com.movie.shop.api.movie.domain.policy;
 
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
-import java.util.Objects;
+import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 
-import com.movie.shop.api.movie.domain.policy.status.MovieTitleDuplication;
+import java.util.Objects;
 
 public class MovieTitlePolicy {
 
-    private final MovieTitleDuplication titleDuplication;
+    private final MovieJpaPort movieJpaPort;
 
-    public MovieTitlePolicy(MovieTitleDuplication titleDuplication) {
-        this.titleDuplication = Objects.requireNonNull(titleDuplication, "영화 제목 중복 정보는 필수입니다.");
+    public MovieTitlePolicy(MovieJpaPort movieJpaPort) {
+        this.movieJpaPort = Objects.requireNonNull(movieJpaPort, "영화 제목 중복 조회 포트가 필수입니다.");
     }
 
-    public void validateNotDuplicate() {
-        if (titleDuplication.duplicated()) {
+    public void validateNotDuplicate(String title) {
+        if (movieJpaPort.loadTitleDuplication(title)) {
             throw new MovieDomainException("동일한 제목의 영화가 이미 존재합니다.");
         }
     }

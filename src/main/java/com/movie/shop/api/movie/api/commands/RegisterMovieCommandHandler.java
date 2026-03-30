@@ -30,7 +30,7 @@ public class RegisterMovieCommandHandler implements Command.Handler<RegisterMovi
                 .toList();
 
         MovieTitlePolicy movieTitleDuplicateValidator =
-                new MovieTitlePolicy(movieJpaPort.loadTitleDuplication(command.title()));
+                new MovieTitlePolicy(movieJpaPort);
 
         var movie = Movie.Register(
                 movieTitleDuplicateValidator,
