@@ -19,9 +19,7 @@ public class RegisterTheaterCommandHandler implements Command.Handler<RegisterTh
     @Override
     @Transactional
     public Long handle(RegisterTheaterCommand command) {
-        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(
-                theaterJpaPort.loadNameDuplication(command.name())
-        );
+        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(theaterJpaPort);
         var theater = Theater.register(
                 theaterNameDuplicateValidator,
                 command.name()

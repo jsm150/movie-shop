@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
@@ -73,7 +74,7 @@ class TheaterNameTest {
         void createNew_withDuplicateName_fail() {
             doThrow(new TheaterDomainException("동일한 이름의 영화관이 이미 존재합니다."))
                     .when(mockValidator)
-                    .validateNotDuplicate();
+                    .validateNotDuplicate(anyString());
 
             assertThatThrownBy(() -> TheaterName.createNew("강남점", mockValidator))
                     .isInstanceOf(TheaterDomainException.class)
@@ -119,7 +120,7 @@ class TheaterNameTest {
         void createFrom_withDuplicateName_fail() {
             doThrow(new TheaterDomainException("동일한 이름의 영화관이 이미 존재합니다."))
                     .when(mockValidator)
-                    .validateNotDuplicate();
+                    .validateNotDuplicate(anyString());
 
             assertThatThrownBy(() -> TheaterName.createFrom(existingName, "중복영화관", mockValidator))
                     .isInstanceOf(TheaterDomainException.class)

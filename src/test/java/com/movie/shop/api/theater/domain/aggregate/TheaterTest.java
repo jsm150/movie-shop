@@ -14,6 +14,7 @@ import java.lang.reflect.Field;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -68,7 +69,7 @@ class TheaterTest {
 
         doThrow(new TheaterDomainException("동일한 이름의 영화관이 이미 존재합니다."))
                 .when(validator)
-                .validateNotDuplicate();
+                .validateNotDuplicate(anyString());
 
         assertThatThrownBy(() -> theater.updateName(validator, "홍대점"))
                 .isInstanceOf(TheaterDomainException.class)

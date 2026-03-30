@@ -46,9 +46,7 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
     protected JdbcTemplate jdbcTemplate;
 
     protected Theater createAndSaveTheater(String name, boolean active) {
-        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(
-                theaterJpaPort.loadNameDuplication(name)
-        );
+        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(theaterJpaPort);
         Theater theater = Theater.register(theaterNameDuplicateValidator, name);
         theater = theaterRepository.save(theater);
         flushAndClear();

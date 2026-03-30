@@ -54,7 +54,7 @@ public class TheaterName {
     }
 
     private static Validation<String, String> validateNotDuplicate(String name, TheaterNamePolicy validator) {
-        validator.validateNotDuplicate();
+        validator.validateNotDuplicate(name);
         return Validation.valid(name);
     }
 }

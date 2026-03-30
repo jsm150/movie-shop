@@ -22,9 +22,7 @@ public class DeleteTheaterCommandHandler implements Command.Handler<DeleteTheate
     public Voidy handle(DeleteTheaterCommand command) {
         Theater theater = theaterRepository.getById(command.theaterId());
         TheaterAuditoriumLinkProtectionPolicy theaterAuditoriumLinkProtectionPolicy =
-                new TheaterAuditoriumLinkProtectionPolicy(
-                        checkTheaterAuditoriumLinkPort.loadTheaterAuditoriumLinkStatus(command.theaterId())
-                );
+                new TheaterAuditoriumLinkProtectionPolicy(checkTheaterAuditoriumLinkPort);
         theaterRepository.delete(theater, theaterAuditoriumLinkProtectionPolicy);
         return null;
     }

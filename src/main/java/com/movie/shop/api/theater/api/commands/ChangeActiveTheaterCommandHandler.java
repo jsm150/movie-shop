@@ -22,9 +22,7 @@ public class ChangeActiveTheaterCommandHandler implements Command.Handler<Change
     public Voidy handle(ChangeActiveTheaterCommand command) {
         Theater theater = theaterRepository.getById(command.theaterId());
         TheaterAuditoriumLinkProtectionPolicy theaterAuditoriumLinkProtectionPolicy =
-                new TheaterAuditoriumLinkProtectionPolicy(
-                        checkTheaterAuditoriumLinkPort.loadTheaterAuditoriumLinkStatus(command.theaterId())
-                );
+                new TheaterAuditoriumLinkProtectionPolicy(checkTheaterAuditoriumLinkPort);
         theater.changeActive(command.status(), theaterAuditoriumLinkProtectionPolicy);
 
         return null;

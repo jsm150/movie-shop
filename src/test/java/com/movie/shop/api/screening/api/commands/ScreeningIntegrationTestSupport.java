@@ -119,9 +119,7 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected Theater createTheater(boolean active) {
         long seq = SEQUENCE.getAndIncrement();
         String theaterName = "통합테스트관-" + seq;
-        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(
-                theaterJpaPort.loadNameDuplication(theaterName)
-        );
+        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(theaterJpaPort);
 
         Theater theater = Theater.register(theaterNameDuplicateValidator, theaterName);
 

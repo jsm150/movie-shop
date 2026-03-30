@@ -20,9 +20,7 @@ public class UpdateTheaterCommandHandler implements Command.Handler<UpdateTheate
     @Transactional
     public Long handle(UpdateTheaterCommand command) {
         Theater theater = theaterRepository.getById(command.theaterId());
-        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(
-                theaterJpaPort.loadNameDuplication(command.name())
-        );
+        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(theaterJpaPort);
 
         theater.updateName(theaterNameDuplicateValidator, command.name());
 
