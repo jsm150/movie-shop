@@ -1,7 +1,6 @@
 package com.movie.shop.api.auditorium.domain.port;
 
 import com.movie.shop.api.auditorium.domain.aggregate.Auditorium;
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumNameDuplication;
 
 import java.util.Optional;
 
@@ -19,5 +18,5 @@ public interface AuditoriumJpaPort {
 
     boolean existsByTheaterIdAndName(long theaterId, String name);
 
-    AuditoriumNameDuplication loadNameDuplication(long theaterId, String name);
+    boolean loadNameDuplication(long theaterId, String name);
 }

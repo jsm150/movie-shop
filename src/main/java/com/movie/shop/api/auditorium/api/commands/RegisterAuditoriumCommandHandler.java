@@ -22,12 +22,9 @@ public class RegisterAuditoriumCommandHandler implements Command.Handler<Registe
     @Override
     @Transactional
     public Long handle(RegisterAuditoriumCommand command) {
-        AuditoriumTheaterExistencePolicy auditoriumTheaterExistencePolicy = new AuditoriumTheaterExistencePolicy(
-                loadAuditoriumTheaterExistenceStatusPort.loadAuditoriumTheaterExistenceStatus(command.theaterId())
-        );
-        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(
-                auditoriumJpaPort.loadNameDuplication(command.theaterId(), command.name())
-        );
+        AuditoriumTheaterExistencePolicy auditoriumTheaterExistencePolicy =
+                new AuditoriumTheaterExistencePolicy(loadAuditoriumTheaterExistenceStatusPort);
+        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(auditoriumJpaPort);
 
         Auditorium auditorium = Auditorium.register(
                 auditoriumNameDuplicatePolicy,

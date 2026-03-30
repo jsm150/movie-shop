@@ -75,7 +75,7 @@ public class Auditorium {
         if (theaterExistencePolicy == null) {
             throw new AuditoriumDomainException("상영관 등록 정책은 필수입니다.");
         }
-        theaterExistencePolicy.validateCanRegister();
+        theaterExistencePolicy.validateCanRegister(theaterId);
 
         var auditorium = new Auditorium();
         auditorium.theaterId = theaterId;
@@ -84,7 +84,7 @@ public class Auditorium {
         auditorium.active = true;
 
         EntityValidator.create()
-                .apply(AuditoriumName.createNew(name, nameDuplicateValidator), auditorium::setName)
+                .apply(AuditoriumName.createNew(name, theaterId, nameDuplicateValidator), auditorium::setName)
                 .apply(AuditoriumSeats.create(seats, rowCount, columnCount), auditorium::setSeats)
                 .validateBean(auditorium)
                 .throwIfInvalid(AuditoriumDomainException::new);
@@ -103,7 +103,7 @@ public class Auditorium {
         this.auditoriumType = type;
 
         EntityValidator.create()
-                .apply(AuditoriumName.createFrom(this.name, name, nameDuplicateValidator), this::setName)
+                .apply(AuditoriumName.createFrom(this.name, name, this.theaterId, nameDuplicateValidator), this::setName)
                 .apply(AuditoriumSeats.create(seats, rowCount, columnCount), this::setSeats)
                 .validateBean(this)
                 .throwIfInvalid(AuditoriumDomainException::new);

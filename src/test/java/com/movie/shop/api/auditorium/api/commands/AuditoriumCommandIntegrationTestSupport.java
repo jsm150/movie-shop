@@ -6,8 +6,8 @@ import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumRepository;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumType;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumNameDuplicatePolicy;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumTheaterExistencePolicy;
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumTheaterExistenceStatus;
 import com.movie.shop.api.auditorium.domain.port.AuditoriumJpaPort;
+import com.movie.shop.api.auditorium.domain.port.LoadAuditoriumTheaterExistenceStatusPort;
 import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.api.commands.ChangeActiveTheaterCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
@@ -40,6 +40,9 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
     protected AuditoriumJpaPort auditoriumJpaPort;
 
     @Autowired
+    protected LoadAuditoriumTheaterExistenceStatusPort loadAuditoriumTheaterExistenceStatusPort;
+
+    @Autowired
     protected EntityManager entityManager;
 
     @Autowired
@@ -61,12 +64,10 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
     }
 
     protected Auditorium createAndSaveAuditorium(long theaterId, String name) {
-        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(
-                auditoriumJpaPort.loadNameDuplication(theaterId, name)
-        );
+        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(auditoriumJpaPort);
         Auditorium auditorium = Auditorium.register(
                 auditoriumNameDuplicatePolicy,
-                new AuditoriumTheaterExistencePolicy(new AuditoriumTheaterExistenceStatus(true)),
+                new AuditoriumTheaterExistencePolicy(loadAuditoriumTheaterExistenceStatusPort),
                 theaterId,
                 name,
                 1,

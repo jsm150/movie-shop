@@ -1,6 +1,5 @@
 package com.movie.shop.api.auditorium.infrastructure.policy;
 
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumTheaterExistenceStatus;
 import com.movie.shop.api.auditorium.domain.port.LoadAuditoriumTheaterExistenceStatusPort;
 import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,7 @@ public class LoadAuditoriumTheaterExistenceStatusJpaAdapter implements LoadAudit
     private final TheaterJpaPort theaterJpaPort;
 
     @Override
-    public AuditoriumTheaterExistenceStatus loadAuditoriumTheaterExistenceStatus(long theaterId) {
-        return new AuditoriumTheaterExistenceStatus(theaterJpaPort.findById(theaterId).isPresent());
+    public boolean loadAuditoriumTheaterExistenceStatus(long theaterId) {
+        return theaterJpaPort.findById(theaterId).isPresent();
     }
 }

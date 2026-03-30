@@ -22,9 +22,8 @@ public class DeleteAuditoriumCommandHandler implements Command.Handler<DeleteAud
     public Voidy handle(DeleteAuditoriumCommand command) {
         Auditorium auditorium = auditoriumRepository.getById(command.auditoriumId());
 
-        AuditoriumDeletionPolicy auditoriumDeletionPolicy = new AuditoriumDeletionPolicy(
-                checkAuditoriumScreeningLinkPort.loadAuditoriumScreeningLinkStatus(command.auditoriumId())
-        );
+        AuditoriumDeletionPolicy auditoriumDeletionPolicy =
+                new AuditoriumDeletionPolicy(checkAuditoriumScreeningLinkPort);
 
         auditoriumRepository.delete(auditorium, auditoriumDeletionPolicy);
         return null;

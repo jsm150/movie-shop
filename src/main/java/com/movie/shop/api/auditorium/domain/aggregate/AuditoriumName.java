@@ -20,22 +20,24 @@ public class AuditoriumName {
     }
 
     public static Validation<Seq<String>, AuditoriumName> createNew(String name,
+                                                                     long theaterId,
                                                                      AuditoriumNameDuplicatePolicy validator) {
         return validateNotBlank(name)
                 .flatMap(AuditoriumName::validateLength)
-                .flatMap(n -> validateNotDuplicate(n, validator))
+                .flatMap(n -> validateNotDuplicate(n, theaterId, validator))
                 .map(AuditoriumName::new)
                 .mapError(List::of);
     }
 
     public static Validation<Seq<String>, AuditoriumName> createFrom(AuditoriumName nowName,
                                                                       String newName,
+                                                                      long theaterId,
                                                                       AuditoriumNameDuplicatePolicy validator) {
         return validateNotBlank(newName)
                 .flatMap(AuditoriumName::validateLength)
                 .flatMap(n -> Option.of(n)
                         .filter(val -> !nowName.getName().equals(val))
-                        .map(val -> validateNotDuplicate(val, validator))
+                        .map(val -> validateNotDuplicate(val, theaterId, validator))
                         .getOrElse(Validation.valid(n))
                 )
                 .map(AuditoriumName::new)
@@ -55,8 +57,9 @@ public class AuditoriumName {
     }
 
     private static Validation<String, String> validateNotDuplicate(String name,
+                                                                   long theaterId,
                                                                     AuditoriumNameDuplicatePolicy validator) {
-        validator.validateNotDuplicate();
+        validator.validateNotDuplicate(theaterId, name);
         return Validation.valid(name);
     }
 }

@@ -25,8 +25,8 @@ public class ChangeStatusAuditoriumCommandHandler implements Command.Handler<Cha
         Auditorium auditorium = auditoriumRepository.getById(command.auditoriumId());
 
         AuditoriumStatusPolicy auditoriumStatusPolicy = new AuditoriumStatusPolicy(
-                checkAuditoriumScreeningLinkPort.loadAuditoriumScreeningLinkStatus(command.auditoriumId()),
-                loadAuditoriumTheaterActivationStatusPort.loadAuditoriumTheaterActivationStatus(auditorium.getTheaterId())
+                checkAuditoriumScreeningLinkPort,
+                loadAuditoriumTheaterActivationStatusPort
         );
 
         auditorium.changeStatus(command.status(), auditoriumStatusPolicy);

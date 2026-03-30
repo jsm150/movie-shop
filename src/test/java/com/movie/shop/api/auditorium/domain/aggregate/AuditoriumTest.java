@@ -4,9 +4,6 @@ import com.movie.shop.api.auditorium.domain.exceptions.AuditoriumDomainException
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumNameDuplicatePolicy;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusPolicy;
 import com.movie.shop.api.auditorium.domain.policy.AuditoriumTheaterExistencePolicy;
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumScreeningLinkStatus;
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumTheaterActivationStatus;
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumTheaterExistenceStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -137,8 +134,8 @@ class AuditoriumTest {
     void canHostScreening_whenInactive_returnsFalse() {
         Auditorium auditorium = createAuditorium();
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(false),
-                Optional.empty()
+                auditoriumId -> false,
+                loadedTheaterId -> Optional.empty()
         );
 
         auditorium.changeStatus(AuditoriumStatusChange.DEACTIVATE, policy);
@@ -151,8 +148,8 @@ class AuditoriumTest {
     void changeActive_whenDeactivateBlocked_throwsException() {
         Auditorium auditorium = createAuditorium();
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(true),
-                Optional.empty()
+                auditoriumId -> true,
+                loadedTheaterId -> Optional.empty()
         );
 
         assertThatThrownBy(() -> auditorium.changeStatus(AuditoriumStatusChange.DEACTIVATE, policy))
@@ -165,8 +162,8 @@ class AuditoriumTest {
     void changeActive_whenDeactivateAllowed_becomesInactive() {
         Auditorium auditorium = createAuditorium();
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(false),
-                Optional.empty()
+                auditoriumId -> false,
+                loadedTheaterId -> Optional.empty()
         );
 
         auditorium.changeStatus(AuditoriumStatusChange.DEACTIVATE, policy);
@@ -181,8 +178,8 @@ class AuditoriumTest {
         setActive(auditorium, false);
 
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(false),
-                Optional.of(new AuditoriumTheaterActivationStatus(true))
+                auditoriumId -> false,
+                loadedTheaterId -> Optional.of(true)
         );
 
         auditorium.changeStatus(AuditoriumStatusChange.ACTIVATE, policy);
@@ -197,8 +194,8 @@ class AuditoriumTest {
         setActive(auditorium, false);
 
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(false),
-                Optional.of(new AuditoriumTheaterActivationStatus(false))
+                auditoriumId -> false,
+                loadedTheaterId -> Optional.of(false)
         );
 
         assertThatThrownBy(() -> auditorium.changeStatus(AuditoriumStatusChange.ACTIVATE, policy))
@@ -213,8 +210,8 @@ class AuditoriumTest {
         setActive(auditorium, false);
 
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(false),
-                Optional.empty()
+                auditoriumId -> false,
+                loadedTheaterId -> Optional.empty()
         );
 
         assertThatThrownBy(() -> auditorium.changeStatus(AuditoriumStatusChange.ACTIVATE, policy))
@@ -283,11 +280,11 @@ class AuditoriumTest {
     }
 
     private AuditoriumTheaterExistencePolicy existingTheaterPolicy() {
-        return new AuditoriumTheaterExistencePolicy(new AuditoriumTheaterExistenceStatus(true));
+        return new AuditoriumTheaterExistencePolicy(theaterId -> true);
     }
 
     private AuditoriumTheaterExistencePolicy missingTheaterPolicy() {
-        return new AuditoriumTheaterExistencePolicy(new AuditoriumTheaterExistenceStatus(false));
+        return new AuditoriumTheaterExistencePolicy(theaterId -> false);
     }
 
     private void setActive(Auditorium auditorium, boolean active) throws Exception {

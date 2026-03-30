@@ -20,9 +20,7 @@ public class UpdateAuditoriumCommandHandler implements Command.Handler<UpdateAud
     @Transactional
     public Long handle(UpdateAuditoriumCommand command) {
         Auditorium auditorium = auditoriumRepository.getById(command.auditoriumId());
-        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(
-                auditoriumJpaPort.loadNameDuplication(auditorium.getTheaterId(), command.name())
-        );
+        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(auditoriumJpaPort);
 
         auditorium.update(
                 auditoriumNameDuplicatePolicy,

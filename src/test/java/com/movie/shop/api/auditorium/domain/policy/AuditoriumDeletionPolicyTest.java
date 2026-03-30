@@ -5,7 +5,6 @@ import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumName;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumSeats;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumType;
 import com.movie.shop.api.auditorium.domain.exceptions.AuditoriumDomainException;
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumScreeningLinkStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,9 +21,7 @@ class AuditoriumDeletionPolicyTest {
     @DisplayName("DELETE 시 차단 상영이 존재하면 예외가 발생한다")
     void validateCanDelete_whenBlockingScreeningExists_throwsException() throws Exception {
         Auditorium auditorium = createAuditorium(1L, true);
-        AuditoriumDeletionPolicy policy = new AuditoriumDeletionPolicy(
-                new AuditoriumScreeningLinkStatus(true)
-        );
+        AuditoriumDeletionPolicy policy = new AuditoriumDeletionPolicy(auditoriumId -> true);
 
         assertThatThrownBy(() -> policy.validateCanDelete(auditorium))
                 .isInstanceOf(AuditoriumDomainException.class)
@@ -35,9 +32,7 @@ class AuditoriumDeletionPolicyTest {
     @DisplayName("DELETE 시 차단 상영이 없으면 예외가 발생하지 않는다")
     void validateCanDelete_whenNoBlockingScreening_doesNotThrow() throws Exception {
         Auditorium auditorium = createAuditorium(1L, true);
-        AuditoriumDeletionPolicy policy = new AuditoriumDeletionPolicy(
-                new AuditoriumScreeningLinkStatus(false)
-        );
+        AuditoriumDeletionPolicy policy = new AuditoriumDeletionPolicy(auditoriumId -> false);
 
         assertThatCode(() -> policy.validateCanDelete(auditorium))
                 .doesNotThrowAnyException();
@@ -48,7 +43,7 @@ class AuditoriumDeletionPolicyTest {
     void constructor_whenScreeningLinkStatusNull_throwsException() {
         assertThatThrownBy(() -> new AuditoriumDeletionPolicy(null))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("상영 연결 상태는 필수입니다.");
+                .hasMessageContaining("상영 연결 조회 포트는 필수입니다.");
     }
 
     private Auditorium createAuditorium(long auditoriumId, boolean active) throws Exception {

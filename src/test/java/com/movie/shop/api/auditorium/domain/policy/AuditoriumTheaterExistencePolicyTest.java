@@ -1,7 +1,6 @@
 package com.movie.shop.api.auditorium.domain.policy;
 
 import com.movie.shop.api.auditorium.domain.exceptions.AuditoriumDomainException;
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumTheaterExistenceStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -14,21 +13,17 @@ class AuditoriumTheaterExistencePolicyTest {
     @Test
     @DisplayName("연결 영화관이 존재하면 등록 검증이 통과한다")
     void validateCanRegister_whenTheaterExists_doesNotThrow() {
-        AuditoriumTheaterExistencePolicy policy = new AuditoriumTheaterExistencePolicy(
-                new AuditoriumTheaterExistenceStatus(true)
-        );
+        AuditoriumTheaterExistencePolicy policy = new AuditoriumTheaterExistencePolicy(theaterId -> true);
 
-        assertThatCode(policy::validateCanRegister).doesNotThrowAnyException();
+        assertThatCode(() -> policy.validateCanRegister(1L)).doesNotThrowAnyException();
     }
 
     @Test
     @DisplayName("연결 영화관이 존재하지 않으면 등록 검증이 실패한다")
     void validateCanRegister_whenTheaterMissing_throwsException() {
-        AuditoriumTheaterExistencePolicy policy = new AuditoriumTheaterExistencePolicy(
-                new AuditoriumTheaterExistenceStatus(false)
-        );
+        AuditoriumTheaterExistencePolicy policy = new AuditoriumTheaterExistencePolicy(theaterId -> false);
 
-        assertThatThrownBy(policy::validateCanRegister)
+        assertThatThrownBy(() -> policy.validateCanRegister(1L))
                 .isInstanceOf(AuditoriumDomainException.class)
                 .hasMessageContaining("존재하지 않는 영화관");
     }
@@ -38,6 +33,6 @@ class AuditoriumTheaterExistencePolicyTest {
     void constructor_whenTheaterActivationStatusNull_throwsException() {
         assertThatThrownBy(() -> new AuditoriumTheaterExistencePolicy(null))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("영화관 존재 상태 정보는 필수입니다.");
+                .hasMessageContaining("영화관 존재 조회 포트는 필수입니다.");
     }
 }

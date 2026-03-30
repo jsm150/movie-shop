@@ -6,8 +6,6 @@ import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumSeats;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumStatusChange;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumType;
 import com.movie.shop.api.auditorium.domain.exceptions.AuditoriumDomainException;
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumScreeningLinkStatus;
-import com.movie.shop.api.auditorium.domain.policy.status.AuditoriumTheaterActivationStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -26,8 +24,8 @@ class AuditoriumStatusPolicyTest {
     void validateCanChangeStatus_whenDeactivateAndBlockingScreeningExists_throwsException() throws Exception {
         Auditorium auditorium = createAuditorium(1L, true);
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(true),
-                Optional.empty()
+                auditoriumId -> true,
+                theaterId -> Optional.empty()
         );
 
         assertThatThrownBy(() -> policy.validateCanChangeStatus(auditorium, AuditoriumStatusChange.DEACTIVATE))
@@ -40,8 +38,8 @@ class AuditoriumStatusPolicyTest {
     void validateCanChangeStatus_whenDeactivateAndNoBlockingScreening_doesNotThrow() throws Exception {
         Auditorium auditorium = createAuditorium(1L, true);
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(false),
-                Optional.empty()
+                auditoriumId -> false,
+                theaterId -> Optional.empty()
         );
 
         assertThatCode(() -> policy.validateCanChangeStatus(auditorium, AuditoriumStatusChange.DEACTIVATE))
@@ -53,8 +51,8 @@ class AuditoriumStatusPolicyTest {
     void validateCanChangeStatus_whenAlreadyInactiveAndDeactivate_doesNotThrow() throws Exception {
         Auditorium auditorium = createAuditorium(1L, false);
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(true),
-                Optional.empty()
+                auditoriumId -> true,
+                theaterId -> Optional.empty()
         );
 
         assertThatCode(() -> policy.validateCanChangeStatus(auditorium, AuditoriumStatusChange.DEACTIVATE))
@@ -66,8 +64,8 @@ class AuditoriumStatusPolicyTest {
     void validateCanChangeStatus_whenActivateAndTheaterActive_doesNotThrow() throws Exception {
         Auditorium auditorium = createAuditorium(1L, false);
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(false),
-                Optional.of(new AuditoriumTheaterActivationStatus(true))
+                auditoriumId -> false,
+                theaterId -> Optional.of(true)
         );
 
         assertThatCode(() -> policy.validateCanChangeStatus(auditorium, AuditoriumStatusChange.ACTIVATE))
@@ -79,8 +77,8 @@ class AuditoriumStatusPolicyTest {
     void validateCanChangeStatus_whenActivateAndTheaterMissing_throwsException() throws Exception {
         Auditorium auditorium = createAuditorium(1L, false);
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(false),
-                Optional.empty()
+                auditoriumId -> false,
+                theaterId -> Optional.empty()
         );
 
         assertThatThrownBy(() -> policy.validateCanChangeStatus(auditorium, AuditoriumStatusChange.ACTIVATE))
@@ -93,8 +91,8 @@ class AuditoriumStatusPolicyTest {
     void validateCanChangeStatus_whenActivateAndTheaterInactive_throwsException() throws Exception {
         Auditorium auditorium = createAuditorium(1L, false);
         AuditoriumStatusPolicy policy = new AuditoriumStatusPolicy(
-                new AuditoriumScreeningLinkStatus(false),
-                Optional.of(new AuditoriumTheaterActivationStatus(false))
+                auditoriumId -> false,
+                theaterId -> Optional.of(false)
         );
 
         assertThatThrownBy(() -> policy.validateCanChangeStatus(auditorium, AuditoriumStatusChange.ACTIVATE))
@@ -105,17 +103,17 @@ class AuditoriumStatusPolicyTest {
     @Test
     @DisplayName("생성 시 상영 연결 상태가 null이면 예외가 발생한다")
     void constructor_whenScreeningLinkStatusNull_throwsException() {
-        assertThatThrownBy(() -> new AuditoriumStatusPolicy(null, Optional.empty()))
+        assertThatThrownBy(() -> new AuditoriumStatusPolicy(null, theaterId -> Optional.empty()))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("상영 연결 상태는 필수입니다.");
+                .hasMessageContaining("상영 연결 조회 포트는 필수입니다.");
     }
 
     @Test
     @DisplayName("생성 시 영화관 활성 상태 정보가 null이면 예외가 발생한다")
     void constructor_whenTheaterActivationStatusNull_throwsException() {
-        assertThatThrownBy(() -> new AuditoriumStatusPolicy(new AuditoriumScreeningLinkStatus(false), null))
+        assertThatThrownBy(() -> new AuditoriumStatusPolicy(auditoriumId -> false, null))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("영화관 활성 상태 정보는 필수입니다.");
+                .hasMessageContaining("영화관 활성 상태 조회 포트는 필수입니다.");
     }
 
     private Auditorium createAuditorium(long auditoriumId, boolean active) throws Exception {
