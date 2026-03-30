@@ -33,19 +33,31 @@ public class SalesTimeRange {
 
     public static Validation<Seq<String>, SalesTimeRange> create(OffsetDateTime salesStartAt,
                                                                   OffsetDateTime salesEndAt,
+                                                                  long auditoriumId,
+                                                                  Long selfScreeningId,
                                                                   OffsetDateTime screeningStartAt,
                                                                   OffsetDateTime screeningEndAt,
                                                                   ScreeningConflictValidationPolicy conflictPolicy) {
         return Validation.combine(
                 ValidationUtils.notNull(salesStartAt, "판매 시작 시간은 필수입니다."),
                 ValidationUtils.notNull(salesEndAt, "판매 종료 시간은 필수입니다."),
+                ValidationUtils.notNull(auditoriumId > 0 ? auditoriumId : null, "상영관 ID는 필수입니다."),
                 ValidationUtils.notNull(screeningStartAt, "상영 시작 시간은 필수입니다."),
                 ValidationUtils.notNull(screeningEndAt, "상영 종료 시간은 필수입니다."),
                 ValidationUtils.notNull(conflictPolicy, "상영 시간 충돌 검증 정책은 필수입니다.")
         )
                 .ap(Tuple::of)
                 .flatMap(tuple -> {
-                    conflictPolicy.validateNoConflict(screeningStartAt, screeningEndAt);
+                    if (selfScreeningId == null) {
+                        conflictPolicy.validateNoConflict(auditoriumId, screeningStartAt, screeningEndAt);
+                    } else {
+                        conflictPolicy.validateNoConflictExcludingSelf(
+                                auditoriumId,
+                                selfScreeningId,
+                                screeningStartAt,
+                                screeningEndAt
+                        );
+                    }
                     return validate(salesStartAt, salesEndAt, screeningStartAt).mapError(List::of);
                 })
                 .map(tuple -> tuple.apply(SalesTimeRange::new));

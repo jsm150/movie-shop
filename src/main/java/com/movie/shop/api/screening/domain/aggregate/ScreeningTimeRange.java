@@ -32,6 +32,7 @@ public class ScreeningTimeRange {
 
     public static Validation<Seq<String>, ScreeningTimeRange> create(OffsetDateTime startTime,
                                                                       OffsetDateTime endTime,
+                                                                      long movieId,
                                                                       ScreeningTimeRuntimeValidationPolicy runtimePolicy) {
         return Validation.combine(
                 ValidationUtils.notNull(startTime, "상영 시작 시간이 필요합니다."),
@@ -40,7 +41,7 @@ public class ScreeningTimeRange {
         )
                 .ap(Tuple::of)
                 .flatMap(tuple -> validateBetween(tuple._1, tuple._2)
-                        .map(validRange -> validateRuntime(validRange, tuple._3)))
+                        .map(validRange -> validateRuntime(validRange, movieId, tuple._3)))
                 .map(tuple -> tuple.apply(ScreeningTimeRange::new));
     }
 
@@ -51,8 +52,9 @@ public class ScreeningTimeRange {
     }
 
     private static Tuple2<OffsetDateTime, OffsetDateTime> validateRuntime(Tuple2<OffsetDateTime, OffsetDateTime> validRange,
-                                                                           ScreeningTimeRuntimeValidationPolicy runtimePolicy) {
-        runtimePolicy.validateRuntime(validRange._1, validRange._2);
+                                                                          long movieId,
+                                                                          ScreeningTimeRuntimeValidationPolicy runtimePolicy) {
+        runtimePolicy.validateRuntime(movieId, validRange._1, validRange._2);
         return validRange;
     }
 

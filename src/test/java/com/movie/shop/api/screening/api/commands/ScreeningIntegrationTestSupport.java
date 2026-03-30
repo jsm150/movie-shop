@@ -13,11 +13,12 @@ import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.port.LoadAuditoriumScreeningAvailabilityPort;
+import com.movie.shop.api.screening.domain.port.LoadScreeningConflictCandidatesPort;
+import com.movie.shop.api.screening.domain.port.MemoizedMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
 import com.movie.shop.api.theater.api.commands.ChangeActiveTheaterCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
@@ -30,7 +31,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
@@ -66,6 +66,9 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
 
     @Autowired
     protected LoadAuditoriumScreeningAvailabilityPort loadAuditoriumScreeningAvailabilityPort;
+
+    @Autowired
+    protected LoadScreeningConflictCandidatesPort loadScreeningConflictCandidatesPort;
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
@@ -178,18 +181,17 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
                                         OffsetDateTime end,
                                         OffsetDateTime salesStart,
                                         OffsetDateTime salesEnd) {
-        Optional<MovieSchedulingAvailability> movieSchedulingAvailability =
-                loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(movieId);
+        MemoizedMovieSchedulingAvailabilityPort memoizedMovieSchedulingAvailabilityPort =
+                new MemoizedMovieSchedulingAvailabilityPort(loadMovieSchedulingAvailabilityPort);
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
-                movieSchedulingAvailability,
-                loadAuditoriumScreeningAvailabilityPort.loadAuditoriumScreeningAvailability(auditoriumId)
+                memoizedMovieSchedulingAvailabilityPort,
+                loadAuditoriumScreeningAvailabilityPort
         );
-        ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
-                screeningJpaPort.findConflictCandidatesByAuditoriumId(auditoriumId, start, end)
-        );
+        ScreeningConflictValidationPolicy screeningConflictValidationPolicy =
+                new ScreeningConflictValidationPolicy(loadScreeningConflictCandidatesPort);
         ScreeningTimeRuntimeValidationPolicy screeningTimeRuntimeValidationPolicy =
-                new ScreeningTimeRuntimeValidationPolicy(movieSchedulingAvailability);
+                new ScreeningTimeRuntimeValidationPolicy(memoizedMovieSchedulingAvailabilityPort);
 
         Screening screening = Screening.register(
                 screeningScheduleValidationPolicy,

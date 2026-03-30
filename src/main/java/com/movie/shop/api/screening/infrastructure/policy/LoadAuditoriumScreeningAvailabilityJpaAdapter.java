@@ -1,6 +1,5 @@
 package com.movie.shop.api.screening.infrastructure.policy;
 
-import com.movie.shop.api.screening.domain.policy.status.AuditoriumScreeningAvailability;
 import com.movie.shop.api.screening.domain.port.LoadAuditoriumScreeningAvailabilityPort;
 import com.movie.shop.api.auditorium.domain.port.AuditoriumJpaPort;
 
@@ -16,8 +15,8 @@ public class LoadAuditoriumScreeningAvailabilityJpaAdapter implements LoadAudito
     private final AuditoriumJpaPort auditoriumJpaPort;
 
     @Override
-    public Optional<AuditoriumScreeningAvailability> loadAuditoriumScreeningAvailability(long auditoriumId) {
+    public Optional<Boolean> loadAuditoriumScreeningAvailability(long auditoriumId) {
         return auditoriumJpaPort.findById(auditoriumId)
-                .map(auditorium -> new AuditoriumScreeningAvailability(auditorium.canHostScreening()));
+                .map(auditorium -> auditorium.canHostScreening());
     }
 }

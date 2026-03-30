@@ -1,10 +1,11 @@
 package com.movie.shop.api.screening.domain.aggregate;
 
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
+import com.movie.shop.api.screening.domain.port.LoadScreeningConflictCandidatesPort;
+import com.movie.shop.api.screening.domain.port.MemoizedMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.status.AuditoriumScreeningAvailability;
 import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -41,13 +42,15 @@ class ScreeningTest {
         screeningEnd = OffsetDateTime.parse("2026-02-10T12:00:00Z");
         salesStart = OffsetDateTime.parse("2026-02-01T10:00:00Z");
         salesEnd = screeningStart;
+        MemoizedMovieSchedulingAvailabilityPort movieSchedulingAvailabilityPort =
+                new MemoizedMovieSchedulingAvailabilityPort(movieId -> Optional.of(new MovieSchedulingAvailability(true, 120)));
         schedulePolicy = new ScreeningScheduleValidationPolicy(
-                Optional.of(new MovieSchedulingAvailability(true, 120)),
-                Optional.of(new AuditoriumScreeningAvailability(true))
+                movieSchedulingAvailabilityPort,
+                auditoriumId -> Optional.of(true)
         );
-        conflictPolicy = new ScreeningConflictValidationPolicy(List.of());
+        conflictPolicy = new ScreeningConflictValidationPolicy(conflictCandidatesPort(List.of()));
         runtimePolicy = new ScreeningTimeRuntimeValidationPolicy(
-                Optional.of(new MovieSchedulingAvailability(true, 120))
+                movieSchedulingAvailabilityPort
         );
     }
 
@@ -485,5 +488,9 @@ class ScreeningTest {
         Field idField = Screening.class.getDeclaredField("id");
         idField.setAccessible(true);
         idField.set(screening, id);
+    }
+
+    private LoadScreeningConflictCandidatesPort conflictCandidatesPort(List<Screening> conflictCandidates) {
+        return (loadedAuditoriumId, startTime, endTime) -> conflictCandidates;
     }
 }

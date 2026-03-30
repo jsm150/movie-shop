@@ -5,18 +5,16 @@ import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.port.LoadAuditoriumScreeningAvailabilityPort;
+import com.movie.shop.api.screening.domain.port.LoadScreeningConflictCandidatesPort;
+import com.movie.shop.api.screening.domain.port.MemoizedMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
-import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -25,27 +23,22 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
     private final ScreeningRepository screeningRepository;
     private final LoadMovieSchedulingAvailabilityPort loadMovieSchedulingAvailabilityPort;
     private final LoadAuditoriumScreeningAvailabilityPort loadAuditoriumScreeningAvailabilityPort;
-    private final ScreeningJpaPort screeningJpaPort;
+    private final LoadScreeningConflictCandidatesPort loadScreeningConflictCandidatesPort;
 
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Long handle(RegisterScreeningCommand command) {
-        Optional<MovieSchedulingAvailability> movieSchedulingAvailability =
-                loadMovieSchedulingAvailabilityPort.loadMovieSchedulingAvailability(command.movieId());
+        MemoizedMovieSchedulingAvailabilityPort memoizedMovieSchedulingAvailabilityPort =
+                new MemoizedMovieSchedulingAvailabilityPort(loadMovieSchedulingAvailabilityPort);
 
         ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
-                movieSchedulingAvailability,
-                loadAuditoriumScreeningAvailabilityPort.loadAuditoriumScreeningAvailability(command.auditoriumId())
+                memoizedMovieSchedulingAvailabilityPort,
+                loadAuditoriumScreeningAvailabilityPort
         );
-        ScreeningConflictValidationPolicy screeningConflictValidationPolicy = new ScreeningConflictValidationPolicy(
-                screeningJpaPort.findConflictCandidatesByAuditoriumId(
-                        command.auditoriumId(),
-                        command.screeningStartTime(),
-                        command.screeningEndTime()
-                )
-        );
+        ScreeningConflictValidationPolicy screeningConflictValidationPolicy =
+                new ScreeningConflictValidationPolicy(loadScreeningConflictCandidatesPort);
         ScreeningTimeRuntimeValidationPolicy screeningTimeRuntimeValidationPolicy =
-                new ScreeningTimeRuntimeValidationPolicy(movieSchedulingAvailability);
+                new ScreeningTimeRuntimeValidationPolicy(memoizedMovieSchedulingAvailabilityPort);
 
         Screening screening = Screening.register(
                 screeningScheduleValidationPolicy,

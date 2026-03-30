@@ -1,7 +1,6 @@
 package com.movie.shop.api.screening.domain.policy;
 
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.screening.domain.policy.status.AuditoriumScreeningAvailability;
 import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
 
 import org.junit.jupiter.api.DisplayName;
@@ -21,10 +20,10 @@ class ScreeningScheduleValidationPolicyTest {
     void validateCanCreateScreeningSchedule_withValidData_succeeds() {
         ScreeningScheduleValidationPolicy policy = newPolicy(
                 Optional.of(movieAvailability(true, MOVIE_RUNTIME_MINUTES)),
-                Optional.of(theaterAvailability(true))
+                Optional.of(true)
         );
 
-        assertThatCode(policy::validate)
+        assertThatCode(() -> policy.validate(1L, 2L))
                 .doesNotThrowAnyException();
     }
 
@@ -33,10 +32,10 @@ class ScreeningScheduleValidationPolicyTest {
     void validateCanRescheduleScreening_withValidData_succeeds() {
         ScreeningScheduleValidationPolicy policy = newPolicy(
                 Optional.of(movieAvailability(true, MOVIE_RUNTIME_MINUTES)),
-                Optional.of(theaterAvailability(true))
+                Optional.of(true)
         );
 
-        assertThatCode(policy::validate)
+        assertThatCode(() -> policy.validate(1L, 2L))
                 .doesNotThrowAnyException();
     }
 
@@ -45,10 +44,10 @@ class ScreeningScheduleValidationPolicyTest {
     void validateCanCreateScreeningSchedule_withMissingMovie_throwsException() {
         ScreeningScheduleValidationPolicy policy = newPolicy(
                 Optional.empty(),
-                Optional.of(theaterAvailability(true))
+                Optional.of(true)
         );
 
-        assertThatThrownBy(policy::validate)
+        assertThatThrownBy(() -> policy.validate(1L, 2L))
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("영화 정보를 찾을 수 없습니다.");
     }
@@ -58,10 +57,10 @@ class ScreeningScheduleValidationPolicyTest {
     void validateCanCreateScreeningSchedule_withUnschedulableMovie_throwsException() {
         ScreeningScheduleValidationPolicy policy = newPolicy(
                 Optional.of(movieAvailability(false, MOVIE_RUNTIME_MINUTES)),
-                Optional.of(theaterAvailability(true))
+                Optional.of(true)
         );
 
-        assertThatThrownBy(policy::validate)
+        assertThatThrownBy(() -> policy.validate(1L, 2L))
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("COMING_SOON 또는 NOW_SHOWING");
     }
@@ -74,7 +73,7 @@ class ScreeningScheduleValidationPolicyTest {
                 Optional.empty()
         );
 
-        assertThatThrownBy(policy::validate)
+        assertThatThrownBy(() -> policy.validate(1L, 2L))
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("상영관 정보를 찾을 수 없습니다.");
     }
@@ -84,24 +83,24 @@ class ScreeningScheduleValidationPolicyTest {
     void validateCanCreateScreeningSchedule_withUnavailableTheater_throwsException() {
         ScreeningScheduleValidationPolicy policy = newPolicy(
                 Optional.of(movieAvailability(true, MOVIE_RUNTIME_MINUTES)),
-                Optional.of(theaterAvailability(false))
+                Optional.of(false)
         );
 
-        assertThatThrownBy(policy::validate)
+        assertThatThrownBy(() -> policy.validate(1L, 2L))
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("활성화된 상영관에서만");
     }
 
     private ScreeningScheduleValidationPolicy newPolicy(Optional<MovieSchedulingAvailability> movieAvailability,
-                                                        Optional<AuditoriumScreeningAvailability> theaterAvailability) {
-        return new ScreeningScheduleValidationPolicy(movieAvailability, theaterAvailability);
+                                                        Optional<Boolean> theaterAvailability) {
+        return new ScreeningScheduleValidationPolicy(
+                movieId -> movieAvailability,
+                auditoriumId -> theaterAvailability
+        );
     }
 
     private MovieSchedulingAvailability movieAvailability(boolean schedulable, int runtimeMinutes) {
         return new MovieSchedulingAvailability(schedulable, runtimeMinutes);
     }
 
-    private AuditoriumScreeningAvailability theaterAvailability(boolean available) {
-        return new AuditoriumScreeningAvailability(available);
-    }
 }

@@ -131,8 +131,8 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
     }
 
     @Test
-    @DisplayName("수정 경합 시 self-exclude 락으로 두 번째 수정이 대기 후 진행된다")
-    void updateScreening_concurrently_selfExcludeLockWaitsThenProceeds() throws Exception {
+    @DisplayName("수정 경합 시 단일 후보 락 후 self 제외 검증으로 두 번째 수정이 대기 후 진행된다")
+    void updateScreening_concurrently_singleCandidateLockWaitsThenProceeds() throws Exception {
         long movieId = registerSchedulableMovie();
         long auditoriumId = registerAuditorium();
 
@@ -158,11 +158,10 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
         try {
             Future<Void> firstFuture = executor.submit(() ->
                     transactionTemplate.execute(status -> {
-                        screeningJpaPort.findConflictCandidatesByAuditoriumIdAndIdNot(
+                        screeningJpaPort.findConflictCandidatesByAuditoriumId(
                                 auditoriumId,
                                 secondUpdate.screeningStartTime(),
-                                secondUpdate.screeningEndTime(),
-                                secondScreeningId
+                                secondUpdate.screeningEndTime()
                         );
                         firstTxReady.countDown();
                         awaitLatch(releaseFirstTx, "첫 번째 트랜잭션 해제 대기 실패");

@@ -24,7 +24,7 @@ class ScreeningTimeRuntimeValidationPolicyTest {
         ScreeningTimeRuntimeValidationPolicy policy = newPolicy(Optional.of(movieAvailability(true, MOVIE_RUNTIME_MINUTES)));
         OffsetDateTime shortEnd = start.plusMinutes(MOVIE_RUNTIME_MINUTES - 1L);
 
-        assertThatThrownBy(() -> policy.validateRuntime(start, shortEnd))
+        assertThatThrownBy(() -> policy.validateRuntime(1L, start, shortEnd))
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("영화 런타임(120분) 이상");
     }
@@ -35,7 +35,7 @@ class ScreeningTimeRuntimeValidationPolicyTest {
         ScreeningTimeRuntimeValidationPolicy policy = newPolicy(Optional.of(movieAvailability(true, MOVIE_RUNTIME_MINUTES)));
         OffsetDateTime runtimeEnd = start.plusMinutes(MOVIE_RUNTIME_MINUTES);
 
-        assertThatCode(() -> policy.validateRuntime(start, runtimeEnd))
+        assertThatCode(() -> policy.validateRuntime(1L, start, runtimeEnd))
                 .doesNotThrowAnyException();
     }
 
@@ -45,7 +45,7 @@ class ScreeningTimeRuntimeValidationPolicyTest {
         ScreeningTimeRuntimeValidationPolicy policy = newPolicy(Optional.of(movieAvailability(true, MOVIE_RUNTIME_MINUTES)));
         OffsetDateTime longEnd = start.plusMinutes(MOVIE_RUNTIME_MINUTES + 10L);
 
-        assertThatCode(() -> policy.validateRuntime(start, longEnd))
+        assertThatCode(() -> policy.validateRuntime(1L, start, longEnd))
                 .doesNotThrowAnyException();
     }
 
@@ -54,13 +54,13 @@ class ScreeningTimeRuntimeValidationPolicyTest {
     void validateRuntime_withMissingMovie_throwsException() {
         ScreeningTimeRuntimeValidationPolicy policy = newPolicy(Optional.empty());
 
-        assertThatThrownBy(() -> policy.validateRuntime(start, start.plusMinutes(MOVIE_RUNTIME_MINUTES)))
+        assertThatThrownBy(() -> policy.validateRuntime(1L, start, start.plusMinutes(MOVIE_RUNTIME_MINUTES)))
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("영화 정보를 찾을 수 없습니다.");
     }
 
     private ScreeningTimeRuntimeValidationPolicy newPolicy(Optional<MovieSchedulingAvailability> movieAvailability) {
-        return new ScreeningTimeRuntimeValidationPolicy(movieAvailability);
+        return new ScreeningTimeRuntimeValidationPolicy(movieId -> movieAvailability);
     }
 
     private MovieSchedulingAvailability movieAvailability(boolean schedulable, int runtimeMinutes) {

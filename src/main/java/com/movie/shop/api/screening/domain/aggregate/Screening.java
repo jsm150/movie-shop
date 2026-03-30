@@ -81,7 +81,7 @@ public class Screening {
             throw new ScreeningDomainException("상영 시간 런타임 검증 정책은 필수입니다.");
         }
 
-        schedulePolicy.validate();
+        schedulePolicy.validate(movieId, auditoriumId);
 
         var screening = new Screening();
         screening.movieId = movieId;
@@ -89,8 +89,8 @@ public class Screening {
         screening.status = ScreeningStatus.SCHEDULED;
 
         EntityValidator.create()
-                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, runtimePolicy), screening::setScreeningTimeRange)
-                .apply(SalesTimeRange.create(salesStart, salesEnd, screeningStart, screeningEnd, conflictPolicy), screening::setSalesTimeRange)
+                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, movieId, runtimePolicy), screening::setScreeningTimeRange)
+                .apply(SalesTimeRange.create(salesStart, salesEnd, auditoriumId, null, screeningStart, screeningEnd, conflictPolicy), screening::setSalesTimeRange)
                 .validateBean(screening)
                 .throwIfInvalid(ScreeningDomainException::new);
 
@@ -118,15 +118,15 @@ public class Screening {
             throw new ScreeningDomainException("상영 ID가 존재하지 않아 일정 변경 검증을 수행할 수 없습니다.");
         }
 
-        schedulePolicy.validate();
+        schedulePolicy.validate(this.movieId, this.auditoriumId);
 
         if (status != ScreeningStatus.SCHEDULED) {
             throw new ScreeningDomainException("SCHEDULED 상태의 상영만 일정 변경이 가능합니다.");
         }
 
         EntityValidator.create()
-                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, runtimePolicy), this::setScreeningTimeRange)
-                .apply(SalesTimeRange.create(salesStart, salesEnd, screeningStart, screeningEnd, conflictPolicy), this::setSalesTimeRange)
+                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, this.movieId, runtimePolicy), this::setScreeningTimeRange)
+                .apply(SalesTimeRange.create(salesStart, salesEnd, this.auditoriumId, this.id, screeningStart, screeningEnd, conflictPolicy), this::setSalesTimeRange)
                 .validateBean(this)
                 .throwIfInvalid(ScreeningDomainException::new);
     }

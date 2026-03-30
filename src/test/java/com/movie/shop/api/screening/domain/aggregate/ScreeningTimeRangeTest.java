@@ -27,7 +27,7 @@ class ScreeningTimeRangeTest {
         ScreeningTimeRuntimeValidationPolicy runtimePolicy = runtimePolicy(true, MOVIE_RUNTIME_MINUTES);
         OffsetDateTime shortEnd = start.plusMinutes(MOVIE_RUNTIME_MINUTES - 1L);
 
-        assertThatThrownBy(() -> ScreeningTimeRange.create(start, shortEnd, runtimePolicy))
+        assertThatThrownBy(() -> ScreeningTimeRange.create(start, shortEnd, 1L, runtimePolicy))
                 .isInstanceOf(ScreeningDomainException.class)
                 .hasMessageContaining("영화 런타임(120분) 이상");
     }
@@ -38,7 +38,7 @@ class ScreeningTimeRangeTest {
         ScreeningTimeRuntimeValidationPolicy runtimePolicy = runtimePolicy(true, MOVIE_RUNTIME_MINUTES);
         OffsetDateTime runtimeEnd = start.plusMinutes(MOVIE_RUNTIME_MINUTES);
 
-        Validation<Seq<String>, ScreeningTimeRange> validation = ScreeningTimeRange.create(start, runtimeEnd, runtimePolicy);
+        Validation<Seq<String>, ScreeningTimeRange> validation = ScreeningTimeRange.create(start, runtimeEnd, 1L, runtimePolicy);
 
         assertThat(validation.isValid()).isTrue();
     }
@@ -48,7 +48,7 @@ class ScreeningTimeRangeTest {
     void create_withInvalidRange_returnsRangeErrorFirst() {
         ScreeningTimeRuntimeValidationPolicy runtimePolicy = runtimePolicy(true, MOVIE_RUNTIME_MINUTES);
 
-        Validation<Seq<String>, ScreeningTimeRange> validation = ScreeningTimeRange.create(start, start, runtimePolicy);
+        Validation<Seq<String>, ScreeningTimeRange> validation = ScreeningTimeRange.create(start, start, 1L, runtimePolicy);
 
         assertThat(validation.isInvalid()).isTrue();
         assertThat(validation.getError().mkString(","))
@@ -58,7 +58,7 @@ class ScreeningTimeRangeTest {
 
     private ScreeningTimeRuntimeValidationPolicy runtimePolicy(boolean schedulable, int runtimeMinutes) {
         return new ScreeningTimeRuntimeValidationPolicy(
-                Optional.of(new MovieSchedulingAvailability(schedulable, runtimeMinutes))
+                movieId -> Optional.of(new MovieSchedulingAvailability(schedulable, runtimeMinutes))
         );
     }
 }
