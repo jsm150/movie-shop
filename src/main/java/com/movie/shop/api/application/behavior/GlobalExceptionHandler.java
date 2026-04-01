@@ -1,13 +1,16 @@
 package com.movie.shop.api.application.behavior;
 
-import com.movie.shop.api.shared.domain.exceptions.DomainException;
-import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
+import com.movie.shop.api.shared.domain.exceptions.DomainException;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,6 +29,19 @@ public class GlobalExceptionHandler {
             problemDetail.setProperty("errors", ex.getErrors());
         }
         
+        return problemDetail;
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthenticationException(AuthenticationException ex, HttpServletRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNAUTHORIZED,
+                ex.getMessage()
+        );
+
+        problemDetail.setTitle(ex.getClass().getSimpleName());
+        problemDetail.setProperty("timestamp", Instant.now());
+
         return problemDetail;
     }
 }
