@@ -3,6 +3,7 @@ package com.movie.shop.api.operator.domain.aggregate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 
+import com.movie.shop.api.operator.domain.exceptions.OperatorDomainException;
 import com.movie.shop.api.operator.domain.port.OperatorJpaPort;
 
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,11 @@ public class OperatorRepository {
 
     public Operator save(Operator operator) {
         return operatorJpaPort.save(operator);
+    }
+
+    public Operator getById(long operatorId) {
+        return operatorJpaPort.findById(operatorId)
+                .orElseThrow(() -> new OperatorDomainException("운영자 데이터가 존재하지 않습니다."));
     }
 
     public Operator getByLoginId(String loginId) {
