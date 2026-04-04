@@ -2,6 +2,7 @@ package com.movie.shop.api.operator.api.application;
 
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,14 +29,12 @@ public class OperatorAuthenticationProvider implements AuthenticationProvider {
                 : authentication.getCredentials().toString();
 
         Operator operator = operatorRepository.getByLoginId(loginId);
-
-        AuthenticatedOperatorPrincipal principal = AuthenticatedOperatorPrincipal.from(
-                operator, new PasswordPolicy(passwordEncoder), rawPassword);
+        operator.authenticate(new PasswordPolicy(passwordEncoder), rawPassword);
 
         return UsernamePasswordAuthenticationToken.authenticated(
-                principal,
+                operator,
                 null,
-                principal.getAuthorities()
+                java.util.List.of(new SimpleGrantedAuthority("ROLE_OPERATOR"))
         );
     }
 

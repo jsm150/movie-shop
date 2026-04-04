@@ -1,6 +1,16 @@
 package com.movie.shop.api.operator.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,20 +18,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.operator.domain.aggregate.Operator;
 import com.movie.shop.api.operator.domain.aggregate.OperatorRepository;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import com.nimbusds.jose.proc.SecurityContext;
 
-import jakarta.servlet.http.HttpSession;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -41,6 +54,12 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private JwtEncoder jwtEncoder;
+
     @BeforeEach
     void setUpDefaultOperator() {
         if (operatorRepository.existsByLoginId(DEFAULT_LOGIN_ID)) {
@@ -55,8 +74,8 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
-    @DisplayName("유효한 운영자 계정으로 로그인하면 세션이 생성된다")
-    void login_returnsOkAndSession() throws Exception {
+    @DisplayName("유효한 운영자 계정으로 로그인하면 access token이 발급된다")
+    void login_returnsTokenResponse() throws Exception {
         var result = mockMvc.perform(post("/operator/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -66,12 +85,13 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.loginId").value("admin"))
-                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.operator.loginId").value("admin"))
+                .andExpect(jsonPath("$.operator.status").value("ACTIVE"))
                 .andReturn();
 
-        HttpSession session = result.getRequest().getSession(false);
-        assertThat(session).isNotNull();
+        assertThat(extractAccessToken(result.getResponse().getContentAsString())).isNotBlank();
     }
 
     @Test
@@ -88,12 +108,12 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
                 .andExpect(status().isUnauthorized())
                 .andReturn();
 
-        assertThat(result.getRequest().getSession(false)).isNull();
+        assertThat(result.getResponse().getContentAsString()).contains("로그인 ID 또는 비밀번호가 올바르지 않습니다.");
     }
 
     @Test
     @DisplayName("{noop} 접두사가 있는 평문 비밀번호 계정도 로그인할 수 있다")
-    void login_withNoopPassword_returnsOkAndSession() throws Exception {
+    void login_withNoopPassword_returnsOk() throws Exception {
         operatorRepository.save(Operator.register(
                 "noop-admin",
                 "{noop}admin1234",
@@ -109,11 +129,12 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.loginId").value("noop-admin"))
-                .andExpect(jsonPath("$.status").value("ACTIVE"))
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.operator.loginId").value("noop-admin"))
+                .andExpect(jsonPath("$.operator.status").value("ACTIVE"))
                 .andReturn();
 
-        assertThat(result.getRequest().getSession(false)).isNotNull();
+        assertThat(extractAccessToken(result.getResponse().getContentAsString())).isNotBlank();
     }
 
     @Test
@@ -138,7 +159,7 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
                 .andExpect(status().isUnauthorized())
                 .andReturn();
 
-        assertThat(result.getRequest().getSession(false)).isNull();
+        assertThat(result.getResponse().getContentAsString()).contains("비활성화된 계정입니다.");
     }
 
     @Test
@@ -170,12 +191,12 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
-    @DisplayName("로그인한 세션으로 관리 API 요청을 보내면 정상 처리된다")
-    void managementApi_withAuthenticatedSession_returnsSuccess() throws Exception {
-        MockHttpSession session = login();
+    @DisplayName("로그인한 토큰으로 관리 API 요청을 보내면 정상 처리된다")
+    void managementApi_withAuthenticatedToken_returnsSuccess() throws Exception {
+        String accessToken = login();
 
         mockMvc.perform(post("/movies")
-                        .session(session)
+                        .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -200,11 +221,12 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
-    @DisplayName("로그인한 세션으로 현재 운영자 정보를 조회할 수 있다")
-    void me_withAuthenticatedSession_returnsCurrentOperator() throws Exception {
-        MockHttpSession session = login();
+    @DisplayName("로그인한 토큰으로 현재 운영자 정보를 조회할 수 있다")
+    void me_withAuthenticatedToken_returnsCurrentOperator() throws Exception {
+        String accessToken = login();
 
-        mockMvc.perform(get("/operator/auth/me").session(session))
+        mockMvc.perform(get("/operator/auth/me")
+                        .header("Authorization", bearer(accessToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.loginId").value("admin"))
                 .andExpect(jsonPath("$.displayName").value(DEFAULT_DISPLAY_NAME))
@@ -212,14 +234,26 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
-    @DisplayName("로그아웃 후에는 동일한 세션으로 관리 API에 접근할 수 없다")
-    void logout_invalidatesSession() throws Exception {
-        MockHttpSession session = login();
+    @DisplayName("형식이 잘못된 토큰으로 현재 운영자 정보를 조회하면 401 Unauthorized를 반환한다")
+    void me_withMalformedToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(get("/operator/auth/me")
+                        .header("Authorization", bearer("not-a-jwt")))
+                .andExpect(status().isUnauthorized());
+    }
 
-        mockMvc.perform(post("/operator/auth/logout").session(session))
-                .andExpect(status().isNoContent());
+    @Test
+    @DisplayName("서명이 깨진 토큰으로 현재 운영자 정보를 조회하면 401 Unauthorized를 반환한다")
+    void me_withInvalidSignatureToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(get("/operator/auth/me")
+                        .header("Authorization", bearer(invalidSignatureToken())))
+                .andExpect(status().isUnauthorized());
+    }
 
-        mockMvc.perform(get("/operator/auth/me").session(session))
+    @Test
+    @DisplayName("만료된 토큰으로 현재 운영자 정보를 조회하면 401 Unauthorized를 반환한다")
+    void me_withExpiredToken_returnsUnauthorized() throws Exception {
+        mockMvc.perform(get("/operator/auth/me")
+                        .header("Authorization", bearer(expiredToken())))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -237,7 +271,7 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
                 .andExpect(result -> assertThat(result.getResponse().getStatus()).isNotEqualTo(401));
     }
 
-    private MockHttpSession login() throws Exception {
+    private String login() throws Exception {
         var result = mockMvc.perform(post("/operator/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -249,6 +283,58 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        return (MockHttpSession) result.getRequest().getSession(false);
+        return extractAccessToken(result.getResponse().getContentAsString());
+    }
+
+    private String extractAccessToken(String responseBody) throws Exception {
+        return objectMapper.readTree(responseBody)
+                .get("accessToken")
+                .asText();
+    }
+
+    private String bearer(String accessToken) {
+        return "Bearer " + accessToken;
+    }
+
+    private String expiredToken() {
+        return issueToken(
+                Instant.now().minusSeconds(7200),
+                Instant.now().minusSeconds(3600),
+                jwtEncoder
+        );
+    }
+
+    private String invalidSignatureToken() {
+        SecretKey otherSecretKey = new SecretKeySpec(
+                "another-jwt-secret-key-for-invalid-sign".getBytes(StandardCharsets.UTF_8),
+                "HmacSHA256"
+        );
+        JwtEncoder otherJwtEncoder = new NimbusJwtEncoder(new ImmutableSecret<SecurityContext>(otherSecretKey));
+
+        return issueToken(
+                Instant.now(),
+                Instant.now().plusSeconds(3600),
+                otherJwtEncoder
+        );
+    }
+
+    private String issueToken(Instant issuedAt, Instant expiresAt, JwtEncoder tokenEncoder) {
+        Operator operator = operatorRepository.getByLoginId(DEFAULT_LOGIN_ID);
+
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .subject(Long.toString(operator.getId()))
+                .issuedAt(issuedAt)
+                .expiresAt(expiresAt)
+                .claim("loginId", operator.getLoginId())
+                .claim("displayName", operator.getDisplayName())
+                .claim("status", operator.getStatus().name())
+                .build();
+
+        return tokenEncoder.encode(
+                JwtEncoderParameters.from(
+                        JwsHeader.with(MacAlgorithm.HS256).build(),
+                        claims
+                )
+        ).getTokenValue();
     }
 }

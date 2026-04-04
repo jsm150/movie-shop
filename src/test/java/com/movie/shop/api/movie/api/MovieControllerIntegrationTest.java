@@ -1,14 +1,13 @@
 package com.movie.shop.api.movie.api;
 
-import com.movie.shop.api.configuration.AbstractContainerBase;
-import com.movie.shop.api.movie.api.commands.RegisterMovieCommand;
-import com.movie.shop.api.movie.api.commands.RegisterMovieCommand.ActorDto;
-import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
-import com.movie.shop.api.movie.domain.aggregate.Movie;
-import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
-import com.movie.shop.api.operator.domain.aggregate.Operator;
-import com.movie.shop.api.operator.domain.aggregate.OperatorRepository;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,19 +16,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.movie.shop.api.configuration.AbstractContainerBase;
+import com.movie.shop.api.movie.api.commands.RegisterMovieCommand;
+import com.movie.shop.api.movie.api.commands.RegisterMovieCommand.ActorDto;
+import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
+import com.movie.shop.api.movie.domain.aggregate.Movie;
+import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.port.MovieJpaPort;
+import com.movie.shop.api.operator.domain.aggregate.Operator;
+import com.movie.shop.api.operator.domain.aggregate.OperatorRepository;
+
 import tools.jackson.databind.ObjectMapper;
-
-import java.time.OffsetDateTime;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -72,7 +73,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
     @DisplayName("유효한 영화 등록 요청을 보내면 201 Created와 영화 ID를 반환한다")
     @Transactional
     void registerMovie_returnsCreatedAndId() throws Exception {
-        MockHttpSession session = login();
+        String accessToken = login();
 
         var command = new RegisterMovieCommand(
                 "인터스텔라",
@@ -93,14 +94,13 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
         );
 
         var result = mockMvc.perform(post("/movies")
-                        .session(session)
+                        .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isCreated())
                 .andExpect(content().string(Matchers.not(Matchers.emptyOrNullString())))
                 .andReturn();
 
-        // DB 저장 검증
         Long movieId = Long.parseLong(result.getResponse().getContentAsString());
         Movie savedMovie = movieJpaPort.findById(movieId).orElseThrow();
 
@@ -120,10 +120,10 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
     @DisplayName("제목이 빈 영화 등록 요청을 보내면 400 Bad Request를 반환한다")
     @Transactional
     void registerMovie_withBlankTitle_returnsBadRequest() throws Exception {
-        MockHttpSession session = login();
+        String accessToken = login();
 
         var command = new RegisterMovieCommand(
-                "",  // 빈 제목
+                "",
                 "크리스토퍼 놀란",
                 List.of("SF"),
                 169,
@@ -141,12 +141,11 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
         );
 
         mockMvc.perform(post("/movies")
-                        .session(session)
+                        .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
                 .andExpect(status().isBadRequest());
 
-        // DB에 데이터가 저장되지 않았는지 검증
         assertThat(movieRepository.count()).isZero();
     }
 
@@ -154,9 +153,8 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
     @DisplayName("중복된 제목으로 영화 등록 요청을 보내면 400 Bad Request를 반환한다")
     @Transactional
     void registerMovie_withDuplicateTitle_returnsBadRequest() throws Exception {
-        MockHttpSession session = login();
+        String accessToken = login();
 
-        // 첫 번째 영화 등록
         var firstCommand = new RegisterMovieCommand(
                 "다크 나이트",
                 "크리스토퍼 놀란",
@@ -176,14 +174,13 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
         );
 
         mockMvc.perform(post("/movies")
-                        .session(session)
+                        .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(firstCommand)))
                 .andExpect(status().isCreated());
 
-        // 같은 제목으로 두 번째 영화 등록 시도
         var secondCommand = new RegisterMovieCommand(
-                "다크 나이트",  // 중복된 제목
+                "다크 나이트",
                 "다른 감독",
                 List.of("SF"),
                 120,
@@ -201,16 +198,15 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
         );
 
         mockMvc.perform(post("/movies")
-                        .session(session)
+                        .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(secondCommand)))
                 .andExpect(status().isBadRequest());
 
-        // DB에는 하나만 저장되었는지 검증
         assertThat(movieRepository.count()).isEqualTo(1);
     }
 
-    private MockHttpSession login() throws Exception {
+    private String login() throws Exception {
         var result = mockMvc.perform(post("/operator/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -222,6 +218,12 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        return (MockHttpSession) result.getRequest().getSession(false);
+        return objectMapper.readTree(result.getResponse().getContentAsString())
+                .get("accessToken")
+                .asText();
+    }
+
+    private String bearer(String accessToken) {
+        return "Bearer " + accessToken;
     }
 }

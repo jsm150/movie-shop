@@ -17,3 +17,9 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
 
+app:
+  security:
+    jwt:
+      secret: ${APP_SECURITY_JWT_SECRET}
+      access-token-ttl: ${APP_SECURITY_JWT_ACCESS_TOKEN_TTL:PT1H}
+
