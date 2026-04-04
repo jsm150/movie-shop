@@ -348,11 +348,12 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
                     jdbcTemplate.update(
                             """
                             INSERT INTO screening
-                            (movie_id, auditorium_id, start_time, end_time, sales_start_at, sales_end_at, status)
-                            VALUES (?, ?, ?, ?, ?, ?, ?)
+                            (movie_id, auditorium_id, theater_id, start_time, end_time, sales_start_at, sales_end_at, status)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                             """,
                             movieId,
                             auditoriumId,
+                            loadTheaterIdByAuditoriumId(auditoriumId),
                             java.sql.Timestamp.from(insertStart.toInstant()),
                             java.sql.Timestamp.from(insertEnd.toInstant()),
                             java.sql.Timestamp.from(insertStart.minusDays(3).toInstant()),
@@ -481,6 +482,20 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
             current = current.getCause();
         }
         return current == null ? throwable : current;
+    }
+
+    private long loadTheaterIdByAuditoriumId(long auditoriumId) {
+        Long theaterId = jdbcTemplate.queryForObject(
+                "SELECT theater_id FROM auditorium WHERE auditorium_id = ?",
+                Long.class,
+                auditoriumId
+        );
+
+        if (theaterId == null) {
+            throw new IllegalStateException("영화관 ID를 조회할 수 없습니다.");
+        }
+
+        return theaterId;
     }
 
 }

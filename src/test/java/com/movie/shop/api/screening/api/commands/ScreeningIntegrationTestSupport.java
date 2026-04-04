@@ -199,6 +199,7 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
                 screeningTimeRuntimeValidationPolicy,
                 movieId,
                 auditoriumId,
+                loadTheaterIdByAuditoriumId(auditoriumId),
                 start,
                 end,
                 salesStart,
@@ -213,5 +214,19 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected void flushAndClear() {
         entityManager.flush();
         entityManager.clear();
+    }
+
+    protected long loadTheaterIdByAuditoriumId(long auditoriumId) {
+        Long theaterId = jdbcTemplate.queryForObject(
+                "SELECT theater_id FROM auditorium WHERE auditorium_id = ?",
+                Long.class,
+                auditoriumId
+        );
+
+        if (theaterId == null) {
+            throw new IllegalStateException("영화관 ID를 조회할 수 없습니다.");
+        }
+
+        return theaterId;
     }
 }

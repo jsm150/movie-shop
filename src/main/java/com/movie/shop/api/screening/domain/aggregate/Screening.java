@@ -40,6 +40,9 @@ public class Screening {
     @Column(nullable = false, name = "auditorium_id")
     private long auditoriumId;
 
+    @Column(nullable = false, name = "theater_id")
+    private long theaterId;
+
     @Setter(AccessLevel.PRIVATE)
     @NotNull(message = "상영 시간 범위는 필수입니다.")
     @Embedded
@@ -67,6 +70,7 @@ public class Screening {
                                      ScreeningTimeRuntimeValidationPolicy runtimePolicy,
                                      long movieId,
                                      long auditoriumId,
+                                     long theaterId,
                                      OffsetDateTime screeningStart,
                                      OffsetDateTime screeningEnd,
                                      OffsetDateTime salesStart,
@@ -86,6 +90,7 @@ public class Screening {
         var screening = new Screening();
         screening.movieId = movieId;
         screening.auditoriumId = auditoriumId;
+        screening.theaterId = theaterId;
         screening.status = ScreeningStatus.SCHEDULED;
 
         EntityValidator.create()

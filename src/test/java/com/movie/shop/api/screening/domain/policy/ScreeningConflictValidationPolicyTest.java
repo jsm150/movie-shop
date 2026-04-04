@@ -23,6 +23,7 @@ class ScreeningConflictValidationPolicyTest {
 
     private final long movieId = 1L;
     private final long auditoriumId = 2L;
+    private final long theaterId = 3L;
     private OffsetDateTime screeningStart;
     private OffsetDateTime screeningEnd;
 
@@ -117,6 +118,7 @@ class ScreeningConflictValidationPolicyTest {
                 runtimePolicy,
                 movieId,
                 auditoriumId,
+                theaterId,
                 screeningStart,
                 screeningEnd,
                 screeningStart.minusDays(1),

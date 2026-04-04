@@ -89,11 +89,12 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
         jdbcTemplate.update(
                 """
                 INSERT INTO screening
-                (movie_id, auditorium_id, start_time, end_time, sales_start_at, sales_end_at, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                (movie_id, auditorium_id, theater_id, start_time, end_time, sales_start_at, sales_end_at, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 1L,
                 auditoriumId,
+                loadTheaterIdByAuditoriumId(auditoriumId),
                 java.sql.Timestamp.from(start.toInstant()),
                 java.sql.Timestamp.from(end.toInstant()),
                 java.sql.Timestamp.from(salesStart.toInstant()),
@@ -105,5 +106,11 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
     protected void flushAndClear() {
         entityManager.flush();
         entityManager.clear();
+    }
+
+    private long loadTheaterIdByAuditoriumId(long auditoriumId) {
+        return auditoriumJpaPort.findById(auditoriumId)
+                .orElseThrow(() -> new IllegalStateException("상영관 정보를 찾을 수 없습니다."))
+                .getTheaterId();
     }
 }

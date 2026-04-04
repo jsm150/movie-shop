@@ -6,6 +6,7 @@ import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.port.LoadAuditoriumScreeningAvailabilityPort;
 import com.movie.shop.api.screening.domain.port.LoadScreeningConflictCandidatesPort;
+import com.movie.shop.api.screening.domain.port.LoadScreeningTheaterIdPort;
 import com.movie.shop.api.screening.domain.port.MemoizedMovieSchedulingAvailabilityPort;
 import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
 import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
@@ -24,10 +25,13 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
     private final LoadMovieSchedulingAvailabilityPort loadMovieSchedulingAvailabilityPort;
     private final LoadAuditoriumScreeningAvailabilityPort loadAuditoriumScreeningAvailabilityPort;
     private final LoadScreeningConflictCandidatesPort loadScreeningConflictCandidatesPort;
+    private final LoadScreeningTheaterIdPort loadScreeningTheaterIdPort;
 
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Long handle(RegisterScreeningCommand command) {
+        long theaterId = loadScreeningTheaterIdPort.loadTheaterId(command.auditoriumId());
+
         MemoizedMovieSchedulingAvailabilityPort memoizedMovieSchedulingAvailabilityPort =
                 new MemoizedMovieSchedulingAvailabilityPort(loadMovieSchedulingAvailabilityPort);
 
@@ -46,6 +50,7 @@ public class RegisterScreeningCommandHandler implements Command.Handler<Register
                 screeningTimeRuntimeValidationPolicy,
                 command.movieId(),
                 command.auditoriumId(),
+                theaterId,
                 command.screeningStartTime(),
                 command.screeningEndTime(),
                 command.salesStartAt(),
