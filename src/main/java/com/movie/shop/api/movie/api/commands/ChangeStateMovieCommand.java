@@ -1,7 +1,7 @@
 package com.movie.shop.api.movie.api.commands;
 
-import an.awesome.pipelinr.Command;
 import an.awesome.pipelinr.Voidy;
+import com.movie.shop.api.movie.api.authorization.MovieManageCommand;
 import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -11,4 +11,5 @@ public record ChangeStateMovieCommand(
         long movieId,
         @Schema(description = "변경할 상태", example = "NOW_SHOWING")
         MovieStateChange status
-) implements Command<Voidy> { }
+) implements MovieManageCommand<Voidy> {
+}

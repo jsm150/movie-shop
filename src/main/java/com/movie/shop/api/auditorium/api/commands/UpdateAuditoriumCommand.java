@@ -1,6 +1,6 @@
 package com.movie.shop.api.auditorium.api.commands;
 
-import an.awesome.pipelinr.Command;
+import com.movie.shop.api.auditorium.api.authorization.AuditoriumManageCommand;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -28,4 +28,5 @@ public record UpdateAuditoriumCommand(
 
         @Schema(description = "열 수", example = "2", requiredMode = Schema.RequiredMode.REQUIRED)
         int columnCount
-) implements Command<Long> { }
+) implements AuditoriumManageCommand<Long> {
+}

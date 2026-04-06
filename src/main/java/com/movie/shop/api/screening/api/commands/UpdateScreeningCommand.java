@@ -1,6 +1,6 @@
 package com.movie.shop.api.screening.api.commands;
 
-import an.awesome.pipelinr.Command;
+import com.movie.shop.api.screening.api.authorization.ScreeningManageCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.OffsetDateTime;
@@ -21,5 +21,5 @@ public record UpdateScreeningCommand(
 
         @Schema(description = "판매 종료 시간", example = "2026-02-06T13:00:00+09:00", requiredMode = Schema.RequiredMode.REQUIRED)
         OffsetDateTime salesEndAt
-) implements Command<Long> {
+) implements ScreeningManageCommand<Long> {
 }

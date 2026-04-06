@@ -1,8 +1,9 @@
 package com.movie.shop.api.auditorium.api.commands;
 
-import an.awesome.pipelinr.Command;
-import an.awesome.pipelinr.Voidy;
+import com.movie.shop.api.auditorium.api.authorization.AuditoriumManageCommand;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumStatusChange;
+
+import an.awesome.pipelinr.Voidy;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "상영관 상태 변경 요청")
@@ -12,4 +13,5 @@ public record ChangeStatusAuditoriumCommand(
 
         @Schema(description = "변경할 상태", example = "DEACTIVATE", requiredMode = Schema.RequiredMode.REQUIRED)
         AuditoriumStatusChange status
-) implements Command<Voidy> { }
+) implements AuditoriumManageCommand<Voidy> {
+}

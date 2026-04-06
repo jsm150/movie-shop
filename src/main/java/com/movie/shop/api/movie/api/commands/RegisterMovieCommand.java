@@ -1,7 +1,7 @@
 package com.movie.shop.api.movie.api.commands;
 
-import an.awesome.pipelinr.Command;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
+import com.movie.shop.api.movie.api.authorization.MovieManageCommand;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.OffsetDateTime;
@@ -32,7 +32,7 @@ public record RegisterMovieCommand(
         
         @Schema(description = "출연 배우 목록", requiredMode = Schema.RequiredMode.REQUIRED)
         List<ActorDto> casts
-) implements Command<Long> {
+) implements MovieManageCommand<Long> {
     
     @Schema(description = "배우 정보")
     public record ActorDto(
@@ -48,4 +48,5 @@ public record RegisterMovieCommand(
             @Schema(description = "배역", example = "돔 코브", requiredMode = Schema.RequiredMode.REQUIRED)
             String role
     ) {}
+
 }

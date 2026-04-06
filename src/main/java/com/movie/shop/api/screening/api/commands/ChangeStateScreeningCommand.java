@@ -1,7 +1,7 @@
 package com.movie.shop.api.screening.api.commands;
 
-import an.awesome.pipelinr.Command;
 import an.awesome.pipelinr.Voidy;
+import com.movie.shop.api.screening.api.authorization.ScreeningManageCommand;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStateChange;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -15,4 +15,5 @@ public record ChangeStateScreeningCommand(
 
         @Schema(description = "취소 사유(CANCEL 상태일 때 필수)", example = "상영 장비 점검")
         String cancelReason
-) implements Command<Voidy> { }
+) implements ScreeningManageCommand<Voidy> {
+}
