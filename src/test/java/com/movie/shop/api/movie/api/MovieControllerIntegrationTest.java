@@ -95,7 +95,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
                 )
         );
 
-        var result = mockMvc.perform(post("/movies")
+        var result = mockMvc.perform(post("/api/admin/movies")
                         .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
@@ -142,7 +142,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
                 )
         );
 
-        mockMvc.perform(post("/movies")
+        mockMvc.perform(post("/api/admin/movies")
                         .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(command)))
@@ -175,7 +175,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
                 )
         );
 
-        mockMvc.perform(post("/movies")
+        mockMvc.perform(post("/api/admin/movies")
                         .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(firstCommand)))
@@ -199,7 +199,7 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
                 )
         );
 
-        mockMvc.perform(post("/movies")
+        mockMvc.perform(post("/api/admin/movies")
                         .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(secondCommand)))

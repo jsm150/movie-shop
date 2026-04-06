@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "영화", description = "영화 관리 API")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/movies")
+@RequestMapping("/api/admin/movies")
 @RequiredArgsConstructor
 public class MovieController {
 

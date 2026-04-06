@@ -167,7 +167,7 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
     @Test
     @DisplayName("인증 없이 관리 API에 접근하면 401 Unauthorized를 반환한다")
     void managementApi_withoutAuthentication_returnsUnauthorized() throws Exception {
-        mockMvc.perform(post("/movies")
+        mockMvc.perform(post("/api/admin/movies")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -197,7 +197,7 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
     void managementApi_withAuthenticatedToken_returnsSuccess() throws Exception {
         String accessToken = login();
 
-        mockMvc.perform(post("/movies")
+        mockMvc.perform(post("/api/admin/movies")
                         .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -233,7 +233,7 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
 
         String accessToken = login("no-permission-admin", "admin1234");
 
-        mockMvc.perform(post("/movies")
+        mockMvc.perform(post("/api/admin/movies")
                         .header("Authorization", bearer(accessToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

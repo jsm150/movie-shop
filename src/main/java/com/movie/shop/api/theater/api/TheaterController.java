@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "영화관", description = "영화관 관리 API")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
-@RequestMapping("/theaters")
+@RequestMapping("/api/admin/theaters")
 @RequiredArgsConstructor
 public class TheaterController {
 
