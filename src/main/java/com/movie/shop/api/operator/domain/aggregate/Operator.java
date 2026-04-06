@@ -9,6 +9,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 
 import com.movie.shop.api.operator.domain.aggregate.permission.OperatorAuthorizationRequirement;
 import com.movie.shop.api.operator.domain.aggregate.permission.OperatorPermission;
+import com.movie.shop.api.operator.domain.exceptions.OperatorAuthorizationException;
 import com.movie.shop.api.operator.domain.exceptions.OperatorDomainException;
 import com.movie.shop.api.operator.domain.policy.PasswordPolicy;
 import com.movie.shop.api.shared.domain.EntityValidator;
@@ -118,11 +119,11 @@ public class Operator {
 
     public void authorize(OperatorAuthorizationRequirement requirement) {
         if (status != OperatorStatus.ACTIVE) {
-            throw new OperatorDomainException("비활성화된 운영자는 권한을 행사할 수 없습니다.");
+            throw new OperatorAuthorizationException("비활성화된 운영자는 권한을 행사할 수 없습니다.");
         }
 
         if (!hasPermission(requirement)) {
-            throw new OperatorDomainException("운영자 권한이 없습니다.");
+            throw new OperatorAuthorizationException("운영자 권한이 없습니다.");
         }
     }
 

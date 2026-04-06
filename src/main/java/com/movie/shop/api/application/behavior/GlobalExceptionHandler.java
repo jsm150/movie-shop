@@ -8,12 +8,29 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.movie.shop.api.operator.domain.exceptions.OperatorAuthorizationException;
 import com.movie.shop.api.shared.domain.exceptions.DomainException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(OperatorAuthorizationException.class)
+    public ProblemDetail handleOperatorAuthorizationException(
+            OperatorAuthorizationException ex,
+            HttpServletRequest request
+    ) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage()
+        );
+
+        problemDetail.setTitle(ex.getClass().getSimpleName());
+        problemDetail.setProperty("timestamp", Instant.now());
+
+        return problemDetail;
+    }
 
     @ExceptionHandler(DomainException.class)
     public ProblemDetail handleDomainException(DomainException ex, HttpServletRequest request) {

@@ -1,10 +1,11 @@
 package com.movie.shop.api.operator.infrastructure.persistence;
 
-import com.movie.shop.api.operator.domain.aggregate.Operator;
-import com.movie.shop.api.operator.domain.port.OperatorJpaPort;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import com.movie.shop.api.operator.domain.aggregate.Operator;
+import com.movie.shop.api.operator.domain.port.OperatorJpaPort;
 
 public interface OperatorJpaAdapter extends JpaRepository<Operator, Long>, OperatorJpaPort {
 

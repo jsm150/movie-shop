@@ -29,6 +29,7 @@ import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.operator.domain.aggregate.Operator;
 import com.movie.shop.api.operator.domain.aggregate.OperatorRepository;
+import com.movie.shop.api.operator.domain.aggregate.permission.OperatorPermission;
 
 import tools.jackson.databind.ObjectMapper;
 
@@ -58,15 +59,16 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
 
     @BeforeEach
     void setUpDefaultOperator() {
-        if (operatorRepository.existsByLoginId(DEFAULT_LOGIN_ID)) {
-            return;
-        }
+        Operator operator = operatorRepository.existsByLoginId(DEFAULT_LOGIN_ID)
+                ? operatorRepository.getByLoginId(DEFAULT_LOGIN_ID)
+                : Operator.register(
+                        DEFAULT_LOGIN_ID,
+                        passwordEncoder.encode(DEFAULT_PASSWORD),
+                        "Default Operator"
+                );
 
-        operatorRepository.save(Operator.register(
-                DEFAULT_LOGIN_ID,
-                passwordEncoder.encode(DEFAULT_PASSWORD),
-                "Default Operator"
-        ));
+        grantIfAbsent(operator, new OperatorPermission.MovieManagePermission());
+        operatorRepository.save(operator);
     }
 
     @Test
@@ -225,5 +227,11 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
 
     private String bearer(String accessToken) {
         return "Bearer " + accessToken;
+    }
+
+    private void grantIfAbsent(Operator operator, OperatorPermission permission) {
+        if (!operator.getPermissions().contains(permission)) {
+            operator.grant(permission);
+        }
     }
 }

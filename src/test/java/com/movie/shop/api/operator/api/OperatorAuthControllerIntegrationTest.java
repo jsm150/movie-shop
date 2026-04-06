@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.operator.domain.aggregate.Operator;
 import com.movie.shop.api.operator.domain.aggregate.OperatorRepository;
+import com.movie.shop.api.operator.domain.aggregate.permission.OperatorPermission;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.proc.SecurityContext;
 
@@ -62,15 +63,16 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
 
     @BeforeEach
     void setUpDefaultOperator() {
-        if (operatorRepository.existsByLoginId(DEFAULT_LOGIN_ID)) {
-            return;
-        }
+        Operator operator = operatorRepository.existsByLoginId(DEFAULT_LOGIN_ID)
+                ? operatorRepository.getByLoginId(DEFAULT_LOGIN_ID)
+                : Operator.register(
+                        DEFAULT_LOGIN_ID,
+                        passwordEncoder.encode(DEFAULT_PASSWORD),
+                        DEFAULT_DISPLAY_NAME
+                );
 
-        operatorRepository.save(Operator.register(
-                DEFAULT_LOGIN_ID,
-                passwordEncoder.encode(DEFAULT_PASSWORD),
-                DEFAULT_DISPLAY_NAME
-        ));
+        grantIfAbsent(operator, new OperatorPermission.MovieManagePermission());
+        operatorRepository.save(operator);
     }
 
     @Test
@@ -221,6 +223,43 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
+    @DisplayName("권한 없는 운영자 토큰으로 관리 API 요청을 보내면 403 Forbidden을 반환한다")
+    void managementApi_withUnauthorizedOperatorToken_returnsForbidden() throws Exception {
+        operatorRepository.save(Operator.register(
+                "no-permission-admin",
+                passwordEncoder.encode("admin1234"),
+                "No Permission Operator"
+        ));
+
+        String accessToken = login("no-permission-admin", "admin1234");
+
+        mockMvc.perform(post("/movies")
+                        .header("Authorization", bearer(accessToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "title": "덩케르크",
+                                  "director": "크리스토퍼 놀란",
+                                  "genres": ["전쟁", "드라마"],
+                                  "runtimeMinutes": 106,
+                                  "audienceRating": "PG12",
+                                  "synopsis": "덩케르크 철수 작전",
+                                  "releaseDate": "2017-07-20T00:00:00Z",
+                                  "casts": [
+                                    {
+                                      "name": "핀 화이트헤드",
+                                      "dateOfBirth": "1997-07-18T00:00:00Z",
+                                      "national": "UK",
+                                      "role": "토미"
+                                    }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.detail").value("운영자 권한이 없습니다."));
+    }
+
+    @Test
     @DisplayName("로그인한 토큰으로 현재 운영자 정보를 조회할 수 있다")
     void me_withAuthenticatedToken_returnsCurrentOperator() throws Exception {
         String accessToken = login();
@@ -272,14 +311,18 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
     }
 
     private String login() throws Exception {
+        return login(DEFAULT_LOGIN_ID, DEFAULT_PASSWORD);
+    }
+
+    private String login(String loginId, String password) throws Exception {
         var result = mockMvc.perform(post("/operator/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "loginId": "admin",
-                                  "password": "admin1234"
+                                  "loginId": "%s",
+                                  "password": "%s"
                                 }
-                                """))
+                                """.formatted(loginId, password)))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -294,6 +337,12 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
 
     private String bearer(String accessToken) {
         return "Bearer " + accessToken;
+    }
+
+    private void grantIfAbsent(Operator operator, OperatorPermission permission) {
+        if (!operator.getPermissions().contains(permission)) {
+            operator.grant(permission);
+        }
     }
 
     private String expiredToken() {
