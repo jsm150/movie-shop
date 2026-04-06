@@ -1,4 +1,4 @@
-package com.movie.shop.api.application.configuration;
+package com.movie.shop.api.shared.application.configuration;
 
 import java.time.Duration;
 

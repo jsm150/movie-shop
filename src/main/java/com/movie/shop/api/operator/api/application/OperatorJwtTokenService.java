@@ -5,8 +5,8 @@ import java.time.Instant;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.stereotype.Service;
 
-import com.movie.shop.api.application.configuration.JwtProperties;
-import com.movie.shop.api.application.security.jwt.JwtIssuer;
+import com.movie.shop.api.shared.application.configuration.JwtProperties;
+import com.movie.shop.api.shared.application.authorization.JwtIssuer;
 import com.movie.shop.api.operator.api.response.CurrentOperatorResponse;
 import com.movie.shop.api.operator.api.response.OperatorLoginResponse;
 import com.movie.shop.api.operator.domain.aggregate.Operator;

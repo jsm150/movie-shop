@@ -1,4 +1,4 @@
-package com.movie.shop.api.application.configuration;
+package com.movie.shop.api.shared.application.configuration;
 
 import lombok.RequiredArgsConstructor;
 
@@ -22,8 +22,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.movie.shop.api.application.behavior.JsonAccessDeniedHandler;
-import com.movie.shop.api.application.behavior.JsonAuthenticationEntryPoint;
+import com.movie.shop.api.shared.application.behavior.JsonAccessDeniedHandler;
+import com.movie.shop.api.shared.application.behavior.JsonAuthenticationEntryPoint;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 
 @Configuration

@@ -1,4 +1,4 @@
-package com.movie.shop.api.application.behavior;
+package com.movie.shop.api.shared.application.behavior;
 
 import java.time.Instant;
 

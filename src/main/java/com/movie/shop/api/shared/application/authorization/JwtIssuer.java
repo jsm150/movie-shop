@@ -1,4 +1,4 @@
-package com.movie.shop.api.application.security.jwt;
+package com.movie.shop.api.shared.application.authorization;
 
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;

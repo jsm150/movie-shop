@@ -1,4 +1,4 @@
-package com.movie.shop.api.application.behavior;
+package com.movie.shop.api.shared.application.behavior;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
