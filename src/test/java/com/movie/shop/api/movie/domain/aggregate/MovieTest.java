@@ -392,8 +392,8 @@ class MovieTest {
                 validReleaseDate,
                 validCasts
         );
-        movie.moveToComingSoon();
-        movie.startShowing();
+        movie.changeState(MovieStateChange.COMING_SOON);
+        movie.changeState(MovieStateChange.NOW_SHOWING);
 
         assertThatThrownBy(movie::validateCanRemove)
                 .isInstanceOf(MovieDomainException.class)
@@ -450,7 +450,7 @@ class MovieTest {
                 validReleaseDate,
                 validCasts
         );
-        movie.moveToComingSoon();
+        movie.changeState(MovieStateChange.COMING_SOON);
 
         assertThat(movie.canBeScheduled()).isTrue();
     }
@@ -469,8 +469,8 @@ class MovieTest {
                 validReleaseDate,
                 validCasts
         );
-        movie.moveToComingSoon();
-        movie.startShowing();
+        movie.changeState(MovieStateChange.COMING_SOON);
+        movie.changeState(MovieStateChange.NOW_SHOWING);
 
         assertThat(movie.canBeScheduled()).isTrue();
     }
@@ -489,9 +489,9 @@ class MovieTest {
                 validReleaseDate,
                 validCasts
         );
-        movie.moveToComingSoon();
-        movie.startShowing();
-        movie.endShowing();
+        movie.changeState(MovieStateChange.COMING_SOON);
+        movie.changeState(MovieStateChange.NOW_SHOWING);
+        movie.changeState(MovieStateChange.ENDED);
 
         assertThat(movie.canBeScheduled()).isFalse();
     }

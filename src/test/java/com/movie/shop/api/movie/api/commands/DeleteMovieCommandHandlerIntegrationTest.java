@@ -6,6 +6,7 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
@@ -172,8 +173,8 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
                 OffsetDateTime.parse("2020-01-01T00:00:00Z"),
                 List.of(new Actor("배우", OffsetDateTime.parse("1990-01-01T00:00:00Z"), "Korea", "역할"))
         );
-        movie.moveToComingSoon();
-        movie.startShowing();
+        movie.changeState(MovieStateChange.COMING_SOON);
+        movie.changeState(MovieStateChange.NOW_SHOWING);
         movie = movieRepository.save(movie);
         entityManager.flush();
         entityManager.clear();
@@ -201,7 +202,7 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
                 OffsetDateTime.parse("2020-01-01T00:00:00Z"),
                 List.of(new Actor("배우", OffsetDateTime.parse("1990-01-01T00:00:00Z"), "Korea", "역할"))
         );
-        movie.moveToComingSoon();
+        movie.changeState(MovieStateChange.COMING_SOON);
         movie = movieRepository.save(movie);
         Theater theater = createAndSaveTheater("삭제검증관");
         long auditoriumId = createAndSaveAuditorium(theater.getId(), "삭제검증상영관");

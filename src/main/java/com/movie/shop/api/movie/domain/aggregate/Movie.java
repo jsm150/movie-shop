@@ -125,46 +125,6 @@ public class Movie {
             throw new MovieDomainException("변경할 영화 상태는 필수입니다.");
         }
 
-        switch (stateChange) {
-            case COMING_SOON -> moveToComingSoon();
-            case NOW_SHOWING -> startShowing();
-            case ENDED -> endShowing();
-        }
-    }
-
-    public void moveToComingSoon()
-    {
-        if (status == MovieStatus.PREPARING)
-        {
-            status = MovieStatus.COMING_SOON;
-        }
-        else
-        {
-            throw new MovieDomainException("PREPARING 이 아닌 상태에서 COMING_SOON으로 변경하려고 함.");
-        }
-    }
-
-    public void startShowing()
-    {
-        if (status == MovieStatus.COMING_SOON)
-        {
-            status = MovieStatus.NOW_SHOWING;
-        }
-        else
-        {
-            throw new MovieDomainException("COMING_SOON 이 아닌 상태에서 NOW_SHOWING으로 변경하려고 함.");
-        }
-    }
-
-    public void endShowing()
-    {
-        if (status == MovieStatus.NOW_SHOWING)
-        {
-            status = MovieStatus.ENDED;
-        }
-        else
-        {
-            throw new MovieDomainException("NOW_SHOWING 이 아닌 상태에서 ENDED로 변경하려고 함.");
-        }
+        status = status.transition(stateChange);
     }
 }

@@ -1,6 +1,7 @@
 package com.movie.shop.api.screening.api.commands;
 
 import com.movie.shop.api.movie.domain.aggregate.Movie;
+import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningStateChange;
@@ -270,8 +271,8 @@ class UpdateScreeningCommandHandlerIntegrationTest extends ScreeningIntegrationT
         );
 
         Movie loadedMovie = movieRepository.getById(movie.getId());
-        loadedMovie.startShowing();
-        loadedMovie.endShowing();
+        loadedMovie.changeState(MovieStateChange.NOW_SHOWING);
+        loadedMovie.changeState(MovieStateChange.ENDED);
         flushAndClear();
 
         UpdateScreeningCommand command = new UpdateScreeningCommand(

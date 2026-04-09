@@ -107,7 +107,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
             // Given: PREPARING 상태의 영화를 먼저 COMING_SOON으로 변경
             Movie movie = createAndSaveMovie("인터스텔라");
             Long movieId = movie.getId();
-            movie.moveToComingSoon();
+            movie.changeState(MovieStateChange.COMING_SOON);
             movieRepository.save(movie);
             entityManager.flush();
             entityManager.clear();
@@ -132,7 +132,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
         void changeState_comingSoonToNowShowing_success() {
             // Given: COMING_SOON 상태의 영화
             Movie movie = createAndSaveMovie("인터스텔라");
-            movie.moveToComingSoon();
+            movie.changeState(MovieStateChange.COMING_SOON);
             movieRepository.save(movie);
             entityManager.flush();
             entityManager.clear();
@@ -182,8 +182,8 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
         void changeState_nowShowingToEnded_success() {
             // Given: NOW_SHOWING 상태의 영화
             Movie movie = createAndSaveMovie("인터스텔라");
-            movie.moveToComingSoon();
-            movie.startShowing();
+            movie.changeState(MovieStateChange.COMING_SOON);
+            movie.changeState(MovieStateChange.NOW_SHOWING);
             movieRepository.save(movie);
             entityManager.flush();
             entityManager.clear();
@@ -211,7 +211,7 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
         void changeState_notNowShowingToEnded_throwsException() {
             // Given: COMING_SOON 상태의 영화
             Movie movie = createAndSaveMovie("인터스텔라");
-            movie.moveToComingSoon();
+            movie.changeState(MovieStateChange.COMING_SOON);
             movieRepository.save(movie);
             entityManager.flush();
             entityManager.clear();

@@ -6,6 +6,7 @@ import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.AudienceRating;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
+import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
@@ -102,15 +103,15 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
         switch (status) {
             case PREPARING -> {
             }
-            case COMING_SOON -> movie.moveToComingSoon();
+            case COMING_SOON -> movie.changeState(MovieStateChange.COMING_SOON);
             case NOW_SHOWING -> {
-                movie.moveToComingSoon();
-                movie.startShowing();
+                movie.changeState(MovieStateChange.COMING_SOON);
+                movie.changeState(MovieStateChange.NOW_SHOWING);
             }
             case ENDED -> {
-                movie.moveToComingSoon();
-                movie.startShowing();
-                movie.endShowing();
+                movie.changeState(MovieStateChange.COMING_SOON);
+                movie.changeState(MovieStateChange.NOW_SHOWING);
+                movie.changeState(MovieStateChange.ENDED);
             }
         }
 
