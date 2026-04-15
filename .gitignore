@@ -36,5 +36,8 @@ out/
 ### VS Code ###
 .vscode/
 
+### Local Spring profile ###
+src/main/resources/application-local.yml
+
 ### docs ###
 docs/
