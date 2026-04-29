@@ -4,8 +4,7 @@ import an.awesome.pipelinr.Command;
 import com.movie.shop.api.movie.domain.aggregate.Actor;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
-import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
+import com.movie.shop.api.movie.domain.port.MovieTitleUniquenessConditionPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateMovieCommandHandler implements Command.Handler<UpdateMovieCommand, Long> {
 
     private final MovieRepository movieRepository;
-    private final MovieJpaPort movieJpaPort;
+    private final MovieTitleUniquenessConditionPort movieTitleUniquenessConditionPort;
 
     @Override
     @Transactional
@@ -31,11 +30,10 @@ public class UpdateMovieCommandHandler implements Command.Handler<UpdateMovieCom
                 ))
                 .toList();
 
-        MovieTitlePolicy movieTitleDuplicateValidator =
-                new MovieTitlePolicy(movieJpaPort);
+        var titleCondition = movieTitleUniquenessConditionPort.findCondition(command.title());
 
-        movie.Update(
-                movieTitleDuplicateValidator,
+        movie.update(
+                titleCondition,
                 command.title(),
                 command.director(),
                 command.genres(),

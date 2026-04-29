@@ -13,6 +13,4 @@ public interface MovieJpaPort {
     void delete(Movie movie);
 
     long count();
-
-    boolean loadTitleDuplication(String title);
 }

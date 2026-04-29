@@ -1,8 +1,8 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
+import com.movie.shop.api.movie.domain.condition.MovieScreeningPresence;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
-import com.movie.shop.api.movie.domain.policy.MovieDeletionPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,8 +16,8 @@ public class MovieRepository {
         return movieJpaPort.save(movie);
     }
 
-    public void delete(Movie movie, MovieDeletionPolicy movieDeletionPolicy) {
-        movieDeletionPolicy.validateCanDelete(movie);
+    public void delete(Movie movie, MovieScreeningPresence screeningPresence) {
+        movie.validateCanDelete(screeningPresence);
         movieJpaPort.delete(movie);
     }
 

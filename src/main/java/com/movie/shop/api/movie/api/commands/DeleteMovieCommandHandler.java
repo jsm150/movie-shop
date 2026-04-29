@@ -4,8 +4,7 @@ import an.awesome.pipelinr.Command;
 import an.awesome.pipelinr.Voidy;
 import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
-import com.movie.shop.api.movie.domain.port.CheckMovieScreeningLinkPort;
-import com.movie.shop.api.movie.domain.policy.MovieDeletionPolicy;
+import com.movie.shop.api.movie.domain.port.MovieScreeningPresencePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,16 +14,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class DeleteMovieCommandHandler implements Command.Handler<DeleteMovieCommand, Voidy> {
 
     private final MovieRepository movieRepository;
-    private final CheckMovieScreeningLinkPort checkMovieScreeningLinkPort;
+    private final MovieScreeningPresencePort movieScreeningPresencePort;
 
     @Transactional
     @Override
     public Voidy handle(DeleteMovieCommand command) {
         Movie movie = movieRepository.getById(command.movieId());
+        var screeningPresence = movieScreeningPresencePort.findPresence(movie.getId());
 
-        MovieDeletionPolicy movieDeletionPolicy = new MovieDeletionPolicy(checkMovieScreeningLinkPort);
-
-        movieRepository.delete(movie, movieDeletionPolicy);
+        movieRepository.delete(movie, screeningPresence);
         return null;
     }
 }

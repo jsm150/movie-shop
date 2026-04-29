@@ -1,16 +1,13 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
-import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
+import com.movie.shop.api.movie.domain.condition.MovieScreeningPresence;
+import com.movie.shop.api.movie.domain.condition.MovieTitleUniquenessCondition;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
+import java.lang.reflect.Field;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -18,15 +15,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
 
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class MovieTest {
 
-    @Mock
-    private MovieTitlePolicy validator;
+    private MovieTitleUniquenessCondition uniqueTitleCondition;
+    private MovieTitleUniquenessCondition duplicateTitleCondition;
+    private MovieScreeningPresence emptyScreeningPresence;
+    private MovieScreeningPresence linkedScreeningPresence;
 
     private String validTitle;
     private String validDirector;
@@ -39,6 +34,10 @@ class MovieTest {
 
     @BeforeEach
     void setUp() {
+        uniqueTitleCondition = new MovieTitleUniquenessCondition(true);
+        duplicateTitleCondition = new MovieTitleUniquenessCondition(false);
+        emptyScreeningPresence = new MovieScreeningPresence(false);
+        linkedScreeningPresence = new MovieScreeningPresence(true);
         validTitle = "인터스텔라";
         validDirector = "크리스토퍼 놀란";
         validGenres = List.of("SF", "드라마");
@@ -55,8 +54,8 @@ class MovieTest {
     @DisplayName("유효한 영화 정보를 생성하면 PREPARING 상태로 생성된다")
     void createMovie_withValidData_succeeds() {
         // when
-        Movie movie = Movie.Register(
-                validator,
+        Movie movie = Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -82,8 +81,8 @@ class MovieTest {
     @Test
     @DisplayName("영화 제목이 빈 값이면 생성 시 예외가 발생한다")
     void createMovie_withBlankTitle_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 "",
                 validDirector,
                 validGenres,
@@ -99,10 +98,9 @@ class MovieTest {
 
     @Test
     @DisplayName("영화 제목이 null이면 생성 시 예외가 발생한다")
-    @MockitoSettings(strictness = Strictness.LENIENT)
     void createMovie_withNullTitle_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 null,
                 validDirector,
                 validGenres,
@@ -121,8 +119,8 @@ class MovieTest {
     void createMovie_withTooLongTitle_throwsException() {
         String longTitle = "a".repeat(201);
 
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 longTitle,
                 validDirector,
                 validGenres,
@@ -139,8 +137,8 @@ class MovieTest {
     @Test
     @DisplayName("감독 이름이 빈 값이면 생성 시 예외가 발생한다")
     void createMovie_withBlankDirector_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 "",
                 validGenres,
@@ -157,8 +155,8 @@ class MovieTest {
     @Test
     @DisplayName("장르 목록이 비어 있으면 생성 시 예외가 발생한다")
     void createMovie_withEmptyGenres_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 Collections.emptyList(),
@@ -175,8 +173,8 @@ class MovieTest {
     @Test
     @DisplayName("장르 목록이 null이면 생성 시 예외가 발생한다")
     void createMovie_withNullGenres_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 null,
@@ -193,8 +191,8 @@ class MovieTest {
     @Test
     @DisplayName("장르 목록에 빈 값이 있으면 생성 시 예외가 발생한다")
     void createMovie_withBlankGenreItem_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 List.of("SF", ""),
@@ -211,8 +209,8 @@ class MovieTest {
     @Test
     @DisplayName("상영 시간이 0이면 생성 시 예외가 발생한다")
     void createMovie_withZeroRuntimeMinutes_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -229,8 +227,8 @@ class MovieTest {
     @Test
     @DisplayName("상영 시간이 음수면 생성 시 예외가 발생한다")
     void createMovie_withNegativeRuntimeMinutes_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -247,8 +245,8 @@ class MovieTest {
     @Test
     @DisplayName("관람 등급이 null이면 생성 시 예외가 발생한다")
     void createMovie_withNullAudienceRating_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -265,8 +263,8 @@ class MovieTest {
     @Test
     @DisplayName("시놉시스가 빈 값이면 생성 시 예외가 발생한다")
     void createMovie_withBlankSynopsis_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -285,8 +283,8 @@ class MovieTest {
     void createMovie_withTooLongSynopsis_throwsException() {
         String longSynopsis = "a".repeat(1001);
 
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -303,8 +301,8 @@ class MovieTest {
     @Test
     @DisplayName("개봉일이 null이면 생성 시 예외가 발생한다")
     void createMovie_withNullReleaseDate_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -321,8 +319,8 @@ class MovieTest {
     @Test
     @DisplayName("출연진 목록이 비어 있으면 생성 시 예외가 발생한다")
     void createMovie_withEmptyCasts_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -339,8 +337,8 @@ class MovieTest {
     @Test
     @DisplayName("출연진 목록이 null이면 생성 시 예외가 발생한다")
     void createMovie_withNullCasts_throwsException() {
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -357,14 +355,8 @@ class MovieTest {
     @Test
     @DisplayName("중복된 제목으로 영화를 생성하면 예외가 발생한다")
     void createMovie_withDuplicateTitle_throwsException() {
-        // given
-        doThrow(new MovieDomainException("동일한 제목의 영화가 이미 존재합니다."))
-                .when(validator)
-                .validateNotDuplicate(anyString());
-
-        // when & then
-        assertThatThrownBy(() -> Movie.Register(
-                validator,
+        assertThatThrownBy(() -> Movie.register(
+                duplicateTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -380,9 +372,9 @@ class MovieTest {
 
     @Test
     @DisplayName("NOW_SHOWING 상태에서 삭제 가능 여부를 검증하면 예외가 발생한다")
-    void validateCanRemove_withNowShowing_throwsException() {
-        Movie movie = Movie.Register(
-                validator,
+    void validateCanDelete_withNowShowing_throwsException() {
+        Movie movie = Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -395,16 +387,16 @@ class MovieTest {
         movie.changeState(MovieStateChange.COMING_SOON);
         movie.changeState(MovieStateChange.NOW_SHOWING);
 
-        assertThatThrownBy(movie::validateCanRemove)
+        assertThatThrownBy(() -> movie.validateCanDelete(emptyScreeningPresence))
                 .isInstanceOf(MovieDomainException.class)
                 .hasMessageContaining("NOW_SHOWING 상태의 영화는 삭제할 수 없습니다.");
     }
 
     @Test
-    @DisplayName("PREPARING 상태에서 삭제 가능 여부를 검증하면 예외가 발생하지 않는다")
-    void validateCanRemove_withPreparing_doesNotThrow() {
-        Movie movie = Movie.Register(
-                validator,
+    @DisplayName("영화 ID가 없으면 삭제 가능 여부 검증 시 예외가 발생한다")
+    void validateCanDelete_withoutMovieId_throwsException() {
+        Movie movie = Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -415,14 +407,35 @@ class MovieTest {
                 validCasts
         );
 
-        assertThatCode(movie::validateCanRemove).doesNotThrowAnyException();
+        assertThatThrownBy(() -> movie.validateCanDelete(emptyScreeningPresence))
+                .isInstanceOf(MovieDomainException.class)
+                .hasMessageContaining("영화 ID가 존재하지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("상영이 연결된 영화는 삭제할 수 없다")
+    void validateCanDelete_withLinkedScreening_throwsException() throws Exception {
+        Movie movie = createMovieWithId(1L);
+
+        assertThatThrownBy(() -> movie.validateCanDelete(linkedScreeningPresence))
+                .isInstanceOf(MovieDomainException.class)
+                .hasMessageContaining("상영이 연결된 영화는 삭제할 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("PREPARING 상태이고 상영이 연결되지 않으면 삭제 검증에 성공한다")
+    void validateCanDelete_withPreparingAndNoScreening_doesNotThrow() throws Exception {
+        Movie movie = createMovieWithId(1L);
+
+        assertThatCode(() -> movie.validateCanDelete(emptyScreeningPresence))
+                .doesNotThrowAnyException();
     }
 
     @Test
     @DisplayName("PREPARING 상태이면 상영 가능 여부가 false를 반환한다")
     void canBeScheduled_withPreparing_returnsFalse() {
-        Movie movie = Movie.Register(
-                validator,
+        Movie movie = Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -439,8 +452,8 @@ class MovieTest {
     @Test
     @DisplayName("COMING_SOON 상태이면 상영 가능 여부가 true를 반환한다")
     void canBeScheduled_withComingSoon_returnsTrue() {
-        Movie movie = Movie.Register(
-                validator,
+        Movie movie = Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -458,8 +471,8 @@ class MovieTest {
     @Test
     @DisplayName("NOW_SHOWING 상태이면 상영 가능 여부가 true를 반환한다")
     void canBeScheduled_withNowShowing_returnsTrue() {
-        Movie movie = Movie.Register(
-                validator,
+        Movie movie = Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -478,8 +491,8 @@ class MovieTest {
     @Test
     @DisplayName("ENDED 상태이면 상영 가능 여부가 false를 반환한다")
     void canBeScheduled_withEnded_returnsFalse() {
-        Movie movie = Movie.Register(
-                validator,
+        Movie movie = Movie.register(
+                uniqueTitleCondition,
                 validTitle,
                 validDirector,
                 validGenres,
@@ -494,5 +507,24 @@ class MovieTest {
         movie.changeState(MovieStateChange.ENDED);
 
         assertThat(movie.canBeScheduled()).isFalse();
+    }
+
+    private Movie createMovieWithId(long movieId) throws Exception {
+        Movie movie = Movie.register(
+                uniqueTitleCondition,
+                validTitle,
+                validDirector,
+                validGenres,
+                validRuntimeMinutes,
+                validAudienceRating,
+                validSynopsis,
+                validReleaseDate,
+                validCasts
+        );
+
+        Field idField = Movie.class.getDeclaredField("id");
+        idField.setAccessible(true);
+        idField.set(movie, movieId);
+        return movie;
     }
 }

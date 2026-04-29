@@ -9,7 +9,7 @@ import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
+import com.movie.shop.api.movie.domain.condition.MovieTitleUniquenessCondition;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
@@ -41,8 +41,8 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
     @Autowired
     private EntityManager entityManager;
 
-    private MovieTitlePolicy nonDuplicateTitleValidator() {
-        return new MovieTitlePolicy(movieJpaPort);
+    private MovieTitleUniquenessCondition uniqueTitleCondition() {
+        return new MovieTitleUniquenessCondition(true);
     }
 
     private Movie createAndSaveMovie(String title) {
@@ -53,8 +53,8 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
                 "쿠퍼"
         );
 
-        Movie movie = Movie.Register(
-                nonDuplicateTitleValidator(),
+        Movie movie = Movie.register(
+                uniqueTitleCondition(),
                 title,
                 "크리스토퍼 놀란",
                 List.of("SF", "드라마"),

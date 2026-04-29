@@ -9,7 +9,7 @@ import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
+import com.movie.shop.api.movie.domain.condition.MovieTitleUniquenessCondition;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
 import com.movie.shop.api.screening.domain.port.AuditoriumScreeningConditionPort;
@@ -70,15 +70,15 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     @Autowired
     protected JdbcTemplate jdbcTemplate;
 
-    protected MovieTitlePolicy nonDuplicateTitleValidator() {
-        return new MovieTitlePolicy(movieJpaPort);
+    protected MovieTitleUniquenessCondition uniqueTitleCondition() {
+        return new MovieTitleUniquenessCondition(true);
     }
 
     protected Movie createMovie(MovieStatus status) {
         long seq = SEQUENCE.getAndIncrement();
 
-        Movie movie = Movie.Register(
-                nonDuplicateTitleValidator(),
+        Movie movie = Movie.register(
+                uniqueTitleCondition(),
                 "통합테스트영화-" + seq,
                 "테스트 감독",
                 List.of("드라마"),

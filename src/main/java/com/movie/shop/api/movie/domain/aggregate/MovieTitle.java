@@ -1,7 +1,8 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
 
-import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
+import com.movie.shop.api.movie.domain.condition.MovieTitleUniquenessCondition;
+import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import io.vavr.collection.List;
 import io.vavr.collection.Seq;
 import io.vavr.control.Option;
@@ -20,20 +21,23 @@ public class MovieTitle {
         this.title = title;
     }
 
-    public static Validation<Seq<String>, MovieTitle> createNew(String title, MovieTitlePolicy validator) {
+    public static Validation<Seq<String>, MovieTitle> createNew(String title,
+                                                                MovieTitleUniquenessCondition titleCondition) {
         return validateNotBlank(title)
                 .flatMap(MovieTitle::validateLength)
-                .flatMap(t -> validateNotDuplicate(t, validator))
+                .flatMap(t -> validateNotDuplicate(t, titleCondition))
                 .map(MovieTitle::new)
                 .mapError(List::of);
     }
 
-    public static Validation<Seq<String>, MovieTitle> createFrom(MovieTitle nowTitle, String newTitle, MovieTitlePolicy validator) {
+    public static Validation<Seq<String>, MovieTitle> createFrom(MovieTitle nowTitle,
+                                                                 String newTitle,
+                                                                 MovieTitleUniquenessCondition titleCondition) {
         return validateNotBlank(newTitle)
                 .flatMap(MovieTitle::validateLength)
                 .flatMap(t -> Option.of(t)
                         .filter(val -> !nowTitle.getTitle().equals(val))
-                        .map(val -> validateNotDuplicate(val, validator))
+                        .map(val -> validateNotDuplicate(val, titleCondition))
                         .getOrElse(Validation.valid(t))
                 )
                 .map(MovieTitle::new)
@@ -52,8 +56,16 @@ public class MovieTitle {
                 : Validation.invalid("영화 제목은 200자를 초과할 수 없습니다.");
     }
 
-    private static Validation<String, String> validateNotDuplicate(String title, MovieTitlePolicy validator) {
-        validator.validateNotDuplicate(title);
+    private static Validation<String, String> validateNotDuplicate(String title,
+                                                                   MovieTitleUniquenessCondition titleCondition) {
+        if (titleCondition == null) {
+            throw new MovieDomainException("영화 제목 중복 조건은 필수입니다.");
+        }
+
+        if (!titleCondition.unique()) {
+            throw new MovieDomainException("동일한 제목의 영화가 이미 존재합니다.");
+        }
+
         return Validation.valid(title);
     }
 

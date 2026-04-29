@@ -8,7 +8,7 @@ import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.port.MovieJpaPort;
-import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
+import com.movie.shop.api.movie.domain.condition.MovieTitleUniquenessCondition;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
@@ -53,8 +53,8 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    private MovieTitlePolicy nonDuplicateTitleValidator() {
-        return new MovieTitlePolicy(movieJpaPort);
+    private MovieTitleUniquenessCondition uniqueTitleCondition() {
+        return new MovieTitleUniquenessCondition(true);
     }
 
     private Theater createAndSaveTheater(String name) {
@@ -111,8 +111,8 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
 
 
-        Movie movie = Movie.Register(
-                nonDuplicateTitleValidator(),
+        Movie movie = Movie.register(
+                uniqueTitleCondition(),
                 "인터스텔라",
                 "크리스토퍼 놀란",
                 List.of("SF", "드라마"),
@@ -161,8 +161,8 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     @Transactional
     void deleteMovie_withNowShowingStatus_throwsException() {
         // Given
-        Movie movie = Movie.Register(
-                nonDuplicateTitleValidator(),
+        Movie movie = Movie.register(
+                uniqueTitleCondition(),
                 "삭제불가상영중영화",
                 "감독",
                 List.of("드라마"),
@@ -190,8 +190,8 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     @Transactional
     void deleteMovie_withLinkedScreening_throwsException() {
         // Given
-        Movie movie = Movie.Register(
-                nonDuplicateTitleValidator(),
+        Movie movie = Movie.register(
+                uniqueTitleCondition(),
                 "삭제불가연결영화",
                 "감독",
                 List.of("드라마"),
@@ -245,8 +245,8 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
                 "조커"
         );
 
-        Movie movie = Movie.Register(
-                nonDuplicateTitleValidator(),
+        Movie movie = Movie.register(
+                uniqueTitleCondition(),
                 "다크 나이트",
                 "크리스토퍼 놀란",
                 List.of("액션", "범죄"),
@@ -293,8 +293,8 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
                 "역할1"
         );
 
-        Movie movie1 = Movie.Register(
-                nonDuplicateTitleValidator(),
+        Movie movie1 = Movie.register(
+                uniqueTitleCondition(),
                 "영화1",
                 "감독1",
                 List.of("장르1"),
@@ -312,8 +312,8 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
                 "역할2"
         );
 
-        Movie movie2 = Movie.Register(
-                nonDuplicateTitleValidator(),
+        Movie movie2 = Movie.register(
+                uniqueTitleCondition(),
                 "영화2",
                 "감독2",
                 List.of("장르2"),

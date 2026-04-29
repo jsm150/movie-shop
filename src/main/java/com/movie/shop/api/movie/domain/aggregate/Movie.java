@@ -1,7 +1,8 @@
 package com.movie.shop.api.movie.domain.aggregate;
 
+import com.movie.shop.api.movie.domain.condition.MovieScreeningPresence;
+import com.movie.shop.api.movie.domain.condition.MovieTitleUniquenessCondition;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
-import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import com.movie.shop.api.shared.domain.EntityValidator;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
@@ -80,8 +81,8 @@ public class Movie {
     @Column(nullable = false)
     private MovieStatus status;
 
-    public static Movie Register(
-        MovieTitlePolicy titleDuplicateValidator,
+    public static Movie register(
+        MovieTitleUniquenessCondition titleCondition,
         String title,
         String director,
         List<String> genres,
@@ -103,7 +104,7 @@ public class Movie {
 
         EntityValidator.create()
             .apply(
-                MovieTitle.createNew(title, titleDuplicateValidator),
+                MovieTitle.createNew(title, titleCondition),
                 movie::setTitle
             )
             .validateBean(movie)
@@ -112,8 +113,8 @@ public class Movie {
         return movie;
     }
 
-    public void Update(
-        MovieTitlePolicy titleDuplicateValidator,
+    public void update(
+        MovieTitleUniquenessCondition titleCondition,
         String title,
         String director,
         List<String> genres,
@@ -136,7 +137,7 @@ public class Movie {
                 MovieTitle.createFrom(
                     this.title,
                     title,
-                    titleDuplicateValidator
+                    titleCondition
                 ),
                 this::setTitle
             )
@@ -144,7 +145,23 @@ public class Movie {
             .throwIfInvalid(MovieDomainException::new);
     }
 
-    public void validateCanRemove() {
+    public void validateCanDelete(MovieScreeningPresence screeningPresence) {
+        validateCanRemove();
+
+        if (id == null) {
+            throw new MovieDomainException("영화 ID가 존재하지 않습니다.");
+        }
+
+        if (screeningPresence == null) {
+            throw new MovieDomainException("영화의 상영 연결 여부는 필수입니다.");
+        }
+
+        if (screeningPresence.hasAnyScreening()) {
+            throw new MovieDomainException("상영이 연결된 영화는 삭제할 수 없습니다.");
+        }
+    }
+
+    private void validateCanRemove() {
         if (status == MovieStatus.NOW_SHOWING) {
             throw new MovieDomainException(
                 "NOW_SHOWING 상태의 영화는 삭제할 수 없습니다."
