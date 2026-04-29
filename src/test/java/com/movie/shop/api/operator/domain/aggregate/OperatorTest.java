@@ -10,8 +10,12 @@ import com.movie.shop.api.operator.domain.aggregate.permission.OperatorAuthoriza
 import com.movie.shop.api.operator.domain.aggregate.permission.OperatorPermission;
 import com.movie.shop.api.operator.domain.aggregate.permission.TheaterPermissionScope;
 import com.movie.shop.api.operator.domain.aggregate.permission.TheaterRequirementScope;
+import com.movie.shop.api.operator.domain.condition.OperatorPasswordVerification;
+import com.movie.shop.api.operator.domain.condition.OperatorTheaterPermissionScopeTarget;
 import com.movie.shop.api.operator.domain.exceptions.OperatorDomainException;
-import com.movie.shop.api.operator.domain.policy.TheaterScopeCreationPolicy;
+import org.springframework.security.authentication.BadCredentialsException;
+
+import java.util.Optional;
 
 class OperatorTest {
 
@@ -133,6 +137,36 @@ class OperatorTest {
                 .hasMessage("운영자 권한이 없습니다.");
     }
 
+    @Test
+    @DisplayName("활성 운영자는 비밀번호 검증이 성공하면 인증에 성공한다")
+    void authenticate_withMatchedPassword_succeeds() {
+        Operator operator = registerOperator();
+
+        assertThatNoException()
+                .isThrownBy(() -> operator.authenticate(new OperatorPasswordVerification(true)));
+    }
+
+    @Test
+    @DisplayName("비밀번호 검증이 실패하면 인증에 실패한다")
+    void authenticate_withMismatchedPassword_fails() {
+        Operator operator = registerOperator();
+
+        assertThatThrownBy(() -> operator.authenticate(new OperatorPasswordVerification(false)))
+                .isInstanceOf(BadCredentialsException.class)
+                .hasMessage("로그인 ID 또는 비밀번호가 올바르지 않습니다.");
+    }
+
+    @Test
+    @DisplayName("비활성 운영자는 인증에 실패한다")
+    void authenticate_withSuspendedOperator_fails() {
+        Operator operator = registerOperator();
+        operator.suspend();
+
+        assertThatThrownBy(() -> operator.authenticate(new OperatorPasswordVerification(true)))
+                .isInstanceOf(BadCredentialsException.class)
+                .hasMessage("비활성화된 계정입니다.");
+    }
+
     private Operator registerOperator() {
         return Operator.register("operator", "{noop}password", "Operator");
     }
@@ -140,7 +174,7 @@ class OperatorTest {
     private TheaterPermissionScope.SingleTheater permissionSingleTheater(long theaterId) {
         return TheaterPermissionScope.SingleTheater.create(
                 theaterId,
-                new TheaterScopeCreationPolicy(existingTheaterId -> existingTheaterId == theaterId)
+                Optional.of(new OperatorTheaterPermissionScopeTarget(theaterId))
         );
     }
 

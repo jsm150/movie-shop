@@ -11,8 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.operator.domain.aggregate.permission.OperatorPermission;
 import com.movie.shop.api.operator.domain.aggregate.permission.TheaterPermissionScope;
-import com.movie.shop.api.operator.domain.policy.TheaterScopeCreationPolicy;
-import com.movie.shop.api.operator.domain.port.CheckOperatorTheaterExistencePort;
+import com.movie.shop.api.operator.domain.port.OperatorTheaterPermissionScopeTargetPort;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.condition.TheaterNameUniquenessCondition;
@@ -34,7 +33,7 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
     private TheaterJpaPort theaterJpaPort;
 
     @Autowired
-    private CheckOperatorTheaterExistencePort checkOperatorTheaterExistencePort;
+    private OperatorTheaterPermissionScopeTargetPort operatorTheaterPermissionScopeTargetPort;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -53,7 +52,7 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
         operator.grant(new OperatorPermission.TheaterManagePermission(
                 TheaterPermissionScope.SingleTheater.create(
                         theater.getId(),
-                        new TheaterScopeCreationPolicy(checkOperatorTheaterExistencePort)
+                        operatorTheaterPermissionScopeTargetPort.findScopeTarget(theater.getId())
                 )
         ));
         operator.grant(new OperatorPermission.ScreeningManagePermission(new TheaterPermissionScope.AllTheaters()));
@@ -71,7 +70,7 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
                         new OperatorPermission.TheaterManagePermission(
                                 TheaterPermissionScope.SingleTheater.create(
                                         theater.getId(),
-                                        new TheaterScopeCreationPolicy(checkOperatorTheaterExistencePort)
+                                        operatorTheaterPermissionScopeTargetPort.findScopeTarget(theater.getId())
                                 )
                         ),
                         new OperatorPermission.ScreeningManagePermission(new TheaterPermissionScope.AllTheaters())

@@ -9,9 +9,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 
 import com.movie.shop.api.operator.domain.aggregate.permission.OperatorAuthorizationRequirement;
 import com.movie.shop.api.operator.domain.aggregate.permission.OperatorPermission;
+import com.movie.shop.api.operator.domain.condition.OperatorPasswordVerification;
 import com.movie.shop.api.operator.domain.exceptions.OperatorAuthorizationException;
 import com.movie.shop.api.operator.domain.exceptions.OperatorDomainException;
-import com.movie.shop.api.operator.domain.policy.PasswordPolicy;
 import com.movie.shop.api.shared.domain.EntityValidator;
 
 import jakarta.persistence.Column;
@@ -88,11 +88,18 @@ public class Operator {
         status = OperatorStatus.ACTIVE;
     }
 
-    public void authenticate(PasswordPolicy passwordPolicy, String rawPassword) {
+    public void authenticate(OperatorPasswordVerification passwordVerification) {
         if (status != OperatorStatus.ACTIVE) {
             throw new BadCredentialsException("비활성화된 계정입니다.");
         }
-        passwordPolicy.validate(rawPassword, passwordHash);
+
+        if (passwordVerification == null) {
+            throw new OperatorDomainException("비밀번호 검증 결과는 필수입니다.");
+        }
+
+        if (!passwordVerification.matches()) {
+            throw new BadCredentialsException("로그인 ID 또는 비밀번호가 올바르지 않습니다.");
+        }
     }
 
     public void grant(OperatorPermission permission) {

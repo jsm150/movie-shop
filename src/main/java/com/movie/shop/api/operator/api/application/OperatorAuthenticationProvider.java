@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.movie.shop.api.operator.domain.aggregate.Operator;
 import com.movie.shop.api.operator.domain.aggregate.OperatorRepository;
-import com.movie.shop.api.operator.domain.policy.PasswordPolicy;
+import com.movie.shop.api.operator.domain.condition.OperatorPasswordVerification;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,7 +29,7 @@ public class OperatorAuthenticationProvider implements AuthenticationProvider {
                 : authentication.getCredentials().toString();
 
         Operator operator = operatorRepository.getByLoginId(loginId);
-        operator.authenticate(new PasswordPolicy(passwordEncoder), rawPassword);
+        operator.authenticate(new OperatorPasswordVerification(passwordEncoder.matches(rawPassword, operator.getPasswordHash())));
 
         return UsernamePasswordAuthenticationToken.authenticated(
                 operator,

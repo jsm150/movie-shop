@@ -7,8 +7,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import com.movie.shop.api.operator.domain.condition.OperatorTheaterPermissionScopeTarget;
 import com.movie.shop.api.operator.domain.exceptions.OperatorDomainException;
-import com.movie.shop.api.operator.domain.policy.TheaterScopeCreationPolicy;
+
+import java.util.Optional;
 
 class TheaterRequirementScopeTest {
 
@@ -53,7 +55,7 @@ class TheaterRequirementScopeTest {
     private TheaterPermissionScope.SingleTheater permissionSingleTheater(long theaterId) {
         return TheaterPermissionScope.SingleTheater.create(
                 theaterId,
-                new TheaterScopeCreationPolicy(existingTheaterId -> existingTheaterId == theaterId)
+                Optional.of(new OperatorTheaterPermissionScopeTarget(theaterId))
         );
     }
 }

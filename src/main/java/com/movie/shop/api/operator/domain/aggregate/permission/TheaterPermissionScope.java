@@ -2,13 +2,15 @@ package com.movie.shop.api.operator.domain.aggregate.permission;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.movie.shop.api.operator.domain.condition.OperatorTheaterPermissionScopeTarget;
 import com.movie.shop.api.operator.domain.exceptions.OperatorDomainException;
-import com.movie.shop.api.operator.domain.policy.TheaterScopeCreationPolicy;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.Optional;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "scopeType")
 @JsonSubTypes({
@@ -32,16 +34,19 @@ public sealed interface TheaterPermissionScope
             this.theaterId = theaterId;
         }
 
-        public static SingleTheater create(long theaterId, TheaterScopeCreationPolicy policy) {
+        public static SingleTheater create(long theaterId,
+                                           Optional<OperatorTheaterPermissionScopeTarget> scopeTarget) {
             if (theaterId <= 0) {
                 throw new OperatorDomainException("영화관 식별자는 0보다 커야 합니다.");
             }
 
-            if (policy == null) {
-                throw new OperatorDomainException("영화관 범위 생성 정책은 필수입니다.");
+            if (scopeTarget == null) {
+                throw new OperatorDomainException("영화관 권한 범위 대상은 필수입니다.");
             }
 
-            policy.validateCanCreateSingleTheater(theaterId);
+            scopeTarget.orElseThrow(
+                    () -> new OperatorDomainException("존재하지 않는 영화관으로 권한 범위를 생성할 수 없습니다.")
+            );
 
             return new SingleTheater(theaterId);
         }
