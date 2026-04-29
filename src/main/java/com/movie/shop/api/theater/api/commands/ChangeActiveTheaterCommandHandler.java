@@ -4,8 +4,7 @@ import an.awesome.pipelinr.Command;
 import an.awesome.pipelinr.Voidy;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
-import com.movie.shop.api.theater.domain.port.CheckTheaterAuditoriumLinkPort;
-import com.movie.shop.api.theater.domain.policy.TheaterAuditoriumLinkProtectionPolicy;
+import com.movie.shop.api.theater.domain.port.TheaterAuditoriumPresencePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,15 +14,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class ChangeActiveTheaterCommandHandler implements Command.Handler<ChangeActiveTheaterCommand, Voidy> {
 
     private final TheaterRepository theaterRepository;
-    private final CheckTheaterAuditoriumLinkPort checkTheaterAuditoriumLinkPort;
+    private final TheaterAuditoriumPresencePort theaterAuditoriumPresencePort;
 
     @Override
     @Transactional
     public Voidy handle(ChangeActiveTheaterCommand command) {
         Theater theater = theaterRepository.getById(command.theaterId());
-        TheaterAuditoriumLinkProtectionPolicy theaterAuditoriumLinkProtectionPolicy =
-                new TheaterAuditoriumLinkProtectionPolicy(checkTheaterAuditoriumLinkPort);
-        theater.changeActive(command.status(), theaterAuditoriumLinkProtectionPolicy);
+        var auditoriumPresence = theaterAuditoriumPresencePort.findPresence(theater.getId());
+        theater.changeActive(command.status(), auditoriumPresence);
 
         return null;
     }

@@ -43,17 +43,11 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-flyway-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
-    testImplementation("org.testcontainers:testcontainers-mysql:2.0.2")
-    testImplementation("org.testcontainers:testcontainers:2.0.2")
-    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.2")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.testcontainers:testcontainers-mysql")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
-}
-
-tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
-	systemProperty("spring.profiles.active", "local")
 }

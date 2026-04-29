@@ -158,7 +158,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
         try {
             Future<Void> firstFuture = executor.submit(() ->
                     transactionTemplate.execute(status -> {
-                        screeningJpaPort.findConflictCandidatesByAuditoriumId(
+                        screeningJpaPort.findOverlapCandidatesByAuditoriumId(
                                 auditoriumId,
                                 secondUpdate.screeningStartTime(),
                                 secondUpdate.screeningEndTime()
@@ -335,7 +335,7 @@ class RegisterScreeningConcurrencyLockIntegrationTest extends AbstractContainerB
         try {
             transactionTemplate.execute(status -> {
                 withTemporaryLockWaitTimeout(3, () -> {
-                    screeningJpaPort.findConflictCandidatesByAuditoriumId(
+                    screeningJpaPort.findOverlapCandidatesByAuditoriumId(
                             auditoriumId,
                             lockQueryStart,
                             lockQueryEnd

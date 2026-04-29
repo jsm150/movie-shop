@@ -12,8 +12,4 @@ public interface TheaterJpaPort {
     void delete(Theater theater);
 
     long count();
-
-    boolean existsByName(String name);
-
-    boolean loadNameDuplication(String name);
 }

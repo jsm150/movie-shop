@@ -12,20 +12,16 @@ import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.policy.MovieTitlePolicy;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
-import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
-import com.movie.shop.api.screening.domain.port.LoadAuditoriumScreeningAvailabilityPort;
-import com.movie.shop.api.screening.domain.port.LoadScreeningConflictCandidatesPort;
-import com.movie.shop.api.screening.domain.port.MemoizedMovieSchedulingAvailabilityPort;
-import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
+import com.movie.shop.api.screening.domain.port.AuditoriumScreeningConditionPort;
+import com.movie.shop.api.screening.domain.port.MovieSchedulingConditionPort;
+import com.movie.shop.api.screening.domain.port.ScreeningOverlapCandidatesPort;
 import com.movie.shop.api.screening.domain.port.ScreeningJpaPort;
-import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
 import com.movie.shop.api.theater.api.commands.ChangeActiveTheaterCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
+import com.movie.shop.api.theater.domain.condition.TheaterNameUniquenessCondition;
 import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
-import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -63,13 +59,13 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected ScreeningJpaPort screeningJpaPort;
 
     @Autowired
-    protected LoadMovieSchedulingAvailabilityPort loadMovieSchedulingAvailabilityPort;
+    protected MovieSchedulingConditionPort movieSchedulingConditionPort;
 
     @Autowired
-    protected LoadAuditoriumScreeningAvailabilityPort loadAuditoriumScreeningAvailabilityPort;
+    protected AuditoriumScreeningConditionPort auditoriumScreeningConditionPort;
 
     @Autowired
-    protected LoadScreeningConflictCandidatesPort loadScreeningConflictCandidatesPort;
+    protected ScreeningOverlapCandidatesPort screeningOverlapCandidatesPort;
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
@@ -123,9 +119,8 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
     protected Theater createTheater(boolean active) {
         long seq = SEQUENCE.getAndIncrement();
         String theaterName = "통합테스트관-" + seq;
-        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(theaterJpaPort);
 
-        Theater theater = Theater.register(theaterNameDuplicateValidator, theaterName);
+        Theater theater = Theater.register(theaterName, new TheaterNameUniquenessCondition(true));
 
         theater = theaterRepository.save(theater);
         flushAndClear();
@@ -182,25 +177,16 @@ abstract class ScreeningIntegrationTestSupport extends AbstractContainerBase {
                                         OffsetDateTime end,
                                         OffsetDateTime salesStart,
                                         OffsetDateTime salesEnd) {
-        MemoizedMovieSchedulingAvailabilityPort memoizedMovieSchedulingAvailabilityPort =
-                new MemoizedMovieSchedulingAvailabilityPort(loadMovieSchedulingAvailabilityPort);
-
-        ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
-                memoizedMovieSchedulingAvailabilityPort,
-                loadAuditoriumScreeningAvailabilityPort
-        );
-        ScreeningConflictValidationPolicy screeningConflictValidationPolicy =
-                new ScreeningConflictValidationPolicy(loadScreeningConflictCandidatesPort);
-        ScreeningTimeRuntimeValidationPolicy screeningTimeRuntimeValidationPolicy =
-                new ScreeningTimeRuntimeValidationPolicy(memoizedMovieSchedulingAvailabilityPort);
+        var movieSchedulingCondition = movieSchedulingConditionPort.findCondition(movieId);
+        var auditoriumScreeningCondition = auditoriumScreeningConditionPort.findCondition(auditoriumId);
+        var overlapCandidates = screeningOverlapCandidatesPort.findOverlapCandidates(auditoriumId, start, end);
 
         Screening screening = Screening.register(
-                screeningScheduleValidationPolicy,
-                screeningConflictValidationPolicy,
-                screeningTimeRuntimeValidationPolicy,
                 movieId,
                 auditoriumId,
-                loadTheaterIdByAuditoriumId(auditoriumId),
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 start,
                 end,
                 salesStart,

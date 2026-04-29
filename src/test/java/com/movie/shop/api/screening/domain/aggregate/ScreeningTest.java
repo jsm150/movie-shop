@@ -1,12 +1,8 @@
 package com.movie.shop.api.screening.domain.aggregate;
 
+import com.movie.shop.api.screening.domain.condition.AuditoriumScreeningCondition;
+import com.movie.shop.api.screening.domain.condition.MovieSchedulingCondition;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.screening.domain.port.LoadScreeningConflictCandidatesPort;
-import com.movie.shop.api.screening.domain.port.MemoizedMovieSchedulingAvailabilityPort;
-import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.status.MovieSchedulingAvailability;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,9 +19,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ScreeningTest {
 
-    private ScreeningScheduleValidationPolicy schedulePolicy;
-    private ScreeningConflictValidationPolicy conflictPolicy;
-    private ScreeningTimeRuntimeValidationPolicy runtimePolicy;
+    private Optional<MovieSchedulingCondition> movieSchedulingCondition;
+    private Optional<AuditoriumScreeningCondition> auditoriumScreeningCondition;
+    private List<Screening> overlapCandidates;
 
     private long movieId;
     private long auditoriumId;
@@ -44,28 +40,20 @@ class ScreeningTest {
         screeningEnd = OffsetDateTime.parse("2026-02-10T12:00:00Z");
         salesStart = OffsetDateTime.parse("2026-02-01T10:00:00Z");
         salesEnd = screeningStart;
-        MemoizedMovieSchedulingAvailabilityPort movieSchedulingAvailabilityPort =
-                new MemoizedMovieSchedulingAvailabilityPort(movieId -> Optional.of(new MovieSchedulingAvailability(true, 120)));
-        schedulePolicy = new ScreeningScheduleValidationPolicy(
-                movieSchedulingAvailabilityPort,
-                auditoriumId -> Optional.of(true)
-        );
-        conflictPolicy = new ScreeningConflictValidationPolicy(conflictCandidatesPort(List.of()));
-        runtimePolicy = new ScreeningTimeRuntimeValidationPolicy(
-                movieSchedulingAvailabilityPort
-        );
+        movieSchedulingCondition = Optional.of(new MovieSchedulingCondition(true, 120));
+        auditoriumScreeningCondition = Optional.of(new AuditoriumScreeningCondition(theaterId, true));
+        overlapCandidates = List.of();
     }
 
     @Test
-    @DisplayName("유효한 정책으로 상영을 등록하면 SCHEDULED 상태로 생성된다")
-    void register_withValidPolicy_succeeds() {
+    @DisplayName("유효한 조건으로 상영을 등록하면 SCHEDULED 상태로 생성된다")
+    void register_withValidCondition_succeeds() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -83,15 +71,14 @@ class ScreeningTest {
     }
 
     @Test
-    @DisplayName("정책이 null이면 상영 등록 시 예외가 발생한다")
-    void register_withNullPolicy_throwsException() {
+    @DisplayName("영화 상영 조건이 null이면 상영 등록 시 예외가 발생한다")
+    void register_withNullMovieCondition_throwsException() {
         assertThatThrownBy(() -> Screening.register(
-                null,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                null,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -101,15 +88,86 @@ class ScreeningTest {
     }
 
     @Test
-    @DisplayName("정책이 null이면 상영 일정 변경 시 예외가 발생한다")
-    void reschedule_withNullPolicy_throwsException() {
-        Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
+    @DisplayName("영화 정보를 찾을 수 없으면 상영 등록 시 예외가 발생한다")
+    void register_withMissingMovie_throwsException() {
+        assertThatThrownBy(() -> Screening.register(
                 movieId,
                 auditoriumId,
-                theaterId,
+                Optional.empty(),
+                auditoriumScreeningCondition,
+                overlapCandidates,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("영화 정보를 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("상영 불가 상태의 영화면 상영 등록 시 예외가 발생한다")
+    void register_withUnschedulableMovie_throwsException() {
+        assertThatThrownBy(() -> Screening.register(
+                movieId,
+                auditoriumId,
+                Optional.of(new MovieSchedulingCondition(false, 120)),
+                auditoriumScreeningCondition,
+                overlapCandidates,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("COMING_SOON 또는 NOW_SHOWING");
+    }
+
+    @Test
+    @DisplayName("상영관 정보를 찾을 수 없으면 상영 등록 시 예외가 발생한다")
+    void register_withMissingAuditorium_throwsException() {
+        assertThatThrownBy(() -> Screening.register(
+                movieId,
+                auditoriumId,
+                movieSchedulingCondition,
+                Optional.empty(),
+                overlapCandidates,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영관 정보를 찾을 수 없습니다.");
+    }
+
+    @Test
+    @DisplayName("비활성 상영관이면 상영 등록 시 예외가 발생한다")
+    void register_withInactiveAuditorium_throwsException() {
+        assertThatThrownBy(() -> Screening.register(
+                movieId,
+                auditoriumId,
+                movieSchedulingCondition,
+                Optional.of(new AuditoriumScreeningCondition(theaterId, false)),
+                overlapCandidates,
+                screeningStart,
+                screeningEnd,
+                salesStart,
+                salesEnd
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("활성화된 상영관에서만");
+    }
+
+    @Test
+    @DisplayName("영화 상영 조건이 null이면 상영 일정 변경 시 예외가 발생한다")
+    void reschedule_withNullMovieCondition_throwsException() {
+        Screening screening = Screening.register(
+                movieId,
+                auditoriumId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -118,8 +176,8 @@ class ScreeningTest {
 
         assertThatThrownBy(() -> screening.reschedule(
                 null,
-                conflictPolicy,
-                runtimePolicy,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart.plusHours(1),
                 screeningEnd.plusHours(1),
                 salesStart.plusDays(1),
@@ -132,12 +190,11 @@ class ScreeningTest {
     @DisplayName("SCHEDULED가 아닌 상태에서 일정 변경을 요청하면 예외가 발생한다")
     void reschedule_whenNotScheduledStatus_throwsException() throws Exception {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -152,9 +209,9 @@ class ScreeningTest {
         OffsetDateTime newSalesEnd = newStart;
 
         assertThatThrownBy(() -> screening.reschedule(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 newStart,
                 newEnd,
                 newSalesStart,
@@ -165,15 +222,14 @@ class ScreeningTest {
     }
 
     @Test
-    @DisplayName("SCHEDULED 상태에서 유효한 정책으로 일정 변경을 요청하면 시간이 변경된다")
-    void reschedule_withValidPolicyAndScheduledStatus_succeeds() throws Exception {
+    @DisplayName("SCHEDULED 상태에서 유효한 조건으로 일정 변경을 요청하면 시간이 변경된다")
+    void reschedule_withValidConditionAndScheduledStatus_succeeds() throws Exception {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -187,9 +243,9 @@ class ScreeningTest {
         OffsetDateTime newSalesEnd = newStart;
 
         screening.reschedule(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 newStart,
                 newEnd,
                 newSalesStart,
@@ -206,12 +262,11 @@ class ScreeningTest {
     @DisplayName("SCHEDULED 상태에서 삭제 가능 여부를 검증하면 예외가 발생하지 않는다")
     void validateCanRemove_whenScheduled_doesNotThrow() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -225,12 +280,11 @@ class ScreeningTest {
     @DisplayName("판매 시작 시간 이전에는 OPEN_SALES를 수행할 수 없다")
     void openSales_beforeSalesStart_throwsException() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -246,12 +300,11 @@ class ScreeningTest {
     @DisplayName("판매 시작 시간과 같거나 이후면 OPEN_SALES를 수행할 수 있다")
     void openSales_atOrAfterSalesStart_succeeds() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -267,12 +320,11 @@ class ScreeningTest {
     @DisplayName("상영 종료 시간 이전에는 FINISH를 수행할 수 없다")
     void finish_beforeScreeningEnd_throwsException() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -290,12 +342,11 @@ class ScreeningTest {
     @DisplayName("상영 종료 시간과 같거나 이후면 FINISH를 수행할 수 있다")
     void finish_atOrAfterScreeningEnd_succeeds() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -313,12 +364,11 @@ class ScreeningTest {
     @DisplayName("SCHEDULED가 아닌 상태에서 삭제 가능 여부를 검증하면 예외가 발생한다")
     void validateCanRemove_whenNotScheduled_throwsException() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -335,12 +385,11 @@ class ScreeningTest {
     @DisplayName("SCHEDULED 상태이면 극장 비활성화 또는 삭제 차단 여부가 true를 반환한다")
     void blocksTheaterDeactivationOrDeletion_whenScheduled_returnsTrue() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -354,12 +403,11 @@ class ScreeningTest {
     @DisplayName("ON_SALE 상태이면 극장 비활성화 또는 삭제 차단 여부가 true를 반환한다")
     void blocksTheaterDeactivationOrDeletion_whenOnSale_returnsTrue() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -374,12 +422,11 @@ class ScreeningTest {
     @DisplayName("SALES_CLOSED 상태이면 극장 비활성화 또는 삭제 차단 여부가 true를 반환한다")
     void blocksTheaterDeactivationOrDeletion_whenSalesClosed_returnsTrue() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -395,12 +442,11 @@ class ScreeningTest {
     @DisplayName("CANCELED 상태이면 극장 비활성화 또는 삭제 차단 여부가 false를 반환한다")
     void blocksTheaterDeactivationOrDeletion_whenCanceled_returnsFalse() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -415,12 +461,11 @@ class ScreeningTest {
     @DisplayName("FINISHED 상태이면 극장 비활성화 또는 삭제 차단 여부가 false를 반환한다")
     void blocksTheaterDeactivationOrDeletion_whenFinished_returnsFalse() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -437,12 +482,11 @@ class ScreeningTest {
     @DisplayName("SCHEDULED 상태에서 시간이 겹치면 충돌로 판단한다")
     void hasTimeConflictWith_whenScheduledAndOverlaps_returnsTrue() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -461,12 +505,11 @@ class ScreeningTest {
     @DisplayName("SCHEDULED 상태에서 시간이 겹치지 않으면 충돌이 아니다")
     void hasTimeConflictWith_whenScheduledAndNotOverlaps_returnsFalse() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -485,12 +528,11 @@ class ScreeningTest {
     @DisplayName("CANCELED 상태에서는 시간이 겹쳐도 충돌이 아니다")
     void hasTimeConflictWith_whenCanceled_returnsFalse() {
         Screening screening = Screening.register(
-                schedulePolicy,
-                conflictPolicy,
-                runtimePolicy,
                 movieId,
                 auditoriumId,
-                theaterId,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 screeningStart,
                 screeningEnd,
                 salesStart,
@@ -512,7 +554,4 @@ class ScreeningTest {
         idField.set(screening, id);
     }
 
-    private LoadScreeningConflictCandidatesPort conflictCandidatesPort(List<Screening> conflictCandidates) {
-        return (loadedAuditoriumId, startTime, endTime) -> conflictCandidates;
-    }
 }

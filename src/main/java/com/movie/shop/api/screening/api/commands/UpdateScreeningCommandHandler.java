@@ -3,13 +3,9 @@ package com.movie.shop.api.screening.api.commands;
 import an.awesome.pipelinr.Command;
 import com.movie.shop.api.screening.domain.aggregate.Screening;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
-import com.movie.shop.api.screening.domain.port.LoadMovieSchedulingAvailabilityPort;
-import com.movie.shop.api.screening.domain.port.LoadAuditoriumScreeningAvailabilityPort;
-import com.movie.shop.api.screening.domain.port.LoadScreeningConflictCandidatesPort;
-import com.movie.shop.api.screening.domain.port.MemoizedMovieSchedulingAvailabilityPort;
-import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
+import com.movie.shop.api.screening.domain.port.AuditoriumScreeningConditionPort;
+import com.movie.shop.api.screening.domain.port.MovieSchedulingConditionPort;
+import com.movie.shop.api.screening.domain.port.ScreeningOverlapCandidatesPort;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,31 +17,26 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateScreeningCommandHandler implements Command.Handler<UpdateScreeningCommand, Long> {
 
     private final ScreeningRepository screeningRepository;
-    private final LoadMovieSchedulingAvailabilityPort loadMovieSchedulingAvailabilityPort;
-    private final LoadAuditoriumScreeningAvailabilityPort loadAuditoriumScreeningAvailabilityPort;
-    private final LoadScreeningConflictCandidatesPort loadScreeningConflictCandidatesPort;
+    private final MovieSchedulingConditionPort movieSchedulingConditionPort;
+    private final AuditoriumScreeningConditionPort auditoriumScreeningConditionPort;
+    private final ScreeningOverlapCandidatesPort screeningOverlapCandidatesPort;
 
     @Override
     @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Long handle(UpdateScreeningCommand command) {
         Screening screening = screeningRepository.getById(command.screeningId());
-
-        MemoizedMovieSchedulingAvailabilityPort memoizedMovieSchedulingAvailabilityPort =
-                new MemoizedMovieSchedulingAvailabilityPort(loadMovieSchedulingAvailabilityPort);
-
-        ScreeningScheduleValidationPolicy screeningScheduleValidationPolicy = new ScreeningScheduleValidationPolicy(
-                memoizedMovieSchedulingAvailabilityPort,
-                loadAuditoriumScreeningAvailabilityPort
+        var movieSchedulingCondition = movieSchedulingConditionPort.findCondition(screening.getMovieId());
+        var auditoriumScreeningCondition = auditoriumScreeningConditionPort.findCondition(screening.getAuditoriumId());
+        var overlapCandidates = screeningOverlapCandidatesPort.findOverlapCandidates(
+                screening.getAuditoriumId(),
+                command.screeningStartTime(),
+                command.screeningEndTime()
         );
-        ScreeningConflictValidationPolicy screeningConflictValidationPolicy =
-                new ScreeningConflictValidationPolicy(loadScreeningConflictCandidatesPort);
-        ScreeningTimeRuntimeValidationPolicy screeningTimeRuntimeValidationPolicy =
-                new ScreeningTimeRuntimeValidationPolicy(memoizedMovieSchedulingAvailabilityPort);
 
         screening.reschedule(
-                screeningScheduleValidationPolicy,
-                screeningConflictValidationPolicy,
-                screeningTimeRuntimeValidationPolicy,
+                movieSchedulingCondition,
+                auditoriumScreeningCondition,
+                overlapCandidates,
                 command.screeningStartTime(),
                 command.screeningEndTime(),
                 command.salesStartAt(),

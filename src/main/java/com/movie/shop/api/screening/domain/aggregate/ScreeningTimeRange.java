@@ -1,6 +1,7 @@
 package com.movie.shop.api.screening.domain.aggregate;
 
-import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
+import com.movie.shop.api.screening.domain.condition.MovieSchedulingCondition;
+import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
 import com.movie.shop.api.shared.domain.ValidationUtils;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -13,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.OffsetDateTime;
 
 @Embeddable
@@ -32,16 +34,15 @@ public class ScreeningTimeRange {
 
     public static Validation<Seq<String>, ScreeningTimeRange> create(OffsetDateTime startTime,
                                                                       OffsetDateTime endTime,
-                                                                      long movieId,
-                                                                      ScreeningTimeRuntimeValidationPolicy runtimePolicy) {
+                                                                      MovieSchedulingCondition movieCondition) {
         return Validation.combine(
                 ValidationUtils.notNull(startTime, "상영 시작 시간이 필요합니다."),
                 ValidationUtils.notNull(endTime, "상영 종료 시간이 필요합니다."),
-                ValidationUtils.notNull(runtimePolicy, "상영 시간 런타임 검증 정책은 필수입니다.")
+                ValidationUtils.notNull(movieCondition, "영화 상영 조건은 필수입니다.")
         )
                 .ap(Tuple::of)
                 .flatMap(tuple -> validateBetween(tuple._1, tuple._2)
-                        .map(validRange -> validateRuntime(validRange, movieId, tuple._3)))
+                        .map(validRange -> validateRuntime(validRange, tuple._3)))
                 .map(tuple -> tuple.apply(ScreeningTimeRange::new));
     }
 
@@ -52,9 +53,16 @@ public class ScreeningTimeRange {
     }
 
     private static Tuple2<OffsetDateTime, OffsetDateTime> validateRuntime(Tuple2<OffsetDateTime, OffsetDateTime> validRange,
-                                                                          long movieId,
-                                                                          ScreeningTimeRuntimeValidationPolicy runtimePolicy) {
-        runtimePolicy.validateRuntime(movieId, validRange._1, validRange._2);
+                                                                          MovieSchedulingCondition movieCondition) {
+        Duration screeningDuration = Duration.between(validRange._1, validRange._2);
+        Duration runtimeDuration = Duration.ofMinutes(movieCondition.runtimeMinutes());
+
+        if (screeningDuration.compareTo(runtimeDuration) < 0) {
+            throw new ScreeningDomainException(
+                    "상영 시간은 영화 런타임(%d분) 이상이어야 합니다.".formatted(movieCondition.runtimeMinutes())
+            );
+        }
+
         return validRange;
     }
 

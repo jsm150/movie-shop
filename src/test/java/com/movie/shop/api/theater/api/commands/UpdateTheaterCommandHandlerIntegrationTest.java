@@ -4,9 +4,9 @@ import an.awesome.pipelinr.Pipeline;
 import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
+import com.movie.shop.api.theater.domain.condition.TheaterNameUniquenessCondition;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
-import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,8 +34,7 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
     private EntityManager entityManager;
 
     private Theater createAndSaveTheater(String name) {
-        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(theaterJpaPort);
-        Theater theater = Theater.register(theaterNameDuplicateValidator, name);
+        Theater theater = Theater.register(name, new TheaterNameUniquenessCondition(true));
         theater = theaterRepository.save(theater);
         entityManager.flush();
         entityManager.clear();

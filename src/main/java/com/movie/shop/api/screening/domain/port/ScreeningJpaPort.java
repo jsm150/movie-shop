@@ -18,7 +18,7 @@ public interface ScreeningJpaPort {
 
     boolean existsByMovieId(long movieId);
 
-    List<Screening> findConflictCandidatesByAuditoriumId(long auditoriumId,
-                                                         OffsetDateTime startTime,
-                                                         OffsetDateTime endTime);
+    List<Screening> findOverlapCandidatesByAuditoriumId(long auditoriumId,
+                                                        OffsetDateTime startTime,
+                                                        OffsetDateTime endTime);
 }

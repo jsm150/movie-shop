@@ -15,7 +15,7 @@ import com.movie.shop.api.operator.domain.policy.TheaterScopeCreationPolicy;
 import com.movie.shop.api.operator.domain.port.CheckOperatorTheaterExistencePort;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
-import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
+import com.movie.shop.api.theater.domain.condition.TheaterNameUniquenessCondition;
 import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 
 import jakarta.persistence.EntityManager;
@@ -44,8 +44,8 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
     @DisplayName("운영자 권한 ADT는 JSON으로 저장되고 재조회 시 타입이 보존된다")
     void saveAndLoad_preservesPermissionTypes() {
         Theater theater = theaterRepository.save(Theater.register(
-                new TheaterNamePolicy(theaterJpaPort),
-                "권한 검증용 영화관"
+                "권한 검증용 영화관",
+                new TheaterNameUniquenessCondition(true)
         ));
 
         Operator operator = Operator.register("persist-admin", "{noop}password", "Persist Operator");

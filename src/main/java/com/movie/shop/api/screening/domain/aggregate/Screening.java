@@ -1,9 +1,8 @@
 package com.movie.shop.api.screening.domain.aggregate;
 
+import com.movie.shop.api.screening.domain.condition.AuditoriumScreeningCondition;
+import com.movie.shop.api.screening.domain.condition.MovieSchedulingCondition;
 import com.movie.shop.api.screening.domain.exceptions.ScreeningDomainException;
-import com.movie.shop.api.screening.domain.policy.ScreeningConflictValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.ScreeningScheduleValidationPolicy;
-import com.movie.shop.api.screening.domain.policy.ScreeningTimeRuntimeValidationPolicy;
 import com.movie.shop.api.shared.domain.EntityValidator;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -15,6 +14,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Entity
 @Getter
@@ -65,75 +66,100 @@ public class Screening {
     @Column(name = "cancel_reason", length = 200)
     private String cancelReason;
 
-    public static Screening register(ScreeningScheduleValidationPolicy schedulePolicy,
-                                     ScreeningConflictValidationPolicy conflictPolicy,
-                                     ScreeningTimeRuntimeValidationPolicy runtimePolicy,
-                                     long movieId,
+    public static Screening register(long movieId,
                                      long auditoriumId,
-                                     long theaterId,
+                                     Optional<MovieSchedulingCondition> movieSchedulingCondition,
+                                     Optional<AuditoriumScreeningCondition> auditoriumScreeningCondition,
+                                     List<Screening> overlapCandidates,
                                      OffsetDateTime screeningStart,
                                      OffsetDateTime screeningEnd,
                                      OffsetDateTime salesStart,
                                      OffsetDateTime salesEnd) {
-        if (schedulePolicy == null) {
-            throw new ScreeningDomainException("상영 일정 검증 정책은 필수입니다.");
-        }
-        if (conflictPolicy == null) {
-            throw new ScreeningDomainException("상영 시간 충돌 검증 정책은 필수입니다.");
-        }
-        if (runtimePolicy == null) {
-            throw new ScreeningDomainException("상영 시간 런타임 검증 정책은 필수입니다.");
-        }
+        MovieSchedulingCondition movieCondition = resolveMovieSchedulingCondition(movieSchedulingCondition);
+        AuditoriumScreeningCondition auditoriumCondition = resolveAuditoriumScreeningCondition(auditoriumScreeningCondition);
+        validateOverlapCandidatesRequired(overlapCandidates);
 
-        schedulePolicy.validate(movieId, auditoriumId);
+        validateMovieCanBeScheduled(movieCondition);
+        validateAuditoriumCanHostScreening(auditoriumCondition);
 
         var screening = new Screening();
         screening.movieId = movieId;
         screening.auditoriumId = auditoriumId;
-        screening.theaterId = theaterId;
+        screening.theaterId = auditoriumCondition.theaterId();
         screening.status = ScreeningStatus.SCHEDULED;
 
         EntityValidator.create()
-                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, movieId, runtimePolicy), screening::setScreeningTimeRange)
-                .apply(SalesTimeRange.create(salesStart, salesEnd, auditoriumId, null, screeningStart, screeningEnd, conflictPolicy), screening::setSalesTimeRange)
+                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, movieCondition), screening::setScreeningTimeRange)
+                .apply(SalesTimeRange.create(salesStart, salesEnd, auditoriumId, null, screeningStart, screeningEnd, overlapCandidates), screening::setSalesTimeRange)
                 .validateBean(screening)
                 .throwIfInvalid(ScreeningDomainException::new);
 
         return screening;
     }
 
-    public void reschedule(ScreeningScheduleValidationPolicy schedulePolicy,
-                           ScreeningConflictValidationPolicy conflictPolicy,
-                           ScreeningTimeRuntimeValidationPolicy runtimePolicy,
+    public void reschedule(Optional<MovieSchedulingCondition> movieSchedulingCondition,
+                           Optional<AuditoriumScreeningCondition> auditoriumScreeningCondition,
+                           List<Screening> overlapCandidates,
                            OffsetDateTime screeningStart,
                            OffsetDateTime screeningEnd,
                            OffsetDateTime salesStart,
                            OffsetDateTime salesEnd) {
-        if (schedulePolicy == null) {
-            throw new ScreeningDomainException("상영 일정 검증 정책은 필수입니다.");
-        }
-        if (conflictPolicy == null) {
-            throw new ScreeningDomainException("상영 시간 충돌 검증 정책은 필수입니다.");
-        }
-        if (runtimePolicy == null) {
-            throw new ScreeningDomainException("상영 시간 런타임 검증 정책은 필수입니다.");
-        }
+        MovieSchedulingCondition movieCondition = resolveMovieSchedulingCondition(movieSchedulingCondition);
+        AuditoriumScreeningCondition auditoriumCondition = resolveAuditoriumScreeningCondition(auditoriumScreeningCondition);
+        validateOverlapCandidatesRequired(overlapCandidates);
 
         if (this.id == null) {
             throw new ScreeningDomainException("상영 ID가 존재하지 않아 일정 변경 검증을 수행할 수 없습니다.");
         }
 
-        schedulePolicy.validate(this.movieId, this.auditoriumId);
+        validateMovieCanBeScheduled(movieCondition);
+        validateAuditoriumCanHostScreening(auditoriumCondition);
 
         if (status != ScreeningStatus.SCHEDULED) {
             throw new ScreeningDomainException("SCHEDULED 상태의 상영만 일정 변경이 가능합니다.");
         }
 
         EntityValidator.create()
-                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, this.movieId, runtimePolicy), this::setScreeningTimeRange)
-                .apply(SalesTimeRange.create(salesStart, salesEnd, this.auditoriumId, this.id, screeningStart, screeningEnd, conflictPolicy), this::setSalesTimeRange)
+                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, movieCondition), this::setScreeningTimeRange)
+                .apply(SalesTimeRange.create(salesStart, salesEnd, this.auditoriumId, this.id, screeningStart, screeningEnd, overlapCandidates), this::setSalesTimeRange)
                 .validateBean(this)
                 .throwIfInvalid(ScreeningDomainException::new);
+    }
+
+    private static MovieSchedulingCondition resolveMovieSchedulingCondition(Optional<MovieSchedulingCondition> movieSchedulingCondition) {
+        if (movieSchedulingCondition == null) {
+            throw new ScreeningDomainException("영화 상영 조건은 필수입니다.");
+        }
+
+        return movieSchedulingCondition
+                .orElseThrow(() -> new ScreeningDomainException("영화 정보를 찾을 수 없습니다."));
+    }
+
+    private static AuditoriumScreeningCondition resolveAuditoriumScreeningCondition(Optional<AuditoriumScreeningCondition> auditoriumScreeningCondition) {
+        if (auditoriumScreeningCondition == null) {
+            throw new ScreeningDomainException("상영관 상영 조건은 필수입니다.");
+        }
+
+        return auditoriumScreeningCondition
+                .orElseThrow(() -> new ScreeningDomainException("상영관 정보를 찾을 수 없습니다."));
+    }
+
+    private static void validateOverlapCandidatesRequired(List<Screening> overlapCandidates) {
+        if (overlapCandidates == null) {
+            throw new ScreeningDomainException("상영 충돌 후보는 필수입니다.");
+        }
+    }
+
+    private static void validateMovieCanBeScheduled(MovieSchedulingCondition movieCondition) {
+        if (!movieCondition.canBeScheduled()) {
+            throw new ScreeningDomainException("상영 등록/수정은 COMING_SOON 또는 NOW_SHOWING 상태의 영화만 가능합니다.");
+        }
+    }
+
+    private static void validateAuditoriumCanHostScreening(AuditoriumScreeningCondition auditoriumCondition) {
+        if (!auditoriumCondition.canHostScreening()) {
+            throw new ScreeningDomainException("활성화된 상영관에서만 상영 등록/수정이 가능합니다.");
+        }
     }
 
     public void openSales(OffsetDateTime now) {

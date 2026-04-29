@@ -1,9 +1,9 @@
 package com.movie.shop.api.theater.domain.aggregate;
 
 import com.movie.shop.api.shared.domain.EntityValidator;
+import com.movie.shop.api.theater.domain.condition.TheaterAuditoriumPresence;
+import com.movie.shop.api.theater.domain.condition.TheaterNameUniquenessCondition;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
-import com.movie.shop.api.theater.domain.policy.TheaterAuditoriumLinkProtectionPolicy;
-import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -37,21 +37,21 @@ public class Theater {
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
-    public static Theater register(TheaterNamePolicy nameDuplicateValidator, String name) {
+    public static Theater register(String name, TheaterNameUniquenessCondition nameCondition) {
         var theater = new Theater();
         theater.active = true;
 
         EntityValidator.create()
-                .apply(TheaterName.createNew(name, nameDuplicateValidator), theater::setName)
+                .apply(TheaterName.createNew(name, nameCondition), theater::setName)
                 .validateBean(theater)
                 .throwIfInvalid(TheaterDomainException::new);
 
         return theater;
     }
 
-    public void updateName(TheaterNamePolicy nameDuplicateValidator, String name) {
+    public void updateName(String name, TheaterNameUniquenessCondition nameCondition) {
         EntityValidator.create()
-                .apply(TheaterName.createFrom(this.name, name, nameDuplicateValidator), this::setName)
+                .apply(TheaterName.createFrom(this.name, name, nameCondition), this::setName)
                 .throwIfInvalid(TheaterDomainException::new);
     }
 
@@ -63,21 +63,41 @@ public class Theater {
         active = true;
     }
 
-    public void changeActive(TheaterActiveChange activeChange, TheaterAuditoriumLinkProtectionPolicy policy) {
+    public void changeActive(TheaterActiveChange activeChange, TheaterAuditoriumPresence auditoriumPresence) {
         if (activeChange == null) {
             throw new TheaterDomainException("변경할 영화관 활성 상태는 필수입니다.");
-        }
-
-        if (policy == null) {
-            throw new TheaterDomainException("영화관 활성 상태 변경 정책은 필수입니다.");
         }
 
         switch (activeChange) {
             case ACTIVATE -> activate();
             case DEACTIVATE -> {
-                policy.validateCanChangeActive(this, activeChange);
+                validateCanDeactivate(auditoriumPresence);
                 deactivate();
             }
+        }
+    }
+
+    public void validateCanDelete(TheaterAuditoriumPresence auditoriumPresence) {
+        if (auditoriumPresence == null) {
+            throw new TheaterDomainException("영화관의 상영관 보유 여부는 필수입니다.");
+        }
+
+        if (auditoriumPresence.hasAnyAuditorium()) {
+            throw new TheaterDomainException("상영관이 연결된 영화관은 삭제할 수 없습니다.");
+        }
+    }
+
+    private void validateCanDeactivate(TheaterAuditoriumPresence auditoriumPresence) {
+        if (!active) {
+            return;
+        }
+
+        if (auditoriumPresence == null) {
+            throw new TheaterDomainException("영화관의 상영관 보유 여부는 필수입니다.");
+        }
+
+        if (auditoriumPresence.hasAnyAuditorium()) {
+            throw new TheaterDomainException("상영관이 연결된 영화관은 비활성화할 수 없습니다.");
         }
     }
 }

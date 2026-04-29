@@ -13,8 +13,8 @@ import com.movie.shop.api.theater.api.commands.ChangeActiveTheaterCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterActiveChange;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
+import com.movie.shop.api.theater.domain.condition.TheaterNameUniquenessCondition;
 import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
-import com.movie.shop.api.theater.domain.policy.TheaterNamePolicy;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -49,8 +49,7 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
     protected JdbcTemplate jdbcTemplate;
 
     protected Theater createAndSaveTheater(String name, boolean active) {
-        TheaterNamePolicy theaterNameDuplicateValidator = new TheaterNamePolicy(theaterJpaPort);
-        Theater theater = Theater.register(theaterNameDuplicateValidator, name);
+        Theater theater = Theater.register(name, new TheaterNameUniquenessCondition(true));
         theater = theaterRepository.save(theater);
         flushAndClear();
 

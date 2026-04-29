@@ -10,8 +10,9 @@ import com.movie.shop.api.screening.api.commands.ChangeStateScreeningCommand;
 import com.movie.shop.api.screening.api.commands.DeleteScreeningCommand;
 import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
 import com.movie.shop.api.screening.api.commands.UpdateScreeningCommand;
+import com.movie.shop.api.screening.domain.authorization.ScreeningRegistrationTheaterScope;
 import com.movie.shop.api.screening.domain.aggregate.ScreeningRepository;
-import com.movie.shop.api.screening.domain.port.LoadScreeningTheaterIdPort;
+import com.movie.shop.api.screening.domain.port.ScreeningRegistrationTheaterScopePort;
 import com.movie.shop.api.shared.application.authorization.OperatorAuthorizationHandler;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class ScreeningManageAuthorizationHandler implements OperatorAuthorizationHandler<ScreeningManageCommand<?>> {
 
     private final LoadOperatorPort loadOperatorPort;
-    private final LoadScreeningTheaterIdPort loadScreeningTheaterIdPort;
+    private final ScreeningRegistrationTheaterScopePort screeningRegistrationTheaterScopePort;
     private final ScreeningRepository screeningRepository;
 
     @Override
@@ -39,7 +40,9 @@ public class ScreeningManageAuthorizationHandler implements OperatorAuthorizatio
 
     private long resolveTheaterId(ScreeningManageCommand<?> command) {
         if (command instanceof RegisterScreeningCommand registerCommand) {
-            return loadScreeningTheaterIdPort.loadTheaterId(registerCommand.auditoriumId());
+            return ScreeningRegistrationTheaterScope.require(
+                    screeningRegistrationTheaterScopePort.findTheaterScope(registerCommand.auditoriumId())
+            ).theaterId();
         }
 
         if (command instanceof UpdateScreeningCommand updateCommand) {
