@@ -61,17 +61,12 @@ public class Auditorium {
 
     public static Auditorium register(AuditoriumNameUniquenessCondition nameCondition,
                                       Optional<AuditoriumRegistrationTheater> registrationTheater,
-                                      long theaterId,
                                       String name,
                                       int floor,
                                       AuditoriumType type,
                                       List<String> seats,
                                       int rowCount,
                                       int columnCount) {
-        if (theaterId <= 0) {
-            throw new AuditoriumDomainException("영화관 ID는 0보다 커야 합니다.");
-        }
-
         AuditoriumRegistrationTheater resolvedRegistrationTheater = resolveRegistrationTheater(registrationTheater);
 
         var auditorium = new Auditorium();

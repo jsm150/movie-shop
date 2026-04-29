@@ -20,7 +20,6 @@ class TheaterPermissionScopeTest {
         assertThatNoException()
                 .isThrownBy(() -> {
                     TheaterPermissionScope.SingleTheater scope = TheaterPermissionScope.SingleTheater.create(
-                            1L,
                             Optional.of(new OperatorTheaterPermissionScopeTarget(1L))
                     );
 
@@ -32,7 +31,6 @@ class TheaterPermissionScopeTest {
     @DisplayName("존재하지 않는 영화관 식별자로 권한 SingleTheater를 생성할 수 없다")
     void create_withMissingTheater_fails() {
         assertThatThrownBy(() -> TheaterPermissionScope.SingleTheater.create(
-                2L,
                 Optional.empty()
         ))
                 .isInstanceOf(OperatorDomainException.class)
@@ -40,13 +38,10 @@ class TheaterPermissionScopeTest {
     }
 
     @Test
-    @DisplayName("0 이하의 영화관 식별자로 권한 SingleTheater를 생성할 수 없다")
-    void create_withNonPositiveTheaterId_fails() {
-        assertThatThrownBy(() -> TheaterPermissionScope.SingleTheater.create(
-                0L,
-                Optional.of(new OperatorTheaterPermissionScopeTarget(0L))
-        ))
+    @DisplayName("권한 범위 대상이 null이면 권한 SingleTheater를 생성할 수 없다")
+    void create_withNullScopeTarget_fails() {
+        assertThatThrownBy(() -> TheaterPermissionScope.SingleTheater.create(null))
                 .isInstanceOf(OperatorDomainException.class)
-                .hasMessage("영화관 식별자는 0보다 커야 합니다.");
+                .hasMessage("영화관 권한 범위 대상은 필수입니다.");
     }
 }

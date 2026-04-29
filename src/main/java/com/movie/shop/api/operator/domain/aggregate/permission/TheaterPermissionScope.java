@@ -34,21 +34,16 @@ public sealed interface TheaterPermissionScope
             this.theaterId = theaterId;
         }
 
-        public static SingleTheater create(long theaterId,
-                                           Optional<OperatorTheaterPermissionScopeTarget> scopeTarget) {
-            if (theaterId <= 0) {
-                throw new OperatorDomainException("영화관 식별자는 0보다 커야 합니다.");
-            }
-
+        public static SingleTheater create(Optional<OperatorTheaterPermissionScopeTarget> scopeTarget) {
             if (scopeTarget == null) {
                 throw new OperatorDomainException("영화관 권한 범위 대상은 필수입니다.");
             }
 
-            scopeTarget.orElseThrow(
+            OperatorTheaterPermissionScopeTarget resolvedTarget = scopeTarget.orElseThrow(
                     () -> new OperatorDomainException("존재하지 않는 영화관으로 권한 범위를 생성할 수 없습니다.")
             );
 
-            return new SingleTheater(theaterId);
+            return new SingleTheater(resolvedTarget.theaterId());
         }
     }
 }

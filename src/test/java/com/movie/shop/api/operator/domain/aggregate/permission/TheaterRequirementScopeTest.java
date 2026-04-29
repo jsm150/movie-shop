@@ -54,7 +54,6 @@ class TheaterRequirementScopeTest {
 
     private TheaterPermissionScope.SingleTheater permissionSingleTheater(long theaterId) {
         return TheaterPermissionScope.SingleTheater.create(
-                theaterId,
                 Optional.of(new OperatorTheaterPermissionScopeTarget(theaterId))
         );
     }

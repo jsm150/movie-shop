@@ -51,7 +51,6 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
         operator.grant(new OperatorPermission.MovieManagePermission());
         operator.grant(new OperatorPermission.TheaterManagePermission(
                 TheaterPermissionScope.SingleTheater.create(
-                        theater.getId(),
                         operatorTheaterPermissionScopeTargetPort.findScopeTarget(theater.getId())
                 )
         ));
@@ -69,7 +68,6 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
                         new OperatorPermission.MovieManagePermission(),
                         new OperatorPermission.TheaterManagePermission(
                                 TheaterPermissionScope.SingleTheater.create(
-                                        theater.getId(),
                                         operatorTheaterPermissionScopeTargetPort.findScopeTarget(theater.getId())
                                 )
                         ),

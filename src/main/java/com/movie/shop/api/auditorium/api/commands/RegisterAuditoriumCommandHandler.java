@@ -26,7 +26,6 @@ public class RegisterAuditoriumCommandHandler implements Command.Handler<Registe
         Auditorium auditorium = Auditorium.register(
                 nameCondition,
                 registrationTheater,
-                command.theaterId(),
                 command.name(),
                 command.floor(),
                 command.auditoriumType(),

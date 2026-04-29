@@ -68,7 +68,6 @@ abstract class AuditoriumCommandIntegrationTestSupport extends AbstractContainer
         Auditorium auditorium = Auditorium.register(
                 auditoriumNameUniquenessConditionPort.findCondition(theaterId, name),
                 auditoriumRegistrationTheaterPort.findRegistrationTheater(theaterId),
-                theaterId,
                 name,
                 1,
                 AuditoriumType.Standard,

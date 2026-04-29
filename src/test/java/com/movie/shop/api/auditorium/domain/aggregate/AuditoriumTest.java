@@ -67,30 +67,11 @@ class AuditoriumTest {
     }
 
     @Test
-    @DisplayName("영화관 ID가 0 이하면 등록 실패한다")
-    void register_withInvalidTheaterId_fail() {
-        assertThatThrownBy(() -> Auditorium.register(
-                uniqueNameCondition,
-                registrationTheater(),
-                0L,
-                validName,
-                validFloor,
-                validType,
-                validSeats,
-                validRowCount,
-                validColumnCount
-        ))
-                .isInstanceOf(AuditoriumDomainException.class)
-                .hasMessageContaining("영화관 ID는 0보다 커야 합니다.");
-    }
-
-    @Test
     @DisplayName("존재하지 않는 영화관에는 상영관 등록이 실패한다")
     void register_whenTheaterMissing_fail() {
         assertThatThrownBy(() -> Auditorium.register(
                 uniqueNameCondition,
                 Optional.empty(),
-                theaterId,
                 validName,
                 validFloor,
                 validType,
@@ -108,7 +89,6 @@ class AuditoriumTest {
         assertThatThrownBy(() -> Auditorium.register(
                 duplicateNameCondition,
                 registrationTheater(),
-                theaterId,
                 validName,
                 validFloor,
                 validType,
@@ -126,7 +106,6 @@ class AuditoriumTest {
         assertThatThrownBy(() -> Auditorium.register(
                 uniqueNameCondition,
                 registrationTheater(),
-                theaterId,
                 validName,
                 -11,
                 validType,
@@ -144,7 +123,6 @@ class AuditoriumTest {
         assertThatThrownBy(() -> Auditorium.register(
                 uniqueNameCondition,
                 registrationTheater(),
-                theaterId,
                 validName,
                 101,
                 validType,
@@ -287,7 +265,6 @@ class AuditoriumTest {
         return Auditorium.register(
                 uniqueNameCondition,
                 registrationTheater(),
-                theaterId,
                 validName,
                 validFloor,
                 validType,
