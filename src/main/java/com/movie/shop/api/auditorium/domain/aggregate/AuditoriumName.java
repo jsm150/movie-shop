@@ -1,6 +1,7 @@
 package com.movie.shop.api.auditorium.domain.aggregate;
 
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumNameDuplicatePolicy;
+import com.movie.shop.api.auditorium.domain.condition.AuditoriumNameUniquenessCondition;
+import com.movie.shop.api.auditorium.domain.exceptions.AuditoriumDomainException;
 import io.vavr.collection.List;
 import io.vavr.collection.Seq;
 import io.vavr.control.Option;
@@ -20,24 +21,22 @@ public class AuditoriumName {
     }
 
     public static Validation<Seq<String>, AuditoriumName> createNew(String name,
-                                                                     long theaterId,
-                                                                     AuditoriumNameDuplicatePolicy validator) {
+                                                                     AuditoriumNameUniquenessCondition nameCondition) {
         return validateNotBlank(name)
                 .flatMap(AuditoriumName::validateLength)
-                .flatMap(n -> validateNotDuplicate(n, theaterId, validator))
+                .flatMap(n -> validateNotDuplicate(n, nameCondition))
                 .map(AuditoriumName::new)
                 .mapError(List::of);
     }
 
     public static Validation<Seq<String>, AuditoriumName> createFrom(AuditoriumName nowName,
                                                                       String newName,
-                                                                      long theaterId,
-                                                                      AuditoriumNameDuplicatePolicy validator) {
+                                                                      AuditoriumNameUniquenessCondition nameCondition) {
         return validateNotBlank(newName)
                 .flatMap(AuditoriumName::validateLength)
                 .flatMap(n -> Option.of(n)
                         .filter(val -> !nowName.getName().equals(val))
-                        .map(val -> validateNotDuplicate(val, theaterId, validator))
+                        .map(val -> validateNotDuplicate(val, nameCondition))
                         .getOrElse(Validation.valid(n))
                 )
                 .map(AuditoriumName::new)
@@ -57,9 +56,15 @@ public class AuditoriumName {
     }
 
     private static Validation<String, String> validateNotDuplicate(String name,
-                                                                   long theaterId,
-                                                                    AuditoriumNameDuplicatePolicy validator) {
-        validator.validateNotDuplicate(theaterId, name);
+                                                                   AuditoriumNameUniquenessCondition nameCondition) {
+        if (nameCondition == null) {
+            throw new AuditoriumDomainException("상영관 이름 중복 조건은 필수입니다.");
+        }
+
+        if (!nameCondition.unique()) {
+            throw new AuditoriumDomainException("동일한 이름의 상영관이 해당 영화관에 이미 존재합니다.");
+        }
+
         return Validation.valid(name);
     }
 }

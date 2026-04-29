@@ -3,10 +3,8 @@ package com.movie.shop.api.auditorium.api.commands;
 import an.awesome.pipelinr.Command;
 import com.movie.shop.api.auditorium.domain.aggregate.Auditorium;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumRepository;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumNameDuplicatePolicy;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumTheaterExistencePolicy;
-import com.movie.shop.api.auditorium.domain.port.AuditoriumJpaPort;
-import com.movie.shop.api.auditorium.domain.port.LoadAuditoriumTheaterExistenceStatusPort;
+import com.movie.shop.api.auditorium.domain.port.AuditoriumNameUniquenessConditionPort;
+import com.movie.shop.api.auditorium.domain.port.AuditoriumRegistrationTheaterPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,19 +14,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class RegisterAuditoriumCommandHandler implements Command.Handler<RegisterAuditoriumCommand, Long> {
 
     private final AuditoriumRepository auditoriumRepository;
-    private final AuditoriumJpaPort auditoriumJpaPort;
-    private final LoadAuditoriumTheaterExistenceStatusPort loadAuditoriumTheaterExistenceStatusPort;
+    private final AuditoriumNameUniquenessConditionPort auditoriumNameUniquenessConditionPort;
+    private final AuditoriumRegistrationTheaterPort auditoriumRegistrationTheaterPort;
 
     @Override
     @Transactional
     public Long handle(RegisterAuditoriumCommand command) {
-        AuditoriumTheaterExistencePolicy auditoriumTheaterExistencePolicy =
-                new AuditoriumTheaterExistencePolicy(loadAuditoriumTheaterExistenceStatusPort);
-        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(auditoriumJpaPort);
+        var registrationTheater = auditoriumRegistrationTheaterPort.findRegistrationTheater(command.theaterId());
+        var nameCondition = auditoriumNameUniquenessConditionPort.findCondition(command.theaterId(), command.name());
 
         Auditorium auditorium = Auditorium.register(
-                auditoriumNameDuplicatePolicy,
-                auditoriumTheaterExistencePolicy,
+                nameCondition,
+                registrationTheater,
                 command.theaterId(),
                 command.name(),
                 command.floor(),

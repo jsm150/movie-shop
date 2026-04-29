@@ -3,8 +3,7 @@ package com.movie.shop.api.auditorium.api.commands;
 import an.awesome.pipelinr.Command;
 import com.movie.shop.api.auditorium.domain.aggregate.Auditorium;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumRepository;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumNameDuplicatePolicy;
-import com.movie.shop.api.auditorium.domain.port.AuditoriumJpaPort;
+import com.movie.shop.api.auditorium.domain.port.AuditoriumNameUniquenessConditionPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,16 +13,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateAuditoriumCommandHandler implements Command.Handler<UpdateAuditoriumCommand, Long> {
 
     private final AuditoriumRepository auditoriumRepository;
-    private final AuditoriumJpaPort auditoriumJpaPort;
+    private final AuditoriumNameUniquenessConditionPort auditoriumNameUniquenessConditionPort;
 
     @Override
     @Transactional
     public Long handle(UpdateAuditoriumCommand command) {
         Auditorium auditorium = auditoriumRepository.getById(command.auditoriumId());
-        AuditoriumNameDuplicatePolicy auditoriumNameDuplicatePolicy = new AuditoriumNameDuplicatePolicy(auditoriumJpaPort);
+        var nameCondition = auditoriumNameUniquenessConditionPort.findCondition(auditorium.getTheaterId(), command.name());
 
         auditorium.update(
-                auditoriumNameDuplicatePolicy,
+                nameCondition,
                 command.name(),
                 command.floor(),
                 command.auditoriumType(),

@@ -15,8 +15,4 @@ public interface AuditoriumJpaPort {
     long count();
 
     boolean existsByTheaterId(long theaterId);
-
-    boolean existsByTheaterIdAndName(long theaterId, String name);
-
-    boolean loadNameDuplication(long theaterId, String name);
 }

@@ -1,31 +1,29 @@
 package com.movie.shop.api.auditorium.domain.aggregate.newtype;
 
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumName;
+import com.movie.shop.api.auditorium.domain.condition.AuditoriumNameUniquenessCondition;
 import com.movie.shop.api.auditorium.domain.exceptions.AuditoriumDomainException;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumNameDuplicatePolicy;
 import io.vavr.collection.Seq;
 import io.vavr.control.Validation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
 
-@ExtendWith(MockitoExtension.class)
 @DisplayName("AuditoriumName 단위 테스트")
 class AuditoriumNameTest {
 
-    @Mock
-    private AuditoriumNameDuplicatePolicy mockValidator;
+    private AuditoriumNameUniquenessCondition uniqueCondition;
+    private AuditoriumNameUniquenessCondition duplicateCondition;
+
+    @BeforeEach
+    void setUp() {
+        uniqueCondition = new AuditoriumNameUniquenessCondition(true);
+        duplicateCondition = new AuditoriumNameUniquenessCondition(false);
+    }
 
     @Nested
     @DisplayName("createNew 메서드 테스트")
@@ -36,17 +34,16 @@ class AuditoriumNameTest {
         void createNew_withValidName_success() {
             String validName = "1관";
 
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createNew(validName, 1L, mockValidator);
+            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createNew(validName, uniqueCondition);
 
             assertThat(result.isValid()).isTrue();
             assertThat(result.get().getName()).isEqualTo(validName);
-            verify(mockValidator).validateNotDuplicate(1L, validName);
         }
 
         @Test
         @DisplayName("null 이름으로 생성 실패한다")
         void createNew_withNullName_fail() {
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createNew(null, 1L, mockValidator);
+            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createNew(null, uniqueCondition);
 
             assertThat(result.isInvalid()).isTrue();
             assertThat(result.getError()).contains("상영관 이름은 필수입니다.");
@@ -55,7 +52,7 @@ class AuditoriumNameTest {
         @Test
         @DisplayName("빈 문자열 이름으로 생성 실패한다")
         void createNew_withEmptyName_fail() {
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createNew("", 1L, mockValidator);
+            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createNew("", uniqueCondition);
 
             assertThat(result.isInvalid()).isTrue();
             assertThat(result.getError()).contains("상영관 이름은 필수입니다.");
@@ -66,34 +63,18 @@ class AuditoriumNameTest {
         void createNew_withTooLongName_fail() {
             String longName = "a".repeat(51);
 
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createNew(longName, 1L, mockValidator);
+            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createNew(longName, uniqueCondition);
 
             assertThat(result.isInvalid()).isTrue();
             assertThat(result.getError()).contains("상영관 이름은 50자를 초과할 수 없습니다.");
         }
 
         @Test
-        @DisplayName("동일 theaterId에서 중복 이름이면 생성 실패한다")
+        @DisplayName("동일 영화관에서 중복 이름이면 생성 실패한다")
         void createNew_withDuplicateNameInSameTheater_fail() {
-            doThrow(new AuditoriumDomainException("동일한 이름의 상영관이 해당 영화관에 이미 존재합니다."))
-                    .when(mockValidator)
-                    .validateNotDuplicate(anyLong(), anyString());
-
-            assertThatThrownBy(() -> AuditoriumName.createNew("1관", 1L, mockValidator))
+            assertThatThrownBy(() -> AuditoriumName.createNew("1관", duplicateCondition))
                     .isInstanceOf(AuditoriumDomainException.class)
                     .hasMessageContaining("동일한 이름의 상영관이 해당 영화관에 이미 존재합니다.");
-        }
-
-        @Test
-        @DisplayName("다른 theaterId면 같은 이름도 생성 가능하다")
-        void createNew_withSameNameInDifferentTheater_success() {
-            String sameName = "1관";
-
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createNew(sameName, 2L, mockValidator);
-
-            assertThat(result.isValid()).isTrue();
-            assertThat(result.get().getName()).isEqualTo(sameName);
-            verify(mockValidator).validateNotDuplicate(2L, sameName);
         }
     }
 
@@ -105,7 +86,7 @@ class AuditoriumNameTest {
 
         @BeforeEach
         void setUp() {
-            existingName = AuditoriumName.createNew("기존 상영관", 1L, mockValidator).get();
+            existingName = AuditoriumName.createNew("기존 상영관", uniqueCondition).get();
         }
 
         @Test
@@ -113,18 +94,26 @@ class AuditoriumNameTest {
         void createFrom_withDifferentValidName_success() {
             String newName = "새 상영관";
 
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(existingName, newName, 1L, mockValidator);
+            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(
+                    existingName,
+                    newName,
+                    uniqueCondition
+            );
 
             assertThat(result.isValid()).isTrue();
             assertThat(result.get().getName()).isEqualTo(newName);
         }
 
         @Test
-        @DisplayName("동일한 이름으로 변경하면 중복 검증을 스킵하고 성공한다")
+        @DisplayName("동일한 이름으로 변경하면 중복 조건과 무관하게 성공한다")
         void createFrom_withSameName_successWithoutDuplicateCheck() {
             String sameName = "기존 상영관";
 
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(existingName, sameName, 1L, mockValidator);
+            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(
+                    existingName,
+                    sameName,
+                    duplicateCondition
+            );
 
             assertThat(result.isValid()).isTrue();
             assertThat(result.get().getName()).isEqualTo(sameName);
@@ -133,7 +122,11 @@ class AuditoriumNameTest {
         @Test
         @DisplayName("null 이름으로 변경 실패한다")
         void createFrom_withNullName_fail() {
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(existingName, null, 1L, mockValidator);
+            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(
+                    existingName,
+                    null,
+                    uniqueCondition
+            );
 
             assertThat(result.isInvalid()).isTrue();
             assertThat(result.getError()).contains("상영관 이름은 필수입니다.");
@@ -142,7 +135,11 @@ class AuditoriumNameTest {
         @Test
         @DisplayName("빈 문자열 이름으로 변경 실패한다")
         void createFrom_withEmptyName_fail() {
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(existingName, "", 1L, mockValidator);
+            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(
+                    existingName,
+                    "",
+                    uniqueCondition
+            );
 
             assertThat(result.isInvalid()).isTrue();
             assertThat(result.getError()).contains("상영관 이름은 필수입니다.");
@@ -153,20 +150,20 @@ class AuditoriumNameTest {
         void createFrom_withTooLongName_fail() {
             String longName = "a".repeat(51);
 
-            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(existingName, longName, 1L, mockValidator);
+            Validation<Seq<String>, AuditoriumName> result = AuditoriumName.createFrom(
+                    existingName,
+                    longName,
+                    uniqueCondition
+            );
 
             assertThat(result.isInvalid()).isTrue();
             assertThat(result.getError()).contains("상영관 이름은 50자를 초과할 수 없습니다.");
         }
 
         @Test
-        @DisplayName("동일 theaterId에서 중복된 이름으로 변경 실패한다")
+        @DisplayName("동일 영화관에서 중복된 이름으로 변경 실패한다")
         void createFrom_withDuplicateName_fail() {
-            doThrow(new AuditoriumDomainException("동일한 이름의 상영관이 해당 영화관에 이미 존재합니다."))
-                    .when(mockValidator)
-                    .validateNotDuplicate(anyLong(), anyString());
-
-            assertThatThrownBy(() -> AuditoriumName.createFrom(existingName, "중복 상영관", 1L, mockValidator))
+            assertThatThrownBy(() -> AuditoriumName.createFrom(existingName, "중복 상영관", duplicateCondition))
                     .isInstanceOf(AuditoriumDomainException.class)
                     .hasMessageContaining("동일한 이름의 상영관이 해당 영화관에 이미 존재합니다.");
         }

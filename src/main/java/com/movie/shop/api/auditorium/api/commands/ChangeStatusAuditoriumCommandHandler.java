@@ -4,9 +4,8 @@ import an.awesome.pipelinr.Command;
 import an.awesome.pipelinr.Voidy;
 import com.movie.shop.api.auditorium.domain.aggregate.Auditorium;
 import com.movie.shop.api.auditorium.domain.aggregate.AuditoriumRepository;
-import com.movie.shop.api.auditorium.domain.policy.AuditoriumStatusPolicy;
-import com.movie.shop.api.auditorium.domain.port.CheckAuditoriumScreeningLinkPort;
-import com.movie.shop.api.auditorium.domain.port.LoadAuditoriumTheaterActivationStatusPort;
+import com.movie.shop.api.auditorium.domain.port.AuditoriumOperatingTheaterStatusPort;
+import com.movie.shop.api.auditorium.domain.port.AuditoriumScreeningPresencePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,20 +15,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class ChangeStatusAuditoriumCommandHandler implements Command.Handler<ChangeStatusAuditoriumCommand, Voidy> {
 
     private final AuditoriumRepository auditoriumRepository;
-    private final CheckAuditoriumScreeningLinkPort checkAuditoriumScreeningLinkPort;
-    private final LoadAuditoriumTheaterActivationStatusPort loadAuditoriumTheaterActivationStatusPort;
+    private final AuditoriumScreeningPresencePort auditoriumScreeningPresencePort;
+    private final AuditoriumOperatingTheaterStatusPort auditoriumOperatingTheaterStatusPort;
 
     @Override
     @Transactional
     public Voidy handle(ChangeStatusAuditoriumCommand command) {
         Auditorium auditorium = auditoriumRepository.getById(command.auditoriumId());
+        var screeningPresence = auditoriumScreeningPresencePort.findPresence(auditorium.getId());
+        var operatingTheaterStatus = auditoriumOperatingTheaterStatusPort.findStatus(auditorium.getTheaterId());
 
-        AuditoriumStatusPolicy auditoriumStatusPolicy = new AuditoriumStatusPolicy(
-                checkAuditoriumScreeningLinkPort,
-                loadAuditoriumTheaterActivationStatusPort
-        );
-
-        auditorium.changeStatus(command.status(), auditoriumStatusPolicy);
+        auditorium.changeStatus(command.status(), screeningPresence, operatingTheaterStatus);
         return null;
     }
 }
