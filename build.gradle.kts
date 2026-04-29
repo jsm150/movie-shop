@@ -32,7 +32,6 @@ dependencies {
 	implementation("org.springframework.security:spring-security-oauth2-jose")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("io.vavr:vavr:0.11.0")
 	implementation("org.flywaydb:flyway-mysql")
     implementation("net.sizovs:pipelinr:0.11")
     implementation("org.springdoc:springdoc-openapi-bom:2.8.15")

@@ -14,6 +14,13 @@
 - 단순히 포트 조회 결과를 감싸서 위임하는 policy 객체는 만들지 않는다.
 - 인프라 계층은 영속화/외부 연동만 담당하고 비즈니스 판단을 하지 않는다
 
+## Value Object Validation Rule
+
+- Value Object는 불변이어야 하며, 생성 시점에 유효성 검증이 완료되어야 한다.
+- 프레임워크(JPA/Jackson 등)를 위한 기본 생성자는 `protected` 이하로만 허용하고, 외부에서 검증 없이 상태를 변경할 수 있는 setter를 두지 않는다.
+- 어노테이션으로 표현 가능한 값 검증은 `jakarta.validation` 어노테이션과 `EntityValidator`를 사용해 Value Object 내부에서 수행한다.
+- 어노테이션으로 표현하기 어려운 비즈니스 규칙(중복 여부, 상태 조건, 외부 조건 기반 판단 등)은 aggregate/value object/domain service가 명시적으로 판단하고 도메인 예외를 던진다.
+
 ## Allowed Exceptions
 
 - 기술적 방어 코드(매핑/직렬화/널 체크)는 허용한다
@@ -51,6 +58,8 @@
 
 - 핸들러/인프라에 상태 전이 분기나 비즈니스 판단 코드가 없는가
 - 도메인 aggregate/value object/domain service가 규칙을 소유하는가
+- Value Object가 불변이며 생성 시점에 `jakarta.validation` 어노테이션과 `EntityValidator`로 값 검증을 수행하는가
+- 어노테이션으로 표현하기 어려운 비즈니스 규칙은 도메인 계층에서 명시적으로 판단하고 예외를 던지는가
 - 단순 위임용 policy 객체가 새로 생기지 않았는가
 - 도메인 예외는 도메인 계층에서 발생하는가
 - `domain` 패키지가 타 도메인 `domain` 패키지를 직접 참조하지 않는가

@@ -11,7 +11,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -44,12 +43,10 @@ public class Screening {
     @Column(nullable = false, name = "theater_id")
     private long theaterId;
 
-    @Setter(AccessLevel.PRIVATE)
     @NotNull(message = "상영 시간 범위는 필수입니다.")
     @Embedded
     private ScreeningTimeRange screeningTimeRange;
 
-    @Setter(AccessLevel.PRIVATE)
     @NotNull(message = "판매 시간 범위는 필수입니다.")
     @Embedded
     private SalesTimeRange salesTimeRange;
@@ -87,10 +84,18 @@ public class Screening {
         screening.auditoriumId = auditoriumId;
         screening.theaterId = auditoriumCondition.theaterId();
         screening.status = ScreeningStatus.SCHEDULED;
+        screening.screeningTimeRange = ScreeningTimeRange.create(screeningStart, screeningEnd, movieCondition);
+        screening.salesTimeRange = SalesTimeRange.create(
+                salesStart,
+                salesEnd,
+                auditoriumId,
+                null,
+                screeningStart,
+                screeningEnd,
+                overlapCandidates
+        );
 
         EntityValidator.create()
-                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, movieCondition), screening::setScreeningTimeRange)
-                .apply(SalesTimeRange.create(salesStart, salesEnd, auditoriumId, null, screeningStart, screeningEnd, overlapCandidates), screening::setSalesTimeRange)
                 .validateBean(screening)
                 .throwIfInvalid(ScreeningDomainException::new);
 
@@ -119,9 +124,25 @@ public class Screening {
             throw new ScreeningDomainException("SCHEDULED 상태의 상영만 일정 변경이 가능합니다.");
         }
 
+        ScreeningTimeRange updatedScreeningTimeRange = ScreeningTimeRange.create(
+                screeningStart,
+                screeningEnd,
+                movieCondition
+        );
+        SalesTimeRange updatedSalesTimeRange = SalesTimeRange.create(
+                salesStart,
+                salesEnd,
+                this.auditoriumId,
+                this.id,
+                screeningStart,
+                screeningEnd,
+                overlapCandidates
+        );
+
+        this.screeningTimeRange = updatedScreeningTimeRange;
+        this.salesTimeRange = updatedSalesTimeRange;
+
         EntityValidator.create()
-                .apply(ScreeningTimeRange.create(screeningStart, screeningEnd, movieCondition), this::setScreeningTimeRange)
-                .apply(SalesTimeRange.create(salesStart, salesEnd, this.auditoriumId, this.id, screeningStart, screeningEnd, overlapCandidates), this::setSalesTimeRange)
                 .validateBean(this)
                 .throwIfInvalid(ScreeningDomainException::new);
     }

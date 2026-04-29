@@ -43,8 +43,10 @@ public class Actor {
         this.dateOfBirth = dateOfBirth;
         this.national = national;
         this.role = role;
+        validate();
+    }
 
-        // 어노테이션 검증 수행
+    private void validate() {
         EntityValidator.create()
             .validateBean(this)
             .throwIfInvalid(MovieDomainException::new);

@@ -84,7 +84,7 @@ class SalesTimeRangeTest {
     @Test
     @DisplayName("충돌 후보가 null이면 생성에 실패한다")
     void create_whenConflictCandidatesNull_fails() {
-        var validation = SalesTimeRange.create(
+        assertThatThrownBy(() -> SalesTimeRange.create(
                 screeningStart.minusDays(1),
                 screeningStart,
                 auditoriumId,
@@ -92,11 +92,112 @@ class SalesTimeRangeTest {
                 screeningStart,
                 screeningEnd,
                 null
-        );
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영 충돌 후보는 필수입니다.");
+    }
 
-        assertThat(validation.isInvalid()).isTrue();
-        assertThat(validation.getError().mkString(","))
-                .contains("상영 충돌 후보는 필수입니다.");
+    @Test
+    @DisplayName("판매 시작/종료 시간이 null이면 생성 시점에 검증 오류를 수집한다")
+    void create_whenSalesTimesNull_collectsValidationErrors() {
+        assertThatThrownBy(() -> SalesTimeRange.create(
+                null,
+                null,
+                auditoriumId,
+                null,
+                screeningStart,
+                screeningEnd,
+                List.of()
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .satisfies(exception -> assertThat(
+                        ((ScreeningDomainException) exception).getErrors()
+                ).contains(
+                        "판매 시작 시간은 필수입니다.",
+                        "판매 종료 시간은 필수입니다."
+                ));
+    }
+
+    @Test
+    @DisplayName("상영관 ID가 0 이하면 생성에 실패한다")
+    void create_whenAuditoriumIdNotPositive_fails() {
+        assertThatThrownBy(() -> SalesTimeRange.create(
+                screeningStart.minusDays(1),
+                screeningStart,
+                0,
+                null,
+                screeningStart,
+                screeningEnd,
+                List.of()
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영관 ID는 필수입니다.");
+    }
+
+    @Test
+    @DisplayName("상영 시작 시간이 null이면 생성에 실패한다")
+    void create_whenScreeningStartNull_fails() {
+        assertThatThrownBy(() -> SalesTimeRange.create(
+                screeningStart.minusDays(1),
+                screeningStart,
+                auditoriumId,
+                null,
+                null,
+                screeningEnd,
+                List.of()
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영 시작 시간은 필수입니다.");
+    }
+
+    @Test
+    @DisplayName("상영 종료 시간이 null이면 생성에 실패한다")
+    void create_whenScreeningEndNull_fails() {
+        assertThatThrownBy(() -> SalesTimeRange.create(
+                screeningStart.minusDays(1),
+                screeningStart,
+                auditoriumId,
+                null,
+                screeningStart,
+                null,
+                List.of()
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("상영 종료 시간은 필수입니다.");
+    }
+
+    @Test
+    @DisplayName("판매 시작 시간이 판매 종료 시간과 같거나 늦으면 생성에 실패한다")
+    void create_whenSalesStartAtOrAfterSalesEndAt_fails() {
+        OffsetDateTime salesAt = screeningStart.minusHours(1);
+
+        assertThatThrownBy(() -> SalesTimeRange.create(
+                salesAt,
+                salesAt,
+                auditoriumId,
+                null,
+                screeningStart,
+                screeningEnd,
+                List.of()
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("판매 시작 시간은 판매 종료 시간보다 이전이어야 합니다.");
+    }
+
+    @Test
+    @DisplayName("판매 종료 시간이 상영 시작 시간보다 늦으면 생성에 실패한다")
+    void create_whenSalesEndAfterScreeningStart_fails() {
+        assertThatThrownBy(() -> SalesTimeRange.create(
+                screeningStart.minusDays(1),
+                screeningStart.plusMinutes(1),
+                auditoriumId,
+                null,
+                screeningStart,
+                screeningEnd,
+                List.of()
+        ))
+                .isInstanceOf(ScreeningDomainException.class)
+                .hasMessageContaining("판매 종료 시간은 상영 시작 시간보다 늦을 수 없습니다.");
     }
 
     private void createSalesTimeRange(List<Screening> overlapCandidates, Long selfScreeningId) {
@@ -108,7 +209,7 @@ class SalesTimeRangeTest {
                 screeningStart,
                 screeningEnd,
                 overlapCandidates
-        ).get();
+        );
     }
 
     private Screening createScreening(ScreeningStatus status) {

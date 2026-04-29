@@ -19,7 +19,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.validator.constraints.Range;
 
 import java.util.List;
@@ -38,7 +37,6 @@ public class Auditorium {
     @Column(name = "theater_id", nullable = false)
     private long theaterId;
 
-    @Setter(AccessLevel.PRIVATE)
     @AttributeOverride(
             name = "name",
             column = @Column(name = "name", nullable = false, length = 50)
@@ -54,7 +52,6 @@ public class Auditorium {
     @Column
     private AuditoriumType auditoriumType;
 
-    @Setter(AccessLevel.PRIVATE)
     @NotNull(message = "최소 하나 이상의 좌석이 필요합니다.")
     @Embedded
     private AuditoriumSeats seats;
@@ -82,10 +79,10 @@ public class Auditorium {
         auditorium.floor = floor;
         auditorium.auditoriumType = type;
         auditorium.active = true;
+        auditorium.name = AuditoriumName.createNew(name, nameCondition);
+        auditorium.seats = AuditoriumSeats.create(seats, rowCount, columnCount);
 
         EntityValidator.create()
-                .apply(AuditoriumName.createNew(name, nameCondition), auditorium::setName)
-                .apply(AuditoriumSeats.create(seats, rowCount, columnCount), auditorium::setSeats)
                 .validateBean(auditorium)
                 .throwIfInvalid(AuditoriumDomainException::new);
 
@@ -99,12 +96,19 @@ public class Auditorium {
                        List<String> seats,
                        int rowCount,
                        int columnCount) {
+        AuditoriumName updatedName = AuditoriumName.createFrom(
+                this.name,
+                name,
+                nameCondition
+        );
+        AuditoriumSeats updatedSeats = AuditoriumSeats.create(seats, rowCount, columnCount);
+
+        this.name = updatedName;
         this.floor = floor;
         this.auditoriumType = type;
+        this.seats = updatedSeats;
 
         EntityValidator.create()
-                .apply(AuditoriumName.createFrom(this.name, name, nameCondition), this::setName)
-                .apply(AuditoriumSeats.create(seats, rowCount, columnCount), this::setSeats)
                 .validateBean(this)
                 .throwIfInvalid(AuditoriumDomainException::new);
     }

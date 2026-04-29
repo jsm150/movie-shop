@@ -14,7 +14,6 @@ import jakarta.persistence.Id;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
@@ -26,7 +25,6 @@ public class Theater {
     @Column(name = "theater_id", nullable = false)
     private long id;
 
-    @Setter(AccessLevel.PRIVATE)
     @AttributeOverride(
             name = "name",
             column = @Column(name = "name", unique = true, nullable = false, length = 50)
@@ -40,9 +38,9 @@ public class Theater {
     public static Theater register(String name, TheaterNameUniquenessCondition nameCondition) {
         var theater = new Theater();
         theater.active = true;
+        theater.name = TheaterName.createNew(name, nameCondition);
 
         EntityValidator.create()
-                .apply(TheaterName.createNew(name, nameCondition), theater::setName)
                 .validateBean(theater)
                 .throwIfInvalid(TheaterDomainException::new);
 
@@ -50,9 +48,7 @@ public class Theater {
     }
 
     public void updateName(String name, TheaterNameUniquenessCondition nameCondition) {
-        EntityValidator.create()
-                .apply(TheaterName.createFrom(this.name, name, nameCondition), this::setName)
-                .throwIfInvalid(TheaterDomainException::new);
+        this.name = TheaterName.createFrom(this.name, name, nameCondition);
     }
 
     private void deactivate() {

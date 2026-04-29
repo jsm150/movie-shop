@@ -101,12 +101,9 @@ public class Movie {
         movie.releaseDate = releaseDate;
         movie.casts = casts;
         movie.status = MovieStatus.PREPARING;
+        movie.title = MovieTitle.createNew(title, titleCondition);
 
         EntityValidator.create()
-            .apply(
-                MovieTitle.createNew(title, titleCondition),
-                movie::setTitle
-            )
             .validateBean(movie)
             .throwIfInvalid(MovieDomainException::new);
 
@@ -131,16 +128,13 @@ public class Movie {
         this.synopsis = synopsis;
         this.releaseDate = releaseDate;
         this.casts = casts;
+        this.title = MovieTitle.createFrom(
+            this.title,
+            title,
+            titleCondition
+        );
 
         EntityValidator.create()
-            .apply(
-                MovieTitle.createFrom(
-                    this.title,
-                    title,
-                    titleCondition
-                ),
-                this::setTitle
-            )
             .validateBean(this)
             .throwIfInvalid(MovieDomainException::new);
     }
