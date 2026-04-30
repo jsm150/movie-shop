@@ -34,7 +34,7 @@ public class AbstractContainerBase {
     }
 
     @BeforeEach
-    void setUpAuthorizationTestOperator() {
+    protected void setUpAuthorizationTestOperator() {
         if (operatorRepository == null) {
             return;
         }
@@ -61,7 +61,7 @@ public class AbstractContainerBase {
     }
 
     @AfterEach
-    void clearAuthorizationTestOperator() {
+    protected void clearAuthorizationTestOperator() {
         SecurityContextHolder.clearContext();
     }
 

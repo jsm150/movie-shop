@@ -3,6 +3,8 @@ package com.movie.shop.api.operator.domain.aggregate;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.CollectionId;
+import org.hibernate.annotations.CollectionIdJavaClass;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,13 +16,16 @@ import com.movie.shop.api.operator.domain.exceptions.OperatorAuthorizationExcept
 import com.movie.shop.api.operator.domain.exceptions.OperatorDomainException;
 import com.movie.shop.api.shared.domain.EntityValidator;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -60,9 +65,16 @@ public class Operator {
     @Column(name = "status", nullable = false, length = 30)
     private OperatorStatus status;
 
+    @ElementCollection
+    @CollectionTable(
+            name = "operator_permission",
+            joinColumns = @JoinColumn(name = "operator_id", nullable = false)
+    )
+    @CollectionId(column = @Column(name = "permission_id", nullable = false), generator = "increment")
+    @CollectionIdJavaClass(idType = Long.class)
     @JdbcTypeCode(SqlTypes.JSON)
     @NotNull(message = "권한 목록은 필수입니다.")
-    @Column(name = "permissions_json", columnDefinition = "json", nullable = false)
+    @Column(name = "payload_json", columnDefinition = "json", nullable = false)
     private List<OperatorPermission> permissions = new ArrayList<>();
 
     public static Operator register(String loginId, String passwordHash, String displayName) {

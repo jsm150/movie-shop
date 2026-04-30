@@ -2,6 +2,8 @@ package com.movie.shop.api.operator.domain.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +38,7 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
 
     @Test
     @Transactional
-    @DisplayName("운영자 권한 ADT는 JSON으로 저장되고 재조회 시 타입이 보존된다")
+    @DisplayName("운영자 권한 ADT는 ElementCollection row 단위 JSON payload로 저장되고 재조회 시 타입이 보존된다")
     void saveAndLoad_preservesPermissionTypes() {
         Theater theater = theaterRepository.save(Theater.register(
                 "권한 검증용 영화관",
@@ -58,6 +60,19 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
         entityManager.clear();
 
         Operator loadedOperator = operatorRepository.getById(savedOperator.getId());
+        @SuppressWarnings("unchecked")
+        List<Object[]> permissionRows = entityManager.createNativeQuery("""
+                        SELECT permission_id,
+                               JSON_TYPE(payload_json) AS payload_type,
+                               JSON_UNQUOTE(JSON_EXTRACT(payload_json, '$.permissionType')) AS permission_type,
+                               JSON_UNQUOTE(JSON_EXTRACT(payload_json, '$.scope.scopeType')) AS scope_type,
+                               CAST(JSON_UNQUOTE(JSON_EXTRACT(payload_json, '$.scope.theaterId')) AS UNSIGNED) AS theater_id
+                        FROM operator_permission
+                        WHERE operator_id = :operatorId
+                        ORDER BY permission_id
+                        """)
+                .setParameter("operatorId", savedOperator.getId())
+                .getResultList();
 
         assertThat(loadedOperator.getPermissions())
                 .containsExactlyInAnyOrder(
@@ -69,5 +84,25 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
                         ),
                         new OperatorPermission.ScreeningManagePermission(new TheaterPermissionScope.AllTheaters())
                 );
+        assertThat(permissionRows).hasSize(3);
+        assertThat(permissionRows)
+                .allSatisfy(row -> {
+                    assertThat(row[0]).isNotNull();
+                    assertThat(row[1]).isEqualTo("OBJECT");
+                });
+        assertThat(permissionRows)
+                .extracting(row -> row[2])
+                .containsExactlyInAnyOrder("MOVIE_MANAGE", "THEATER_MANAGE", "SCREENING_MANAGE");
+        assertThat(permissionRows)
+                .anySatisfy(row -> {
+                    assertThat(row[2]).isEqualTo("THEATER_MANAGE");
+                    assertThat(row[3]).isEqualTo("SINGLE_THEATER");
+                    assertThat(((Number) row[4]).longValue()).isEqualTo(theater.getId());
+                })
+                .anySatisfy(row -> {
+                    assertThat(row[2]).isEqualTo("SCREENING_MANAGE");
+                    assertThat(row[3]).isEqualTo("ALL_THEATERS");
+                    assertThat(row[4]).isNull();
+                });
     }
 }
