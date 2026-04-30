@@ -9,6 +9,8 @@ public interface TheaterJpaPort {
 
     Optional<Theater> findById(Long theaterId);
 
+    boolean existsById(Long theaterId);
+
     void delete(Theater theater);
 
     long count();

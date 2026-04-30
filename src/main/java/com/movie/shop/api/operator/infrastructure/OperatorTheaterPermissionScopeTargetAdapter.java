@@ -1,4 +1,4 @@
-package com.movie.shop.api.operator.infrastructure.policy;
+package com.movie.shop.api.operator.infrastructure;
 
 import com.movie.shop.api.operator.domain.condition.OperatorTheaterPermissionScopeTarget;
 import com.movie.shop.api.operator.domain.port.OperatorTheaterPermissionScopeTargetPort;
@@ -16,7 +16,10 @@ public class OperatorTheaterPermissionScopeTargetAdapter implements OperatorThea
 
     @Override
     public Optional<OperatorTheaterPermissionScopeTarget> findScopeTarget(long theaterId) {
-        return theaterJpaPort.findById(theaterId)
-                .map(theater -> new OperatorTheaterPermissionScopeTarget(theater.getId()));
+        if (!theaterJpaPort.existsById(theaterId)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new OperatorTheaterPermissionScopeTarget(theaterId));
     }
 }
