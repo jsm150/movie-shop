@@ -331,8 +331,8 @@ class OperatorAuthControllerIntegrationTest extends AbstractContainerBase {
 
     private String extractAccessToken(String responseBody) throws Exception {
         return objectMapper.readTree(responseBody)
-                .get("accessToken")
-                .asText();
+                .required("accessToken")
+                .asString();
     }
 
     private String bearer(String accessToken) {

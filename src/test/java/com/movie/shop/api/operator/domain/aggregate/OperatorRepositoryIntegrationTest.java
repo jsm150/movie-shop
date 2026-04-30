@@ -15,7 +15,6 @@ import com.movie.shop.api.operator.domain.port.OperatorTheaterPermissionScopeTar
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.condition.TheaterNameUniquenessCondition;
-import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -28,9 +27,6 @@ class OperatorRepositoryIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private TheaterRepository theaterRepository;
-
-    @Autowired
-    private TheaterJpaPort theaterJpaPort;
 
     @Autowired
     private OperatorTheaterPermissionScopeTargetPort operatorTheaterPermissionScopeTargetPort;

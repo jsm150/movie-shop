@@ -6,7 +6,6 @@ import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.condition.TheaterNameUniquenessCondition;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
-import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,9 +25,6 @@ class UpdateTheaterCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private TheaterRepository theaterRepository;
-
-    @Autowired
-    private TheaterJpaPort theaterJpaPort;
 
     @Autowired
     private EntityManager entityManager;

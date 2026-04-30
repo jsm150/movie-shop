@@ -8,7 +8,6 @@ import com.movie.shop.api.movie.domain.aggregate.Movie;
 import com.movie.shop.api.movie.domain.aggregate.MovieRepository;
 import com.movie.shop.api.movie.domain.aggregate.MovieStateChange;
 import com.movie.shop.api.movie.domain.aggregate.MovieStatus;
-import com.movie.shop.api.movie.domain.port.MovieJpaPort;
 import com.movie.shop.api.movie.domain.condition.MovieTitleUniquenessCondition;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import jakarta.persistence.EntityManager;
@@ -34,9 +33,6 @@ class ChangeStateMovieCommandHandlerIntegrationTest extends AbstractContainerBas
 
     @Autowired
     private MovieRepository movieRepository;
-
-    @Autowired
-    private MovieJpaPort movieJpaPort;
 
     @Autowired
     private EntityManager entityManager;

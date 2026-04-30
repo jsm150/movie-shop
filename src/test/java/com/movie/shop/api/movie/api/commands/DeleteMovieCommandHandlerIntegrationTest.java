@@ -14,7 +14,6 @@ import com.movie.shop.api.screening.api.commands.RegisterScreeningCommand;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
 import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.condition.TheaterNameUniquenessCondition;
-import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,9 +33,6 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
     @Autowired
     private Pipeline pipeline;
-
-    @Autowired
-    private TheaterJpaPort theaterJpaPort;
 
     @Autowired
     private MovieRepository movieRepository;

@@ -221,8 +221,8 @@ class MovieControllerIntegrationTest extends AbstractContainerBase {
                 .andReturn();
 
         return objectMapper.readTree(result.getResponse().getContentAsString())
-                .get("accessToken")
-                .asText();
+                .required("accessToken")
+                .asString();
     }
 
     private String bearer(String accessToken) {

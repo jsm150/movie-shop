@@ -29,7 +29,7 @@ public class AbstractContainerBase {
 
     static {
         SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-        MY_SQL_CONTAINER = new MySQLContainer("mysql:8.0");
+        MY_SQL_CONTAINER = new MySQLContainer("mysql:8.4");
         MY_SQL_CONTAINER.start();
     }
 

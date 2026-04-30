@@ -3,7 +3,6 @@ package com.movie.shop.api.theater.api.commands;
 import an.awesome.pipelinr.Pipeline;
 import com.movie.shop.api.configuration.AbstractContainerBase;
 import com.movie.shop.api.theater.domain.aggregate.Theater;
-import com.movie.shop.api.theater.domain.aggregate.TheaterRepository;
 import com.movie.shop.api.theater.domain.exceptions.TheaterDomainException;
 import com.movie.shop.api.theater.domain.port.TheaterJpaPort;
 import jakarta.persistence.EntityManager;
@@ -22,9 +21,6 @@ class RegisterTheaterCommandHandlerIntegrationTest extends AbstractContainerBase
 
     @Autowired
     private Pipeline pipeline;
-
-    @Autowired
-    private TheaterRepository theaterRepository;
 
     @Autowired
     private TheaterJpaPort theaterJpaPort;
