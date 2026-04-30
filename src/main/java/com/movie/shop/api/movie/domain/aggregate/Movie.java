@@ -5,6 +5,7 @@ import com.movie.shop.api.movie.domain.condition.MovieTitleUniquenessCondition;
 import com.movie.shop.api.movie.domain.exceptions.MovieDomainException;
 import com.movie.shop.api.shared.domain.EntityValidator;
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -13,8 +14,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 @Getter
 @Entity
@@ -46,8 +45,9 @@ public class Movie {
     private String director;
 
     @NotEmpty(message = "최소 하나 이상의 장르가 필요합니다.")
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "genres_json", columnDefinition = "json", nullable = false)
+    @ElementCollection
+    @CollectionTable(name = "movie_genre", joinColumns = @JoinColumn(name = "movie_id", nullable = false))
+    @Column(name = "genre", nullable = false, length = 50)
     private List<
         @NotBlank(
             message = "장르는 빈 값이나 공백을 포함할 수 없습니다."
@@ -73,9 +73,10 @@ public class Movie {
     private OffsetDateTime releaseDate;
 
     @NotEmpty(message = "최소 한 명 이상의 출연진이 필요합니다.")
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "casts_json", columnDefinition = "json", nullable = false)
-    private List<Actor> casts = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(name = "movie_cast", joinColumns = @JoinColumn(name = "movie_id", nullable = false))
+    @OrderColumn(name = "cast_order", nullable = false)
+    private List<@Valid Actor> casts = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

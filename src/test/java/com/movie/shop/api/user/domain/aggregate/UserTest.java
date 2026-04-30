@@ -1,7 +1,6 @@
 package com.movie.shop.api.user.domain.aggregate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.movie.shop.api.user.domain.condition.OAuthIdentityUniquenessCondition;

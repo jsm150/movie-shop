@@ -223,10 +223,10 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
     }
 
     @Test
-    @DisplayName("영화를 삭제하면 연관된 배우 엔티티도 함께 삭제된다")
+    @DisplayName("영화를 삭제하면 연관된 출연진 값 컬렉션도 함께 삭제된다")
     @Transactional
-    void deleteMovie_withCascadeDelete_removesActorsAsWell() {
-        // Given: 여러 배우가 있는 영화 저장
+    void deleteMovie_withCascadeDelete_removesCastsAsWell() {
+        // Given: 여러 출연진이 있는 영화 저장
         Actor actor1 = new Actor(
                 "크리스찬 베일",
                 OffsetDateTime.parse("1974-01-30T00:00:00Z"),
@@ -259,9 +259,10 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
 
         Long movieId = movie.getId();
 
-        // DB에 영화와 배우들이 저장되었는지 확인
+        // DB에 영화와 출연진이 저장되었는지 확인
         Movie savedMovie = movieJpaPort.findById(movieId).orElseThrow();
         assertThat(savedMovie.getCasts()).hasSize(2);
+        assertThat(countMovieCasts(movieId)).isEqualTo(2);
 
         // When: 영화 삭제
         DeleteMovieCommand command = new DeleteMovieCommand(movieId);
@@ -270,11 +271,23 @@ class DeleteMovieCommandHandlerIntegrationTest extends AbstractContainerBase {
         entityManager.flush();
         entityManager.clear();
 
-        // Then: DB에서 영화와 연관된 배우들도 삭제되었는지 확인
+        // Then: DB에서 영화와 연관된 출연진도 삭제되었는지 확인
         assertThat(movieJpaPort.findById(movieId)).isEmpty();
-        
-        // 배우들이 영화와 함께 cascade 삭제되었는지 확인
-        // (Actor가 Movie의 자식 엔티티이므로 함께 삭제됨)
+        assertThat(countMovieCasts(movieId)).isZero();
+    }
+
+    private long countMovieCasts(Long movieId) {
+        Long count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM movie_cast WHERE movie_id = ?",
+                Long.class,
+                movieId
+        );
+
+        if (count == null) {
+            throw new IllegalStateException("출연진 수를 조회할 수 없습니다.");
+        }
+
+        return count;
     }
 
     @Test
